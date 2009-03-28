@@ -139,6 +139,11 @@ ART.Window = new Class({
 		this.render();
 	},
 	
+	setContent: function(){
+		this.content.adopt(arguments);
+		return this;
+	},
+	
 	render: function(style){
 		if (!this.paint) return this;
 		if (style) $extend(this.style.now, style);
