@@ -19,7 +19,7 @@ ART.Window = new Class({
 			'button-top': 5,
 			
 			'corner-radius': 3,
-			'header-height': 23,
+			'header-height': 24,
 			'footer-height': 16,
 			'header-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 60)},
 			'footer-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 70)},
@@ -42,7 +42,7 @@ ART.Window = new Class({
 			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0.8),
+			'glyph-color': hsb(0, 0, 100, 0),
 			
 			'glyph': 'close-icon',
 			
@@ -57,7 +57,7 @@ ART.Window = new Class({
 			'glyph-color': hsb(0, 0, 100),
 			'background-color': hsb(200, 15, 65),
 			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 15, 90)}
+			'border-color': hsb(200, 35, 45)
 		}},
 		
 		minimizeStyle: {base: {
@@ -66,7 +66,7 @@ ART.Window = new Class({
 			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0.8),
+			'glyph-color': hsb(0, 0, 100, 0),
 			
 			'glyph': 'minus-icon',
 			
@@ -81,7 +81,7 @@ ART.Window = new Class({
 			'glyph-color': hsb(0, 0, 100),
 			'background-color': hsb(200, 15, 65),
 			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 15, 90)}
+			'border-color': hsb(200, 35, 45)
 		}},
 		
 		maximizeStyle: {base: {
@@ -90,7 +90,7 @@ ART.Window = new Class({
 			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0.8),
+			'glyph-color': hsb(0, 0, 100, 0),
 			
 			'glyph': 'plus-icon',
 			
@@ -105,7 +105,7 @@ ART.Window = new Class({
 			'glyph-color': hsb(0, 0, 100),
 			'background-color': hsb(200, 15, 65),
 			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 15, 90)}
+			'border-color': hsb(200, 35, 45)
 		}}
 	},
 	

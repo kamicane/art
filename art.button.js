@@ -28,8 +28,8 @@ ART.Button = new Class({
 			'corner-radius': 3,
 			'background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 50)},
 			'border-color': hsb(0, 0, 0, 0.7),
-			'reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)}
-
+			'reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
+			'shadow-color': hsb(0, 0, 100, 0.6)
 		},
 		
 		active: {
@@ -37,7 +37,6 @@ ART.Button = new Class({
 			'background-color': hsb(0, 0, 40),
 			'border-color': hsb(0, 0, 0, 0.8),
 			'reflection-color': {0: hsb(0, 0, 30, 1), 1: hsb(0, 0, 0, 0)}
-
 		}
 
 	},
@@ -72,10 +71,14 @@ ART.Button = new Class({
 		var now = {};
 		for (var p in this.style.now) now[p.camelCase()] = this.style.now[p];
 		
-		this.paint.resize({x: now.width, y: now.height});
-		this.element.setStyles({height: now.height, width: now.width});
+		this.paint.resize({x: now.width, y: now.height + 1});
+		this.element.setStyles({width: now.width, height: now.height + 1});
 		
 		var shape = (now.pill) ? (now.width > now.height) ? 'horizontal-pill' : 'vertical-pill' : 'rounded-rectangle';
+		
+		this.paint.start();
+		this.paint.shape(shape, {x: now.width, y: now.height + 1}, now.cornerRadius + 1);
+		this.paint.render({'fill': now.shadowColor});
 		
 		this.paint.start();
 		this.paint.shape(shape, {x: now.width, y: now.height}, now.cornerRadius + 1);
