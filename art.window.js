@@ -21,11 +21,11 @@ ART.Window = new Class({
 			'corner-radius': 3,
 			'header-height': 23,
 			'footer-height': 16,
-			'header-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 50)},
+			'header-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 60)},
 			'footer-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 70)},
 			'header-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
 			'footer-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
-			'border-color': hsb(0, 0, 0, 0.7)
+			'border-color': hsb(0, 0, 0, 0.5)
 		}
 
 	},
@@ -56,8 +56,8 @@ ART.Window = new Class({
 		}, active: {
 			'glyph-color': hsb(0, 0, 100),
 			'background-color': hsb(200, 15, 65),
-			'reflection-color': hsb(200, 35, 65),
-			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 35, 90)}
+			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 15, 90)}
 		}},
 		
 		minimizeStyle: {base: {
@@ -80,8 +80,8 @@ ART.Window = new Class({
 		}, active: {
 			'glyph-color': hsb(0, 0, 100),
 			'background-color': hsb(200, 15, 65),
-			'reflection-color': hsb(200, 35, 65),
-			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 35, 90)}
+			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 15, 90)}
 		}},
 		
 		maximizeStyle: {base: {
@@ -104,8 +104,8 @@ ART.Window = new Class({
 		}, active: {
 			'glyph-color': hsb(0, 0, 100),
 			'background-color': hsb(200, 15, 65),
-			'reflection-color': hsb(200, 35, 65),
-			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 35, 90)}
+			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+			'border-color': {0: hsb(200, 35, 25), 1: hsb(200, 15, 90)}
 		}}
 	},
 	
