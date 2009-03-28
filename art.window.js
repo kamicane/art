@@ -172,7 +172,7 @@ ART.Window = new Class({
 		this.paint.render({fill: now.footerBackgroundColor});
 		
 		if (this.options.resize){
-			this.paint.start({x: now.width - 13, y: now.height - now.footerHeight + 3});
+			this.paint.start({x: now.width - 13, y: now.height - 13});
 			this.paint.shape('resize-icon', {x: 10, y: 10});
 			this.paint.shape('lift', {x: -6, y: -6});
 			this.paint.shape('resize-icon', {x: 6, y: 6});
