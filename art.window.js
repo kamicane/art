@@ -112,12 +112,14 @@ ART.Window = new Class({
 		this.element.setStyles({'position': 'relative'});
 		
 		this.header = new Element('div', {'class': 'art-window-header'});
+		this.content = new Element('div', {'class': 'art-window-content'});
 		this.footer = new Element('div', {'class': 'art-window-footer'});
 		
 		this.header.setStyles(relative);
+		this.content.setStyles(relative);
 		this.footer.setStyles(relative);
 		
-		this.element.adopt(this.header, this.footer);
+		this.element.adopt(this.header, this.content, this.footer);
 		
 		if (this.options.close){
 			this.close = new ART.Button({style: this.options.closeStyle});
@@ -146,6 +148,7 @@ ART.Window = new Class({
 		
 		this.paint.resize({x: now.width, y: now.height});
 		this.element.setStyles({height: now.height, width: now.width});
+		this.content.setStyles({top: 0, left: 1, height: now.height - now.footerHeight - now.headerHeight - 2, width: now.width -2});
 		
 		this.paint.start();
 		this.paint.shape('rounded-rectangle', {x: now.width, y: now.height}, now.cornerRadius + 1);
@@ -161,7 +164,7 @@ ART.Window = new Class({
 		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.headerHeight - 3}, [now.cornerRadius, now.cornerRadius, 0, 0]);
 		this.paint.render({fill: now.headerBackgroundColor});
 		
-		this.footer.setStyles({'width': now.width, height: now.footerHeight, 'top': now.height - now.headerHeight - now.footerHeight});
+		this.footer.setStyles({'width': now.width, height: now.footerHeight});
 		
 		this.paint.start({x: 1, y: now.height - now.footerHeight - 1});
 		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.footerHeight}, [0, 0, now.cornerRadius, now.cornerRadius]);
@@ -172,6 +175,15 @@ ART.Window = new Class({
 		this.paint.render({fill: now.footerBackgroundColor});
 		
 		if (this.options.resize){
+			
+			this.paint.start({x: now.width - 13, y: now.height - 12});
+			this.paint.shape('resize-icon', {x: 10, y: 10});
+			this.paint.shape('lift', {x: -6, y: -6});
+			this.paint.shape('resize-icon', {x: 6, y: 6});
+			this.paint.shape('lift', {x: -2, y: -2});
+			this.paint.shape('resize-icon', {x: 2, y: 2});
+			this.paint.render({'stroke': hsb(0, 0, 100, 0.6)});
+			
 			this.paint.start({x: now.width - 13, y: now.height - 13});
 			this.paint.shape('resize-icon', {x: 10, y: 10});
 			this.paint.shape('lift', {x: -6, y: -6});
