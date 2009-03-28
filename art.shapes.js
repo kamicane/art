@@ -75,6 +75,18 @@ ART.Paint.defineShape('plus-icon', function(size){
 	this.lift({x: (size.x / 2), y: 0});
 });
 
+ART.Paint.defineShape('resize-icon', function(size){
+	this.lift({x: size.x, y: 0});
+	this.line({x: -size.x, y: size.y});
+	this.lift({x: size.x, y: 0});
+});
+
+ART.Paint.defineShape('minus-icon', function(size){
+	this.lift({x: 0, y: (size.y / 2)});
+	this.line({x: size.x, y: 0});
+	this.lift({x: 0, y: (size.y / 2)});
+});
+
 ART.Paint.defineShape('search-icon', function(size){
 	ratio = 0.8;
 	var max = ratio, min = 1 - ratio;

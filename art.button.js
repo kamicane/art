@@ -11,33 +11,44 @@ ART.Button = new Class({
 	style: {
 		
 		base: {
+			
+			'height': 20,
+			'width': 100,
+
+			'glyph': false,
+			'glyph-stroke': 2,
+			'glyph-color': hsb(0, 0, 0, 0.8),
+			'glyph-height': 10,
+			'glyph-width': 10,
+			'glyph-top': 2,
+			'glyph-left': 2,
+			
 			'pill': false,
+			
 			'corner-radius': 3,
 			'background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 50)},
-			'border-color': hsb(0, 0, 0, 0.8),
+			'border-color': hsb(0, 0, 0, 0.7),
 			'reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)}
+
 		},
 		
 		active: {
+
 			'background-color': hsb(0, 0, 40),
 			'border-color': hsb(0, 0, 0, 0.8),
 			'reflection-color': {0: hsb(0, 0, 30, 1), 1: hsb(0, 0, 0, 0)}
+
 		}
 
 	},
 	
-	options: {
-		height: 20,
-		width: 200
-	},
+	options: {},
 	
 	initialize: function(options){
 		this.parent(options);
 		
 		this.paint = new ART.Paint();
 		$(this.paint).inject(this.element);
-		
-		$extend(this.style.now, {height: this.options.height, width: this.options.width});
 		
 		var self = this;
 		
@@ -77,6 +88,12 @@ ART.Button = new Class({
 		this.paint.start({x: 1, y: 2});
 		this.paint.shape(shape, {x: now.width - 2, y: now.height - 3}, now.cornerRadius);
 		this.paint.render({fill: now.backgroundColor});
+		
+		if (now.glyph){
+			this.paint.start({x: now.glyphLeft, y: now.glyphTop});
+			this.paint.shape(now.glyph, {x: now.glyphWidth, y: now.glyphHeight});
+			this.paint.render({'stroke-width': now.glyphStroke, 'stroke': now.glyphColor});
+		}
 		
 		return this;
 	}

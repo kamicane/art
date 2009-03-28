@@ -16,6 +16,7 @@ ART.Widget = new Class({
 		// onBlur: $empty,
 		// onEnable: $empty,
 		// onDisable: $empty,
+		style: null
 	},
 	
 	style: {
@@ -28,6 +29,8 @@ ART.Widget = new Class({
 	
 	initialize: function(options){
 		if (options) this.setOptions(options);
+		
+		if (this.options.style) this.style = $merge(this.style, this.options.style);
 		
 		this.prefix = this.ns + '-' + this.name;
 		this.element = new Element('div');
