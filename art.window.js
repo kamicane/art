@@ -42,7 +42,7 @@ ART.Window = new Class({
 			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0),
+			'glyph-color': hsb(0, 0, 100, 0.5),
 			
 			'glyph': 'close-icon',
 			
@@ -66,7 +66,7 @@ ART.Window = new Class({
 			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0),
+			'glyph-color': hsb(0, 0, 100, 0.5),
 			
 			'glyph': 'minus-icon',
 			
@@ -90,7 +90,7 @@ ART.Window = new Class({
 			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0),
+			'glyph-color': hsb(0, 0, 100, 0.5),
 			
 			'glyph': 'plus-icon',
 			
@@ -166,45 +166,45 @@ ART.Window = new Class({
 		
 		this.paint.start();
 		this.paint.shape('rounded-rectangle', {x: now.width, y: now.height}, now.cornerRadius + 1);
-		this.paint.render({'fill': now.borderColor});
+		this.paint.end({'fill': true, 'fill-color': now.borderColor});
 		
 		this.header.setStyles({'width': now.width, height: now.headerHeight});
 		
 		this.paint.start({x: 1, y: 1});
 		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.headerHeight - 2}, [now.cornerRadius, now.cornerRadius, 0, 0]);
-		this.paint.render({fill: now.headerReflectionColor});
+		this.paint.end({'fill': true, 'fill-color': now.headerReflectionColor});
 		
 		this.paint.start({x: 1, y: 2});
 		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.headerHeight - 3}, [now.cornerRadius, now.cornerRadius, 0, 0]);
-		this.paint.render({fill: now.headerBackgroundColor});
+		this.paint.end({'fill': true, 'fill-color': now.headerBackgroundColor});
 		
 		this.footer.setStyles({'width': now.width, height: now.footerHeight});
 		
 		this.paint.start({x: 1, y: now.height - now.footerHeight - 1});
 		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.footerHeight}, [0, 0, now.cornerRadius, now.cornerRadius]);
-		this.paint.render({fill: now.footerReflectionColor});
+		this.paint.end({'fill': true, 'fill-color': now.footerReflectionColor});
 		
 		this.paint.start({x: 1, y: now.height - now.footerHeight});
 		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.footerHeight - 1}, [0, 0, now.cornerRadius, now.cornerRadius]);
-		this.paint.render({fill: now.footerBackgroundColor});
+		this.paint.end({'fill': true, 'fill-color': now.footerBackgroundColor});
 		
 		if (this.options.resize){
 			
-			this.paint.start({x: now.width - 13, y: now.height - 12});
-			this.paint.shape('resize-icon', {x: 10, y: 10});
-			this.paint.shape('lift', {x: -6, y: -6});
-			this.paint.shape('resize-icon', {x: 6, y: 6});
-			this.paint.shape('lift', {x: -2, y: -2});
-			this.paint.shape('resize-icon', {x: 2, y: 2});
-			this.paint.render({'stroke': hsb(0, 0, 100, 0.6)});
+			this.paint.start({x: now.width - 4, y: now.height - 14});
+			this.paint.lineBy({x: -10, y: 10});
+			this.paint.moveBy({x: 4, y: 0});
+			this.paint.lineBy({x: 6, y: -6});
+			this.paint.moveBy({x: 0, y: 4});
+			this.paint.lineBy({x: -2, y: 2});
+			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 100, 0.6)});
 			
-			this.paint.start({x: now.width - 13, y: now.height - 13});
-			this.paint.shape('resize-icon', {x: 10, y: 10});
-			this.paint.shape('lift', {x: -6, y: -6});
-			this.paint.shape('resize-icon', {x: 6, y: 6});
-			this.paint.shape('lift', {x: -2, y: -2});
-			this.paint.shape('resize-icon', {x: 2, y: 2});
-			this.paint.render({'stroke': hsb(0, 0, 0, 0.6)});
+			this.paint.start({x: now.width - 5, y: now.height - 14});
+			this.paint.lineBy({x: -10, y: 10});
+			this.paint.moveBy({x: 4, y: 0});
+			this.paint.lineBy({x: 6, y: -6});
+			this.paint.moveBy({x: 0, y: 4});
+			this.paint.lineBy({x: -2, y: 2});
+			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 0, 0.6)});
 		}
 		
 		// painting buttons

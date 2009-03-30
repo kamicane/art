@@ -26,14 +26,13 @@ ART.Button = new Class({
 			'pill': false,
 			
 			'corner-radius': 3,
-			'background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 50)},
+			'background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 60)},
 			'border-color': hsb(0, 0, 0, 0.7),
 			'reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
 			'shadow-color': hsb(0, 0, 100, 0.6)
 		},
 		
 		active: {
-
 			'background-color': hsb(0, 0, 40),
 			'border-color': hsb(0, 0, 0, 0.8),
 			'reflection-color': {0: hsb(0, 0, 30, 1), 1: hsb(0, 0, 0, 0)}
@@ -76,26 +75,26 @@ ART.Button = new Class({
 		
 		var shape = (now.pill) ? (now.width > now.height) ? 'horizontal-pill' : 'vertical-pill' : 'rounded-rectangle';
 		
-		this.paint.start();
+		this.paint.start({x: 0, y: 0});
 		this.paint.shape(shape, {x: now.width, y: now.height + 1}, now.cornerRadius + 1);
-		this.paint.render({'fill': now.shadowColor});
+		this.paint.end({'fill': true, 'fill-color': now.shadowColor});
 		
-		this.paint.start();
+		this.paint.start({x: 0, y: 0});
 		this.paint.shape(shape, {x: now.width, y: now.height}, now.cornerRadius + 1);
-		this.paint.render({'fill': now.borderColor});
+		this.paint.end({'fill': true, 'fill-color': now.borderColor});
 		
 		this.paint.start({x: 1, y: 1});
 		this.paint.shape(shape, {x: now.width - 2, y: now.height - 2}, now.cornerRadius);
-		this.paint.render({fill: now.reflectionColor});
+		this.paint.end({'fill': true, 'fill-color': now.reflectionColor});
 		
 		this.paint.start({x: 1, y: 2});
 		this.paint.shape(shape, {x: now.width - 2, y: now.height - 3}, now.cornerRadius);
-		this.paint.render({fill: now.backgroundColor});
+		this.paint.end({'fill': true, 'fill-color': now.backgroundColor});
 		
 		if (now.glyph){
 			this.paint.start({x: now.glyphLeft, y: now.glyphTop});
 			this.paint.shape(now.glyph, {x: now.glyphWidth, y: now.glyphHeight});
-			this.paint.render({'stroke-width': now.glyphStroke, 'stroke': now.glyphColor});
+			this.paint.end({'stroke': true, 'stroke-width': now.glyphStroke, 'stroke-color': now.glyphColor});
 		}
 		
 		return this;
