@@ -23,7 +23,9 @@ ART.Adapter = new Class({
 	},
 	
 	initialize: function(){
-		this.globalStack = [];
+		this.stack = {
+			global: []
+		};
 		this.global = {x: 0, y: 0};
 		this.shift({x: 0, y: 0});
 	},
@@ -39,7 +41,7 @@ ART.Adapter = new Class({
 		this.joinVector = {x: 0, y: 0};
 		this.drawn = false;
 		
-		this.localStack = [];
+		this.stack.local = [];
 		this.local = {x: 0, y: 0};
 
 		return this.shift(vector);
@@ -48,18 +50,19 @@ ART.Adapter = new Class({
 	shift: function(vector){
 		var p = (this.started) ? 'local' : 'global';
 		this[p] = {x: this[p].x + vector.x, y: this[p].y + vector.y};
-		return (this.started) ? this.moveTo({x: 0, y: 0}) : this;
+		if (this.started) this.moveTo({x: 0, y: 0});
+		return this;
 	},
 	
 	save: function(){
 		var p = (this.started) ? 'local' : 'global';
-		this[p + 'Stack'].push(this[p]);
+		this.stack[p].push(this[p]);
 		return this;
 	},
 	
 	restore: function(){
 		var p = (this.started) ? 'local' : 'global';
-		var vector = this[p + 'Stack'].pop();
+		var vector = this.stack[p].pop();
 		if (!vector) return this;
 		this[p] = vector;
 		return (this.started) ? this.moveTo({x: 0, y: 0}) : this;
