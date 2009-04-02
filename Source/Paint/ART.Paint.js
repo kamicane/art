@@ -1,4 +1,9 @@
-// art.paint.js
+/*
+Script: ART.Paint.js
+
+License:
+	MIT-style license.
+*/
 
 // kappa!
 

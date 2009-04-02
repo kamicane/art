@@ -1,4 +1,9 @@
-// art.font.js
+/*
+Script: ART.Font.js
+
+License:
+	MIT-style license.
+*/
 
 // ========================================== 
 // This file implements code from Cufón

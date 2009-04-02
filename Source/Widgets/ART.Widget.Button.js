@@ -1,8 +1,13 @@
-// art.button.js
+/*
+Script: ART.Widget.Button.js
+
+License:
+	MIT-style license.
+*/
 
 // Button Widget. Work in progress.
 
-ART.Button = new Class({
+ART.Widget.Button = new Class({
 	
 	Extends: ART.Widget,
 	

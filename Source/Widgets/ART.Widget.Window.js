@@ -1,8 +1,13 @@
-// art.window.js
+/*
+Script: ART.Widget.Window.js
+
+License:
+	MIT-style license.
+*/
 
 // Window Widget. Work in progress.
 
-ART.Window = new Class({
+ART.Widget.Window = new Class({
 	
 	Extends: ART.Widget,
 	
@@ -190,20 +195,16 @@ ART.Window = new Class({
 		
 		if (this.options.resize){
 			
+			var drawLines = function(self){
+				self.paint.lineBy({x: -10, y: 10}).moveBy({x: 4, y: 0}).lineBy({x: 6, y: -6}).moveBy({x: 0, y: 4}).lineBy({x: -2, y: 2});
+			};
+			
 			this.paint.start({x: now.width - 4, y: now.height - 14});
-			this.paint.lineBy({x: -10, y: 10});
-			this.paint.moveBy({x: 4, y: 0});
-			this.paint.lineBy({x: 6, y: -6});
-			this.paint.moveBy({x: 0, y: 4});
-			this.paint.lineBy({x: -2, y: 2});
+			drawLines(this);
 			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 100, 0.6)});
 			
 			this.paint.start({x: now.width - 5, y: now.height - 14});
-			this.paint.lineBy({x: -10, y: 10});
-			this.paint.moveBy({x: 4, y: 0});
-			this.paint.lineBy({x: 6, y: -6});
-			this.paint.moveBy({x: 0, y: 4});
-			this.paint.lineBy({x: -2, y: 2});
+			drawLines(this);
 			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 0, 0.6)});
 		}
 		

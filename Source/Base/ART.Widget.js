@@ -1,4 +1,9 @@
-// art.widget.js
+/*
+Script: ART.Widget.js
+
+License:
+	MIT-style license.
+*/
 
 // Base widget class. Based on » http://gist.github.com/85837
 

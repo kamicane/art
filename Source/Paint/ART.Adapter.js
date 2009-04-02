@@ -1,4 +1,9 @@
-// art.adapter.js
+/*
+Script: ART.Adapter.js
+
+License:
+	MIT-style license.
+*/
 
 // Generic adapter base Class.
 

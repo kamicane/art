@@ -1,4 +1,9 @@
-// art.shape.js
+/*
+Script: ART.Shape.js
+
+License:
+	MIT-style license.
+*/
 
 // ART.Shape Class stub.
 // Will probably support defining shapes as json at some point.

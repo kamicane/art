@@ -1,4 +1,9 @@
-// Canvas Adapter.
+/*
+Script: ART.Adapter.Canvas.js
+
+License:
+	MIT-style license.
+*/
 
 ART.Adapter.Canvas = new Class({
 	
