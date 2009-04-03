@@ -136,17 +136,17 @@ ART.Widget.Window = new Class({
 		this.element.adopt(this.header, this.content, this.footer);
 		
 		if (this.options.close){
-			this.close = new ART.Button({style: this.options.closeStyle});
+			this.close = new ART.Widget.Button({style: this.options.closeStyle});
 			$(this.close).setStyles(absolute).inject(this.header);
 		}
 		
 		if (this.options.maximize){
-			this.maximize = new ART.Button({style: this.options.maximizeStyle});
+			this.maximize = new ART.Widget.Button({style: this.options.maximizeStyle});
 			$(this.maximize).setStyles(absolute).inject(this.header);
 		}
 		
 		if (this.options.minimize){
-			this.minimize = new ART.Button({style: this.options.minimizeStyle});
+			this.minimize = new ART.Widget.Button({style: this.options.minimizeStyle});
 			$(this.minimize).setStyles(absolute).inject(this.header);
 		}
 		
