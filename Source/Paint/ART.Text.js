@@ -16,6 +16,7 @@ ART.Font = new Class({
 	
 	initialize: function(font){
 		this.ascent = font.face.ascent;
+		this.descent = font.face.descent;
 		this.units = font.face['units-per-em'];
 		this.glyphs = font.glyphs;
 		this.width = font.w;
@@ -28,7 +29,7 @@ ART.Font = new Class({
 			var glyph = this.glyphs[t] || this.glyphs[' '];
 			width += size * (glyph.w || this.width);
 		}, this);
-		return {x: width, y: size * this.ascent};
+		return {x: width, y: size * (this.ascent - this.descent)};
 	}
 
 });
