@@ -33,14 +33,18 @@ ART.Font = new Class({
 
 });
 
-ART.Paint.defineFont = function(name, font){
-	ART.Font[name.camelCase()] = new ART.Font(font);
-	return this;
-};
+(function(){
+	var fonts = {};
 
-ART.Paint.lookupFont = function(name, font){
-	return ART.Font[name.camelCase()];
-};
+	ART.Paint.defineFont = function(name, font){
+		fonts[name.camelCase()] = new ART.Font(font);
+		return this;
+	};
+
+	ART.Paint.lookupFont = function(name){
+		return fonts[name.camelCase()];
+	};
+})();
 
 (function(){
 	
