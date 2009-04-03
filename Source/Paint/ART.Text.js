@@ -53,9 +53,9 @@ ART.Font = new Class({
 		for (var i = 0; match = regexp.exec(glyph); i++){
 			var c = match[2].split(',');
 			switch (match[1]){
-				case 'v': ctx.bezierBy({x: s * ~~c[0], y: s * ~~c[1]}, {x: s * ~~c[2], y: s * ~~c[3]}, {x: s * ~~c[4], y: s * ~~c[5]}); break;
-				case 'r': ctx.lineBy({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'm': ctx.moveTo({x: s * ~~c[0], y: s * ~~c[1]}); break;
+				case 'v': ctx.bezierBy({x: s * c[0], y: s * c[1]}, {x: s * c[2], y: s * c[3]}, {x: s * c[4], y: s * c[5]}); break;
+				case 'r': ctx.lineBy({x: s * c[0], y: s * c[1]}); break;
+				case 'm': ctx.moveTo({x: s * c[0], y: s * c[1]}); break;
 				case 'x': ctx.join(); break;
 				case 'e': return;
 			}
