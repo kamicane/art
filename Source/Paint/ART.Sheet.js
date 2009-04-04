@@ -11,44 +11,41 @@ ART.Sheet = {};
 	// http://www.w3.org/TR/CSS21/cascade.html#specificity
 	var rules = [];
 
-	ART.Sheet.defineStyle = function(sel, style){
-		var rule = {'specificity': 0, 'selector': [], 'style': {}};
-		rules.push(rule);
-		for (p in style) rule.style[p.camelCase()] = style[p];
-
-		var parsed = SubtleSlickParse(sel)[0][0];
-		if (parsed.tag && parsed.tag != '*'){
-			rule.specificity += 1;
-			rule.selector.push(parsed.tag);
+	var parseSelector = function(selector){
+		if (typeof selector == 'string') selector = SubtleSlickParse(selector)[0][0];
+		var result = [];
+		if (selector.tag && selector.tag != '*'){
+			result.push(selector.tag);
 		}
-		if (parsed.pseudos) parsed.pseudos.each(function(pseudo){
-			rule.specificity += 1;
-			rule.selector.push(':' + pseudo.name);
+		if (selector.pseudos) selector.pseudos.each(function(pseudo){
+			result.push(':' + pseudo.name);
 		});
-		if (parsed.classes) parsed.classes.each(function(klass){
-			rule.specificity += 10;
-			rule.selector.push('.' + klass);
+		if (selector.classes) selector.classes.each(function(klass){
+			result.push('.' + klass);
 		});
+		return result;
 	};
 
-	ART.Sheet.lookupStyle = function(sel){
+	ART.Sheet.defineStyle = function(selector, style){
+		selector = SubtleSlickParse(selector)[0][0];
+		var rule = {
+			'specificity': ((selector.tag && selector.tag != '*') ? 1 : 0)
+				+ (selector.pseudos || []).length
+				+ (selector.classes || []).length * 100,
+			'selector': parseSelector(selector),
+			'style': {}
+		};
+		for (p in style) rule.style[p.camelCase()] = style[p];
+		rules.push(rule);
+	};
+
+	ART.Sheet.lookupStyle = function(selector){
 		var style = {};
 		rules.sort(function(a, b){
 			return a.specificity - b.specificity;
 		});
 
-		var selector = [];
-		var parsed = SubtleSlickParse(sel)[0][0];
-		if (parsed.tag && parsed.tag != '*'){
-			selector.push(parsed.tag);
-		}
-		if (parsed.pseudos) parsed.pseudos.each(function(pseudo){
-			selector.push(':' + pseudo.name);
-		});
-		if (parsed.classes) parsed.classes.each(function(klass){
-			selector.push('.' + klass);
-		});
-
+		selector = parseSelector(selector);
 		rules.each(function(rule){
 			if (rule.selector.every(function(chunk){
 				return selector.contains(chunk);
@@ -56,7 +53,7 @@ ART.Sheet = {};
 				$mixin(style, rule.style);
 			}
 		});
-		
+
 		return style;
 	};
 })();
