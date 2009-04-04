@@ -7,41 +7,53 @@ License:
 
 ART.Sheet = {};
 
-
-// Merge chain: * > button > button:hover > button.metal > button.metal:hover
-
 (function(){
-	var rules = {};
+	// http://www.w3.org/TR/CSS21/cascade.html#specificity
+	var rules = [];
 
 	ART.Sheet.defineStyle = function(sel, style){
+		var rule = {'specificity': 0, 'selector': [], 'style': {}};
+		rules.push(rule);
+		for (p in style) rule.style[p.camelCase()] = style[p];
+
 		var parsed = SubtleSlickParse(sel)[0][0];
-		sel = parsed.tag || '*';
-		if (parsed.classes) sel += '.' + parsed.classes[0];
-		if (parsed.pseudos) sel += ':' + parsed.pseudos[0].name;
-		var styleCC = {};
-		for (p in style) styleCC[p.camelCase()] = style[p];
-		rules[sel] = styleCC;
+		if (parsed.tag && parsed.tag != '*'){
+			rule.specificity += 1;
+			rule.selector.push(parsed.tag);
+		}
+		if (parsed.pseudos) parsed.pseudos.each(function(pseudo){
+			rule.specificity += 1;
+			rule.selector.push(':' + pseudo.name);
+		});
+		if (parsed.classes) parsed.classes.each(function(klass){
+			rule.specificity += 10;
+			rule.selector.push('.' + klass);
+		});
 	};
 
-	ART.Sheet.lookupStyle = function(sel, state){
-		sel = SubtleSlickParse(sel)[0][0];
+	ART.Sheet.lookupStyle = function(sel){
 		var style = {};
-		var add = function(sel){
-			$mixin(style, rules[sel]);
-		};
+		rules.sort(function(a, b){
+			return a.specificity - b.specificity;
+		});
 
-		['*'].include(sel.tag || '*').each(function(tag){
-			add(tag);
-			if (state) add(tag + ':' + state);
-			if (sel.classes){
-				sel.classes.each(function(klass){
-					add(tag + '.' + klass);
-				});
-			}
-			if (state && sel.classes){
-				sel.classes.each(function(klass){
-					add(tag + '.' + klass + ':' + state);
-				});
+		var selector = [];
+		var parsed = SubtleSlickParse(sel)[0][0];
+		if (parsed.tag && parsed.tag != '*'){
+			selector.push(parsed.tag);
+		}
+		if (parsed.pseudos) parsed.pseudos.each(function(pseudo){
+			selector.push(':' + pseudo.name);
+		});
+		if (parsed.classes) parsed.classes.each(function(klass){
+			selector.push('.' + klass);
+		});
+
+		rules.each(function(rule){
+			if (rule.selector.every(function(chunk){
+				return selector.contains(chunk);
+			})){
+				$mixin(style, rule.style);
 			}
 		});
 		
