@@ -24,35 +24,20 @@ ART.Widget = new Class({
 		style: null
 	},
 	
-	style: {
-		base: null,
-		active: null,
-		disabled: null,
-		focused: null,
-		hidden: null
-	},
-	
 	initialize: function(options){
 		if (options) this.setOptions(options);
-		
-		if (this.options.style) this.style = $merge(this.style, this.options.style);
 		
 		this.prefix = this.ns + '-' + this.name;
 		this.element = new Element('div');
 		this.element.addClass(this.ns).addClass(this.prefix);
 		
-		this.style.now = $unlink(this.style.base);
-
 		// initial render
 		this.render();
 	},
 	
 	// render placeholder
 	
-	render: function(style){
-		if (style) $extend(this.style.now, style);
-		
-		this.element.setStyles(this.style.now);
+	render: function(state){
 		return this;
 	},
 	
@@ -63,7 +48,7 @@ ART.Widget = new Class({
 			this.hidden = true;
 			this.fireEvent('hide');
 			this.element.addClass(this.prefix + '-hidden');
-			this.render(this.style.hidden);
+			this.render('hidden');
 		}
 		return this;
 	},
@@ -73,7 +58,7 @@ ART.Widget = new Class({
 			this.active = true;
 			this.fireEvent('activate');
 			this.element.addClass(this.prefix + '-active');
-			this.render(this.style.active);
+			this.render('active');
 		}
 		return this;
 	},
@@ -83,7 +68,7 @@ ART.Widget = new Class({
 			this.focused = true;
 			this.fireEvent('focus');
 			this.element.addClass(this.prefix + '-focused');
-			this.render(this.style.focused);
+			this.render('focus');
 		}
 		return this;
 	},
@@ -93,7 +78,7 @@ ART.Widget = new Class({
 			this.disabled = true;
 			this.fireEvent('disable');
 			this.element.addClass(this.prefix + '-disabled');
-			this.render(this.style.disabled);
+			this.render('disabled');
 		}
 		return this;
 	},
@@ -105,7 +90,7 @@ ART.Widget = new Class({
 			this.hidden = false;
 			this.fireEvent('show');
 			this.element.removeClass(this.prefix + '-hidden');
-			this.render(this.style.base);
+			this.render();
 		}
 		return this;
 	},
@@ -115,7 +100,7 @@ ART.Widget = new Class({
 			this.active = false;
 			this.fireEvent('deactivate');
 			this.element.removeClass(this.prefix + '-active');
-			this.render(this.style.base);
+			this.render();
 		}
 		return this;
 	},
@@ -125,7 +110,7 @@ ART.Widget = new Class({
 			this.focused = false;
 			this.fireEvent('blur');
 			this.element.removeClass(this.prefix + '-focused');
-			this.render(this.style.base);
+			this.render();
 		}
 		return this;
 	},
@@ -135,7 +120,7 @@ ART.Widget = new Class({
 			this.disabled = false;
 			this.fireEvent('enable');
 			this.element.removeClass(this.prefix + '-disabled');
-			this.render(this.style.base);
+			this.render();
 		}
 		return this;
 	},

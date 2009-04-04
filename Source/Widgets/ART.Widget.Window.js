@@ -6,6 +6,101 @@ License:
 */
 
 // Window Widget. Work in progress.
+ART.Sheet.defineStyle('window', {
+	
+	'height': 300,
+	'width': 400,
+	
+	'button-margin': 20,
+	'button-top': 5,
+	
+	'corner-radius': 3,
+	'header-height': 24,
+	'footer-height': 16,
+	'header-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 60)},
+	'footer-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 70)},
+	'header-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
+	'footer-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(0, 0, 0, 0.5)
+});
+
+ART.Sheet.defineStyle('button.window-close', {
+	'pill': true,
+	
+	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
+	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45),
+	'glyph-color': hsb(0, 0, 100, 0.5),
+	
+	'glyph': 'close-icon',
+	
+	'height': 14,
+	'width': 14,
+	
+	'glyph-height': 4,
+	'glyph-width': 4,
+	'glyph-top': 5,
+	'glyph-left': 5
+});
+
+ART.Sheet.defineStyle('button.window-close:active', {
+	'glyph-color': hsb(0, 0, 100),
+	'background-color': hsb(200, 15, 65),
+	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45)
+});
+
+ART.Sheet.defineStyle('button.window-minimize', {
+	'pill': true,
+	
+	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
+	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45),
+	'glyph-color': hsb(0, 0, 100, 0.5),
+	
+	'glyph': 'minus-icon',
+	
+	'height': 14,
+	'width': 14,
+	
+	'glyph-height': 6,
+	'glyph-width': 6,
+	'glyph-top': 4,
+	'glyph-left': 4
+});
+
+ART.Sheet.defineStyle('button.window-minimize:active', {
+	'glyph-color': hsb(0, 0, 100),
+	'background-color': hsb(200, 15, 65),
+	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45)
+});
+
+ART.Sheet.defineStyle('button.window-maximize', {
+	'pill': true,
+	
+	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
+	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45),
+	'glyph-color': hsb(0, 0, 100, 0.5),
+	
+	'glyph': 'plus-icon',
+	
+	'height': 14,
+	'width': 14,
+
+	'glyph-height': 6,
+	'glyph-width': 6,
+	'glyph-top': 4,
+	'glyph-left': 4
+});
+
+ART.Sheet.defineStyle('button.window-maximize:active', {
+	'glyph-color': hsb(0, 0, 100),
+	'background-color': hsb(200, 15, 65),
+	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45)
+});
 
 ART.Widget.Window = new Class({
 	
@@ -13,105 +108,11 @@ ART.Widget.Window = new Class({
 	
 	name: 'window',
 	
-	style: {
-		
-		base: {
-			
-			'height': 300,
-			'width': 400,
-			
-			'button-margin': 20,
-			'button-top': 5,
-			
-			'corner-radius': 3,
-			'header-height': 24,
-			'footer-height': 16,
-			'header-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 60)},
-			'footer-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 70)},
-			'header-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
-			'footer-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
-			'border-color': hsb(0, 0, 0, 0.5)
-		}
-
-	},
-	
 	options: {
 		close: true,
 		minimize: true,
 		maximize: true,
-		resize: true,
-		
-		closeStyle: {base: {
-			'pill': true,
-			
-			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
-			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
-			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0.5),
-			
-			'glyph': 'close-icon',
-			
-			'height': 14,
-			'width': 14,
-			
-			'glyph-height': 4,
-			'glyph-width': 4,
-			'glyph-top': 5,
-			'glyph-left': 5
-		}, active: {
-			'glyph-color': hsb(0, 0, 100),
-			'background-color': hsb(200, 15, 65),
-			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-			'border-color': hsb(200, 35, 45)
-		}},
-		
-		minimizeStyle: {base: {
-			'pill': true,
-			
-			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
-			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
-			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0.5),
-			
-			'glyph': 'minus-icon',
-			
-			'height': 14,
-			'width': 14,
-			
-			'glyph-height': 6,
-			'glyph-width': 6,
-			'glyph-top': 4,
-			'glyph-left': 4
-		}, active: {
-			'glyph-color': hsb(0, 0, 100),
-			'background-color': hsb(200, 15, 65),
-			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-			'border-color': hsb(200, 35, 45)
-		}},
-		
-		maximizeStyle: {base: {
-			'pill': true,
-			
-			'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
-			'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
-			'border-color': hsb(200, 35, 45),
-			'glyph-color': hsb(0, 0, 100, 0.5),
-			
-			'glyph': 'plus-icon',
-			
-			'height': 14,
-			'width': 14,
-
-			'glyph-height': 6,
-			'glyph-width': 6,
-			'glyph-top': 4,
-			'glyph-left': 4
-		}, active: {
-			'glyph-color': hsb(0, 0, 100),
-			'background-color': hsb(200, 15, 65),
-			'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-			'border-color': hsb(200, 35, 45)
-		}}
+		resize: true
 	},
 	
 	initialize: function(options){
@@ -136,17 +137,17 @@ ART.Widget.Window = new Class({
 		this.element.adopt(this.header, this.content, this.footer);
 		
 		if (this.options.close){
-			this.close = new ART.Widget.Button({style: this.options.closeStyle});
+			this.close = new ART.Widget.Button({style: 'window-close'});
 			$(this.close).setStyles(absolute).inject(this.header);
 		}
 		
 		if (this.options.maximize){
-			this.maximize = new ART.Widget.Button({style: this.options.maximizeStyle});
+			this.maximize = new ART.Widget.Button({style: 'window-maximize'});
 			$(this.maximize).setStyles(absolute).inject(this.header);
 		}
 		
 		if (this.options.minimize){
-			this.minimize = new ART.Widget.Button({style: this.options.minimizeStyle});
+			this.minimize = new ART.Widget.Button({style: 'window-minimize'});
 			$(this.minimize).setStyles(absolute).inject(this.header);
 		}
 		
@@ -158,40 +159,38 @@ ART.Widget.Window = new Class({
 		return this;
 	},
 	
-	render: function(style){
+	render: function(state){
 		if (!this.paint) return this;
-		if (style) $extend(this.style.now, style);
 
-		var now = {};
-		for (var p in this.style.now) now[p.camelCase()] = this.style.now[p];
+		var style = ART.Sheet.lookupStyle('window', state);
 		
-		this.paint.resize({x: now.width, y: now.height});
-		this.element.setStyles({height: now.height, width: now.width});
-		this.content.setStyles({top: 0, left: 1, height: now.height - now.footerHeight - now.headerHeight - 2, width: now.width -2});
+		this.paint.resize({x: style.width, y: style.height});
+		this.element.setStyles({height: style.height, width: style.width});
+		this.content.setStyles({top: 0, left: 1, height: style.height - style.footerHeight - style.headerHeight - 2, width: style.width -2});
 		
 		this.paint.start();
-		this.paint.shape('rounded-rectangle', {x: now.width, y: now.height}, now.cornerRadius + 1);
-		this.paint.end({'fill': true, 'fill-color': now.borderColor});
+		this.paint.shape('rounded-rectangle', {x: style.width, y: style.height}, style.cornerRadius + 1);
+		this.paint.end({'fill': true, 'fill-color': style.borderColor});
 		
-		this.header.setStyles({'width': now.width, height: now.headerHeight});
+		this.header.setStyles({'width': style.width, height: style.headerHeight});
 		
 		this.paint.start({x: 1, y: 1});
-		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.headerHeight - 2}, [now.cornerRadius, now.cornerRadius, 0, 0]);
-		this.paint.end({'fill': true, 'fill-color': now.headerReflectionColor});
+		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.headerHeight - 2}, [style.cornerRadius, style.cornerRadius, 0, 0]);
+		this.paint.end({'fill': true, 'fill-color': style.headerReflectionColor});
 		
 		this.paint.start({x: 1, y: 2});
-		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.headerHeight - 3}, [now.cornerRadius, now.cornerRadius, 0, 0]);
-		this.paint.end({'fill': true, 'fill-color': now.headerBackgroundColor});
+		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.headerHeight - 3}, [style.cornerRadius, style.cornerRadius, 0, 0]);
+		this.paint.end({'fill': true, 'fill-color': style.headerBackgroundColor});
 		
-		this.footer.setStyles({'width': now.width, height: now.footerHeight});
+		this.footer.setStyles({'width': style.width, height: style.footerHeight});
 		
-		this.paint.start({x: 1, y: now.height - now.footerHeight - 1});
-		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.footerHeight}, [0, 0, now.cornerRadius, now.cornerRadius]);
-		this.paint.end({'fill': true, 'fill-color': now.footerReflectionColor});
+		this.paint.start({x: 1, y: style.height - style.footerHeight - 1});
+		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.footerHeight}, [0, 0, style.cornerRadius, style.cornerRadius]);
+		this.paint.end({'fill': true, 'fill-color': style.footerReflectionColor});
 		
-		this.paint.start({x: 1, y: now.height - now.footerHeight});
-		this.paint.shape('rounded-rectangle', {x: now.width - 2, y: now.footerHeight - 1}, [0, 0, now.cornerRadius, now.cornerRadius]);
-		this.paint.end({'fill': true, 'fill-color': now.footerBackgroundColor});
+		this.paint.start({x: 1, y: style.height - style.footerHeight});
+		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.footerHeight - 1}, [0, 0, style.cornerRadius, style.cornerRadius]);
+		this.paint.end({'fill': true, 'fill-color': style.footerBackgroundColor});
 		
 		if (this.options.resize){
 			
@@ -199,11 +198,11 @@ ART.Widget.Window = new Class({
 				self.paint.lineBy({x: -10, y: 10}).moveBy({x: 4, y: 0}).lineBy({x: 6, y: -6}).moveBy({x: 0, y: 4}).lineBy({x: -2, y: 2});
 			};
 			
-			this.paint.start({x: now.width - 4, y: now.height - 14});
+			this.paint.start({x: style.width - 4, y: style.height - 14});
 			drawLines(this);
 			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 100, 0.6)});
 			
-			this.paint.start({x: now.width - 5, y: now.height - 14});
+			this.paint.start({x: style.width - 5, y: style.height - 14});
 			drawLines(this);
 			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 0, 0.6)});
 		}
@@ -211,18 +210,18 @@ ART.Widget.Window = new Class({
 		// painting buttons
 		
 		var baseLeft = 8;
-		var oneLeft = baseLeft + now.buttonMargin;
+		var oneLeft = baseLeft + style.buttonMargin;
 		var twoLeft = oneLeft + oneLeft - baseLeft;
 		
-		if (this.close) $(this.close).setStyles({top: now.buttonTop, left: baseLeft});
+		if (this.close) $(this.close).setStyles({top: style.buttonTop, left: baseLeft});
 		
 		if (this.maximize) $(this.maximize).setStyles({
-			top: now.buttonTop,
+			top: style.buttonTop,
 			left: (this.close && this.maximize) ? twoLeft : (this.close || this.maximize) ? oneLeft : baseLeft
 		});
 		
 		if (this.minimize) $(this.minimize).setStyles({
-			top: now.buttonTop,
+			top: style.buttonTop,
 			left: (this.close) ? oneLeft : baseLeft
 		});
 		
