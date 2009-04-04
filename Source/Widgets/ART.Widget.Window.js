@@ -162,7 +162,7 @@ ART.Widget.Window = new Class({
 	render: function(state){
 		if (!this.paint) return this;
 
-		var style = ART.Sheet.lookupStyle('window', state);
+		var style = ART.Sheet.lookupStyle('window' + (state ? ':' + state : ''));
 		
 		this.paint.resize({x: style.width, y: style.height});
 		this.element.setStyles({height: style.height, width: style.width});
