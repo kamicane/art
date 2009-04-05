@@ -51,7 +51,7 @@ ART.Font = new Class({
 	
 	var renderGlyph = function(ctx, s, glyph){
 		var regexp = /([mrvxe])([^a-z]*)/g, match;
-		for (var i = 0; match = regexp.exec(glyph); i++){
+		while (match = regexp.exec(glyph)){
 			var c = match[2].split(',');
 			switch (match[1]){
 				case 'v': ctx.bezierBy({x: s * c[0], y: s * c[1]}, {x: s * c[2], y: s * c[3]}, {x: s * c[4], y: s * c[5]}); break;
