@@ -17,6 +17,13 @@ describe('ART.Sheet.lookupStyle - no rules defined.', {
 
 describe('ART.Sheet.defineStyle', {
 
+	'should define multiple rules for comma seperated selectors': function(){
+		ART.Sheet.defineStyle('multiA, multiB', {m: 1});
+		value_of(ART.Sheet.lookupStyle('multiA')).should_be({m: 1});
+		value_of(ART.Sheet.lookupStyle('multiB')).should_be({m: 1});
+		value_of(ART.Sheet.lookupStyle('multiC')).should_be({});
+	},
+
 	'should define some rules': function(){
 		ART.Sheet.defineStyle('*', {base: 1, asterix: 1});
 		value_of(ART.Sheet.lookupStyle('*')).should_be({base: 1, asterix: 1});

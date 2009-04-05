@@ -12,7 +12,6 @@ ART.Sheet = {};
 	var rules = [];
 
 	var parseSelector = function(selector){
-		if (typeof selector == 'string') selector = SubtleSlickParse(selector)[0][0];
 		var result = [];
 		if (selector.tag && selector.tag != '*'){
 			result.push(selector.tag);
@@ -26,17 +25,19 @@ ART.Sheet = {};
 		return result;
 	};
 
-	ART.Sheet.defineStyle = function(selector, style){
-		selector = SubtleSlickParse(selector)[0][0];
-		var rule = {
-			'specificity': ((selector.tag && selector.tag != '*') ? 1 : 0)
-				+ (selector.pseudos || []).length
-				+ (selector.classes || []).length * 100,
-			'selector': parseSelector(selector),
-			'style': {}
-		};
-		for (p in style) rule.style[p.camelCase()] = style[p];
-		rules.push(rule);
+	ART.Sheet.defineStyle = function(selectors, style){
+		SubtleSlickParse(selectors).each(function(selector){
+			selector = selector[0];
+			var rule = {
+				'specificity': ((selector.tag && selector.tag != '*') ? 1 : 0)
+					+ (selector.pseudos || []).length
+					+ (selector.classes || []).length * 100,
+				'selector': parseSelector(selector),
+				'style': {}
+			};
+			for (p in style) rule.style[p.camelCase()] = style[p];
+			rules.push(rule);
+		});
 	};
 
 	ART.Sheet.lookupStyle = function(selector){
@@ -45,7 +46,7 @@ ART.Sheet = {};
 			return a.specificity - b.specificity;
 		});
 
-		selector = parseSelector(selector);
+		selector = parseSelector(SubtleSlickParse(selector)[0][0]);
 		rules.each(function(rule){
 			if (rule.selector.every(function(chunk){
 				return selector.contains(chunk);
