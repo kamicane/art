@@ -12,14 +12,15 @@ ART.Sheet = {};
 	var rules = [];
 
 	var parseSelector = function(selector){
+		var chunk = selector[0];
 		var result = [];
-		if (selector.tag && selector.tag != '*'){
-			result.push(selector.tag);
+		if (chunk.tag && chunk.tag != '*'){
+			result.push(chunk.tag);
 		}
-		if (selector.pseudos) selector.pseudos.each(function(pseudo){
+		if (chunk.pseudos) chunk.pseudos.each(function(pseudo){
 			result.push(':' + pseudo.name);
 		});
-		if (selector.classes) selector.classes.each(function(klass){
+		if (chunk.classes) chunk.classes.each(function(klass){
 			result.push('.' + klass);
 		});
 		return result;
@@ -39,7 +40,7 @@ ART.Sheet = {};
 		SubtleSlickParse(selectors).each(function(selector){
 			var rule = {
 				'specificity': getSpecificity(selector),
-				'selector': parseSelector(selector[0]),
+				'selector': parseSelector(selector),
 				'style': {}
 			};
 			for (p in style) rule.style[p.camelCase()] = style[p];
@@ -53,7 +54,7 @@ ART.Sheet = {};
 			return a.specificity - b.specificity;
 		});
 
-		selector = parseSelector(SubtleSlickParse(selector)[0][0]);
+		selector = parseSelector(SubtleSlickParse(selector)[0]);
 		rules.each(function(rule){
 			if (rule.selector.every(function(chunk){
 				return selector.contains(chunk);
