@@ -49,6 +49,12 @@ ART.Sheet = {};
 		});
 	};
 
+	var containsAll = function(self, other){
+		return other.every(function(x){
+			return self.contains(x);
+		}, this);
+	};
+
 	ART.Sheet.lookupStyle = function(selector){
 		var style = {};
 		rules.sort(function(a, b){
@@ -59,12 +65,12 @@ ART.Sheet = {};
 		rules.each(function(rule){
 			var i = rule.selector.length - 1;
 			var j = selector.length - 1;
-			if (!selector[j].containsAll(rule.selector[i])) return;
+			if (!containsAll(selector[j], rule.selector[i])) return;
 			outer: while (i > 0){
 				i--;
 				while (j > 0){
 					j--;
-					if (selector[j].containsAll(rule.selector[i])) continue outer;
+					if (containsAll(selector[j], rule.selector[i])) continue outer;
 				}
 				return;
 			}
@@ -74,9 +80,3 @@ ART.Sheet = {};
 	};
 
 })();
-
-Array.implement('containsAll', function(other){
-	return other.every(function(x){
-		return this.contains(x);
-	}, this);
-});
