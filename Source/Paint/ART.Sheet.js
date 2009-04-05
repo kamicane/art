@@ -25,14 +25,21 @@ ART.Sheet = {};
 		return result;
 	};
 
+	var getSpecificity = function(selector){
+		specificity = 0;
+		selector.each(function(chunk){
+			if (chunk.tag && chunk.tag != '*') specificity++;
+			specificity += (chunk.pseudos || []).length;
+			specificity += (chunk.classes || []).length * 100;
+		});
+		return specificity;
+	};
+
 	ART.Sheet.defineStyle = function(selectors, style){
 		SubtleSlickParse(selectors).each(function(selector){
-			selector = selector[0];
 			var rule = {
-				'specificity': ((selector.tag && selector.tag != '*') ? 1 : 0)
-					+ (selector.pseudos || []).length
-					+ (selector.classes || []).length * 100,
-				'selector': parseSelector(selector),
+				'specificity': getSpecificity(selector),
+				'selector': parseSelector(selector[0]),
 				'style': {}
 			};
 			for (p in style) rule.style[p.camelCase()] = style[p];
