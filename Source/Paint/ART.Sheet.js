@@ -57,13 +57,18 @@ ART.Sheet = {};
 
 		selector = parseSelector(SubtleSlickParse(selector)[0]);
 		rules.each(function(rule){
-			if (rule.selector.getLast().every(function(chunk){
-				return selector.getLast().contains(chunk);
-			})){
+			if (selector.getLast().containsAll(rule.selector.getLast())){
 				$mixin(style, rule.style);
 			}
 		});
 
 		return style;
 	};
+
 })();
+
+Array.implement('containsAll', function(other){
+	return other.every(function(x){
+		return this.contains(x);
+	}, this);
+});
