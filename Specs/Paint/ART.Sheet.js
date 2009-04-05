@@ -33,6 +33,8 @@ describe('ART.Sheet.defineStyle', {
 		ART.Sheet.defineStyle('foo.classB', {'class': 'b', 'tag': 'foo'});
 		ART.Sheet.defineStyle('foo.classA.classB', {'class': 'a and b'});
 		ART.Sheet.defineStyle('foo.classA', {'class': 'a'});
+
+		ART.Sheet.defineStyle('nested rule', {'x': 1});
 	}
 
 });
@@ -50,5 +52,15 @@ describe('ART.Sheet.lookupStyle - rules defined', {
 		value_of(ART.Sheet.lookupStyle('foo.classA')).should_be({asterix: 1, base: 2, extended: 2, 'class': 'a'});
 		value_of(ART.Sheet.lookupStyle('foo.classA')).should_be({asterix: 1, base: 2, extended: 2, 'class': 'a'});
 		value_of(ART.Sheet.lookupStyle('foo.classB.classA.madeup')).should_be({asterix: 1, base: 2, extended: 2, 'class': 'a and b', tag: 'foo'});
+	},
+
+	'should match nested rules': function(){
+		value_of(ART.Sheet.lookupStyle('rule')).should_be({asterix: 1, base: 1});
+		value_of(ART.Sheet.lookupStyle('rule nested')).should_be({asterix: 1, base: 1});
+		value_of(ART.Sheet.lookupStyle('nested rule')).should_be({asterix: 1, base: 1, x: 1});
+		value_of(ART.Sheet.lookupStyle('xxx nested xxx xxx rule')).should_be({asterix: 1, base: 1, x: 1});
+		value_of(ART.Sheet.lookupStyle('xxx nested xxx xxx rule xxx')).should_be({asterix: 1, base: 1});
+		value_of(ART.Sheet.lookupStyle('nested.foo rule')).should_be({asterix: 1, base: 1, x: 1});
 	}
+
 });

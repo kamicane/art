@@ -57,11 +57,19 @@ ART.Sheet = {};
 
 		selector = parseSelector(SubtleSlickParse(selector)[0]);
 		rules.each(function(rule){
-			if (selector.getLast().containsAll(rule.selector.getLast())){
-				$mixin(style, rule.style);
+			var i = rule.selector.length - 1;
+			var j = selector.length - 1;
+			if (!selector[j].containsAll(rule.selector[i])) return;
+			outer: while (i > 0){
+				i--;
+				while (j > 0){
+					j--;
+					if (selector[j].containsAll(rule.selector[i])) continue outer;
+				}
+				return;
 			}
+			$mixin(style, rule.style);
 		});
-
 		return style;
 	};
 
