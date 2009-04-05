@@ -12,18 +12,19 @@ ART.Sheet = {};
 	var rules = [];
 
 	var parseSelector = function(selector){
-		var chunk = selector[0];
-		var result = [];
-		if (chunk.tag && chunk.tag != '*'){
-			result.push(chunk.tag);
-		}
-		if (chunk.pseudos) chunk.pseudos.each(function(pseudo){
-			result.push(':' + pseudo.name);
+		return selector.map(function(chunk){
+			var result = [];
+			if (chunk.tag && chunk.tag != '*'){
+				result.push(chunk.tag);
+			}
+			if (chunk.pseudos) chunk.pseudos.each(function(pseudo){
+				result.push(':' + pseudo.name);
+			});
+			if (chunk.classes) chunk.classes.each(function(klass){
+				result.push('.' + klass);
+			});
+			return result;
 		});
-		if (chunk.classes) chunk.classes.each(function(klass){
-			result.push('.' + klass);
-		});
-		return result;
 	};
 
 	var getSpecificity = function(selector){
@@ -56,8 +57,8 @@ ART.Sheet = {};
 
 		selector = parseSelector(SubtleSlickParse(selector)[0]);
 		rules.each(function(rule){
-			if (rule.selector.every(function(chunk){
-				return selector.contains(chunk);
+			if (rule.selector.getLast().every(function(chunk){
+				return selector.getLast().contains(chunk);
 			})){
 				$mixin(style, rule.style);
 			}
