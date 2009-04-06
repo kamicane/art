@@ -24,7 +24,7 @@ ART.Sheet.defineStyle('window', {
 	'border-color': hsb(0, 0, 0, 0.5)
 });
 
-ART.Sheet.defineStyle('button.window-close', {
+ART.Sheet.defineStyle('window button.close', {
 	'pill': true,
 	
 	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
@@ -43,14 +43,14 @@ ART.Sheet.defineStyle('button.window-close', {
 	'glyph-left': 5
 });
 
-ART.Sheet.defineStyle('button.window-close:active', {
+ART.Sheet.defineStyle('window button.close:active', {
 	'glyph-color': hsb(0, 0, 100),
 	'background-color': hsb(200, 15, 65),
 	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
 	'border-color': hsb(200, 35, 45)
 });
 
-ART.Sheet.defineStyle('button.window-minimize', {
+ART.Sheet.defineStyle('window button.minimize', {
 	'pill': true,
 	
 	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
@@ -69,14 +69,14 @@ ART.Sheet.defineStyle('button.window-minimize', {
 	'glyph-left': 4
 });
 
-ART.Sheet.defineStyle('button.window-minimize:active', {
+ART.Sheet.defineStyle('window button.minimize:active', {
 	'glyph-color': hsb(0, 0, 100),
 	'background-color': hsb(200, 15, 65),
 	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
 	'border-color': hsb(200, 35, 45)
 });
 
-ART.Sheet.defineStyle('button.window-maximize', {
+ART.Sheet.defineStyle('window button.maximize', {
 	'pill': true,
 	
 	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
@@ -95,7 +95,7 @@ ART.Sheet.defineStyle('button.window-maximize', {
 	'glyph-left': 4
 });
 
-ART.Sheet.defineStyle('button.window-maximize:active', {
+ART.Sheet.defineStyle('window button.maximize:active', {
 	'glyph-color': hsb(0, 0, 100),
 	'background-color': hsb(200, 15, 65),
 	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
@@ -137,17 +137,20 @@ ART.Widget.Window = new Class({
 		this.element.adopt(this.header, this.content, this.footer);
 		
 		if (this.options.close){
-			this.close = new ART.Widget.Button({style: 'window-close'});
+			this.close = new ART.Widget.Button({classes: ['close']});
+			this.close.setParent(this);
 			$(this.close).setStyles(absolute).inject(this.header);
 		}
 		
 		if (this.options.maximize){
-			this.maximize = new ART.Widget.Button({style: 'window-maximize'});
+			this.maximize = new ART.Widget.Button({classes: ['maximize']});
+			this.maximize.setParent(this);
 			$(this.maximize).setStyles(absolute).inject(this.header);
 		}
 		
 		if (this.options.minimize){
-			this.minimize = new ART.Widget.Button({style: 'window-minimize'});
+			this.minimize = new ART.Widget.Button({classes: ['minimize']});
+			this.minimize.setParent(this);
 			$(this.minimize).setStyles(absolute).inject(this.header);
 		}
 		
@@ -159,10 +162,11 @@ ART.Widget.Window = new Class({
 		return this;
 	},
 	
-	render: function(state){
+	render: function(){
+		this.parent();
 		if (!this.paint) return this;
 
-		var style = ART.Sheet.lookupStyle('window' + (state ? ':' + state : ''));
+		var style = ART.Sheet.lookupStyle(this.getSelector());
 		
 		this.paint.resize({x: style.width, y: style.height});
 		this.element.setStyles({height: style.height, width: style.width});

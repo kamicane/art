@@ -70,12 +70,10 @@ ART.Widget.Button = new Class({
 		this.render();
 	},
 
-	render: function(state){
+	render: function(){
+		this.parent();
 		if (!this.paint) return this;
-		var style = ART.Sheet.lookupStyle('button'
-			+ ((this.options.style && $type(this.options.style) == 'string') ? '.' + this.options.style : '')
-			+ (state ? ':' + state : ''));
-
+		var style = ART.Sheet.lookupStyle(this.getSelector());
 		var font = ART.Paint.lookupFont(style.font);
 		var fontBounds = font.measure(style.fontSize, this.options.label);
 
