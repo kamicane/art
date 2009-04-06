@@ -66,10 +66,8 @@ ART.Sheet = {};
 			var i = rule.selector.length - 1;
 			var j = selector.length - 1;
 			if (!containsAll(selector[j], rule.selector[i])) return;
-			outer: while (i > 0){
-				i--;
-				while (j > 0){
-					j--;
+			outer: while (i-- > 0){
+				while (j-- > 0){
 					if (containsAll(selector[j], rule.selector[i])) continue outer;
 				}
 				return;
