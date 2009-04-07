@@ -6,8 +6,8 @@ License:
 */
 
 // Window Widget. Work in progress.
+
 ART.Sheet.defineStyle('window', {
-	
 	'height': 300,
 	'width': 400,
 	
@@ -24,18 +24,25 @@ ART.Sheet.defineStyle('window', {
 	'border-color': hsb(0, 0, 0, 0.5)
 });
 
-ART.Sheet.defineStyle('window button.close', {
+ART.Sheet.defineStyle('window button', {
 	'pill': true,
-	
 	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
 	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
 	'border-color': hsb(200, 35, 45),
 	'glyph-color': hsb(0, 0, 100, 0.5),
-	
-	'glyph': 'close-icon',
-	
 	'height': 14,
-	'width': 14,
+	'width': 14
+});
+
+ART.Sheet.defineStyle('window button:active', {
+	'background-color': hsb(200, 15, 65),
+	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(200, 35, 45),
+	'glyph-color': hsb(0, 0, 100)
+});
+
+ART.Sheet.defineStyle('window button.close', {
+	'glyph': 'close-icon',
 	
 	'glyph-height': 4,
 	'glyph-width': 4,
@@ -43,63 +50,22 @@ ART.Sheet.defineStyle('window button.close', {
 	'glyph-left': 5
 });
 
-ART.Sheet.defineStyle('window button.close:active', {
-	'glyph-color': hsb(0, 0, 100),
-	'background-color': hsb(200, 15, 65),
-	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45)
-});
-
 ART.Sheet.defineStyle('window button.minimize', {
-	'pill': true,
-	
-	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
-	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45),
-	'glyph-color': hsb(0, 0, 100, 0.5),
-	
 	'glyph': 'minus-icon',
-	
-	'height': 14,
-	'width': 14,
-	
+
 	'glyph-height': 6,
 	'glyph-width': 6,
 	'glyph-top': 4,
 	'glyph-left': 4
-});
-
-ART.Sheet.defineStyle('window button.minimize:active', {
-	'glyph-color': hsb(0, 0, 100),
-	'background-color': hsb(200, 15, 65),
-	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45)
 });
 
 ART.Sheet.defineStyle('window button.maximize', {
-	'pill': true,
-	
-	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
-	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45),
-	'glyph-color': hsb(0, 0, 100, 0.5),
-	
 	'glyph': 'plus-icon',
-	
-	'height': 14,
-	'width': 14,
 
 	'glyph-height': 6,
 	'glyph-width': 6,
 	'glyph-top': 4,
 	'glyph-left': 4
-});
-
-ART.Sheet.defineStyle('window button.maximize:active', {
-	'glyph-color': hsb(0, 0, 100),
-	'background-color': hsb(200, 15, 65),
-	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45)
 });
 
 ART.Widget.Window = new Class({
