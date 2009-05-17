@@ -36,6 +36,25 @@ ART.Font = new Class({
 
 (function(){
 	var fonts = {};
+	
+	var parse = function(font) {
+		font.parsed = true;
+		
+		Hash.each(font.glyphs, function(glyph, char, self) {
+			if (!glyph.d) return;
+			var path = 'm' + glyph.d;
+			glyph.parsed = [];
+			
+			var regexp = /([mrvxe])([^a-z]*)/g, match;
+			while ((match = regexp.exec(path))){
+				glyph.parsed.push([match[1]].concat(match[2].split(',').map(function(bit) {
+					return ~~bit;
+				})));
+			}
+		});
+		
+		return font;
+	};
 
 	ART.Paint.defineFont = function(name, font){
 		fonts[name.camelCase()] = new ART.Font(font);
@@ -43,21 +62,28 @@ ART.Font = new Class({
 	};
 
 	ART.Paint.lookupFont = function(name){
-		return fonts[name.camelCase()];
+		var font = fonts[name.camelCase()];
+		return (font && !font.parsed) ? parse(font) : font;
 	};
 })();
 
 (function(){
 	
-	var renderGlyph = function(ctx, s, glyph){
-		var regexp = /([mrvxe])([^a-z]*)/g, match;
-		while (match = regexp.exec(glyph)){
-			var c = match[2].split(',');
-			switch (match[1]){
-				case 'v': ctx.bezierBy({x: s * ~~c[0], y: s * ~~c[1]}, {x: s * ~~c[2], y: s * ~~c[3]}, {x: s * ~~c[4], y: s * ~~c[5]}); break;
-				case 'r': ctx.lineBy({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'm': ctx.moveTo({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'x': ctx.join(); break;
+	var renderGlyph = function(ctx, s, glyphs){
+		for (var i = 0, glyph; glyph = glyphs[i]; i++){
+			switch (glyph[0]){
+				case 'v':
+					ctx.bezierBy({x: s * glyph[1], y: s * glyph[2]}, {x: s * glyph[3], y: s * glyph[4]}, {x: s * glyph[5], y: s * glyph[6]});
+					break;
+				case 'r':
+					ctx.lineBy({x: s * glyph[1], y: s * glyph[2]});
+					break;
+				case 'm':
+					ctx.moveTo({x: s * glyph[1], y: s * glyph[2]});
+					break;
+				case 'x':
+					ctx.join();
+					break;
 				case 'e': return;
 			}
 		}
@@ -73,7 +99,7 @@ ART.Font = new Class({
 		this.shift({x: 0, y: Math.round(size * font.ascent)});
 		Array.each(text, function(t){
 			var glyph = font.glyphs[t] || font.glyphs[' '];
-			if (glyph.d) renderGlyph(this, size, 'm' + glyph.d);
+			if (glyph.parsed) renderGlyph(this, size, glyph.parsed);
 			var w = size * (glyph.w || font.width);
 			width += w;
 			this.shift({x: w, y: 0});
