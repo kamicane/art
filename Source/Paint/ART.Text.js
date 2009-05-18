@@ -36,25 +36,6 @@ ART.Font = new Class({
 
 (function(){
 	var fonts = {};
-	
-	var parse = function(font) {
-		font.parsed = true;
-		
-		Hash.each(font.glyphs, function(glyph, char, self) {
-			if (!glyph.d) return;
-			var path = 'm' + glyph.d;
-			glyph.parsed = [];
-			
-			var regexp = /([mrvxe])([^a-z]*)/g, match;
-			while ((match = regexp.exec(path))){
-				glyph.parsed.push([match[1]].concat(match[2].split(',').map(function(bit) {
-					return ~~bit;
-				})));
-			}
-		});
-		
-		return font;
-	};
 
 	ART.Paint.defineFont = function(name, font){
 		fonts[name.camelCase()] = new ART.Font(font);
@@ -62,49 +43,72 @@ ART.Font = new Class({
 	};
 
 	ART.Paint.lookupFont = function(name){
-		var font = fonts[name.camelCase()];
-		return (font && !font.parsed) ? parse(font) : font;
+		return fonts[name.camelCase()];
 	};
 })();
 
 (function(){
 	
-	var renderGlyph = function(ctx, s, glyphs){
-		for (var i = 0, glyph; glyph = glyphs[i]; i++){
-			switch (glyph[0]){
+	// Canvas Adapter only
+	
+	function parseGlyph(glyph) {
+		var path = 'm' + glyph.d;
+		var shapes = [];
+		
+		var regexp = /([mrvxe])([^a-z]*)/g, match;
+		while ((match = regexp.exec(path))){
+			shapes.push([match[1]].concat(match[2].split(',').map(function(bit) {
+				return ~~bit;
+			})));
+		}
+		return (glyph.shapes = shapes);
+	};
+	
+	function renderGlyph(ctx, size, glyph){
+		var shapes = glyph.shapes || parseGlyph(glyph);
+		
+		var y = 0, y = 0, shape;
+		for (var i = 0; shape = shapes[i]; i++){
+			switch (shape[0]){
 				case 'v':
-					ctx.bezierBy({x: s * glyph[1], y: s * glyph[2]}, {x: s * glyph[3], y: s * glyph[4]}, {x: s * glyph[5], y: s * glyph[6]});
+					ctx.bezierCurveTo(
+						x + size * shape[1], y + size * shape[2],
+						x + size * shape[3], y + size * shape[4],
+						x += size * shape[5], y += size * shape[6]
+					);
 					break;
 				case 'r':
-					ctx.lineBy({x: s * glyph[1], y: s * glyph[2]});
+					ctx.lineTo(x += size * shape[1], y += size * shape[2]);
 					break;
 				case 'm':
-					ctx.moveTo({x: s * glyph[1], y: s * glyph[2]});
+					ctx.moveTo(x = size * shape[1], y = size * shape[2]);
 					break;
 				case 'x':
-					ctx.join();
+					ctx.closePath();
 					break;
 				case 'e': return;
 			}
 		}
 	};
 
-	ART.Paint.implement('text', function(font, size, text){
+	ART.Adapter.Canvas.implement('text', function(font, size, text){
 		if (typeof font == 'string') font = ART.Paint.lookupFont(font);
 		if (!font) return this;
 
-		this.save();
-		var width = 0;
 		size = size / font.units;
-		this.shift({x: 0, y: Math.round(size * font.ascent)});
+		
+		this.context.save();
+		
+		this.context.translate(0, Math.round(size * font.ascent));
+		
 		Array.each(text, function(t){
 			var glyph = font.glyphs[t] || font.glyphs[' '];
-			if (glyph.parsed) renderGlyph(this, size, glyph.parsed);
-			var w = size * (glyph.w || font.width);
-			width += w;
-			this.shift({x: w, y: 0});
+			if (glyph.d) renderGlyph(this.context, size, glyph);
+			this.context.translate(size * (glyph.w || font.width), 0);
 		}, this);
-		return this.restore();
+		
+		this.context.restore();
+		return this;
 	});
 	
 })();
