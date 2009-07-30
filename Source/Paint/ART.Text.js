@@ -1,5 +1,5 @@
 /*
-Script: ART.Font.js
+Script: ART.Text.js
 
 License:
 	MIT-style license.
@@ -49,66 +49,36 @@ ART.Font = new Class({
 
 (function(){
 	
-	// Canvas Adapter only
-	
-	function parseGlyph(glyph) {
-		var path = 'm' + glyph.d;
-		var shapes = [];
-		
+	var renderGlyph = function(ctx, s, glyph){
 		var regexp = /([mrvxe])([^a-z]*)/g, match;
-		while ((match = regexp.exec(path))){
-			shapes.push([match[1]].concat(match[2].split(',').map(function(bit) {
-				return ~~bit;
-			})));
-		}
-		return (glyph.shapes = shapes);
-	};
-	
-	function renderGlyph(ctx, size, glyph){
-		var shapes = glyph.shapes || parseGlyph(glyph);
-		
-		var y = 0, y = 0, shape;
-		for (var i = 0; shape = shapes[i]; i++){
-			switch (shape[0]){
-				case 'v':
-					ctx.bezierCurveTo(
-						x + size * shape[1], y + size * shape[2],
-						x + size * shape[3], y + size * shape[4],
-						x += size * shape[5], y += size * shape[6]
-					);
-					break;
-				case 'r':
-					ctx.lineTo(x += size * shape[1], y += size * shape[2]);
-					break;
-				case 'm':
-					ctx.moveTo(x = size * shape[1], y = size * shape[2]);
-					break;
-				case 'x':
-					ctx.closePath();
-					break;
+		while ((match = regexp.exec(glyph))){
+			var c = match[2].split(',');
+			switch (match[1]){
+				case 'v': ctx.bezierBy({x: s * ~~c[0], y: s * ~~c[1]}, {x: s * ~~c[2], y: s * ~~c[3]}, {x: s * ~~c[4], y: s * ~~c[5]}); break;
+				case 'r': ctx.lineBy({x: s * ~~c[0], y: s * ~~c[1]}); break;
+				case 'm': ctx.moveTo({x: s * ~~c[0], y: s * ~~c[1]}); break;
+				case 'x': ctx.join(); break;
 				case 'e': return;
 			}
 		}
 	};
 
-	ART.Adapter.Canvas.implement('text', function(font, size, text){
+	ART.Paint.implement('text', function(font, size, text){
 		if (typeof font == 'string') font = ART.Paint.lookupFont(font);
 		if (!font) return this;
 
+		this.save();
+		var width = 0;
 		size = size / font.units;
-		
-		this.context.save();
-		
-		this.context.translate(0, Math.round(size * font.ascent));
-		
+		this.shift({x: 0, y: Math.round(size * font.ascent)});
 		Array.each(text, function(t){
 			var glyph = font.glyphs[t] || font.glyphs[' '];
-			if (glyph.d) renderGlyph(this.context, size, glyph);
-			this.context.translate(size * (glyph.w || font.width), 0);
+			if (glyph.d) renderGlyph(this, size, 'm' + glyph.d);
+			var w = size * (glyph.w || font.width);
+			width += w;
+			this.shift({x: w, y: 0});
 		}, this);
-		
-		this.context.restore();
-		return this;
+		return this.restore();
 	});
 	
 })();

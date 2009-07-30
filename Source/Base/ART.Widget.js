@@ -144,7 +144,7 @@ ART.Widget = new Class({
 			this.focused = false;
 			this.fireEvent('blur');
 			this.element.removeClass(this.prefix + '-focused');
-			this.removePseudo('focused');
+			this.removePseudo('focus');
 			this.render();
 		}
 		return this;

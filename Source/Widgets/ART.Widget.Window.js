@@ -11,33 +11,70 @@ ART.Sheet.defineStyle('window', {
 	'height': 300,
 	'width': 400,
 	
-	'button-margin': 20,
-	'button-top': 5,
+	'max-height': 800,
+	'max-width': 1000,
 	
-	'corner-radius': 3,
+	'min-height': 110,
+	'min-width': 300,
+	
+	'top': 100,
+	'left': 100,
+	
+	'caption-font': 'moderna',
+	'caption-font-size': 13,
+	'caption-font-color': hsb(0, 0, 30),
+	
+	'button-spacing': 20,
+	'header-padding-top': 4,
+	
+	'corner-radius': 4,
 	'header-height': 24,
-	'footer-height': 16,
+	'footer-height': 17,
+	'header-background-color': {0: hsb(0, 0, 95), 1: hsb(0, 0, 80)},
+	'footer-background-color': {0: hsb(0, 0, 95), 1: hsb(0, 0, 90)},
+	'header-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
+	'footer-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(0, 0, 0, 0.2),
+	'content-border-top-color': hsb(0, 0, 60),
+	'content-border-bottom-color': hsb(0, 0, 70),
+	'content-background-color': hsb(0, 0, 100)
+});
+
+ART.Sheet.defineStyle('window:focus', {
+	'caption-font-color': hsb(0, 0, 10),
 	'header-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 60)},
 	'footer-background-color': {0: hsb(0, 0, 80), 1: hsb(0, 0, 70)},
 	'header-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
 	'footer-reflection-color': {0: hsb(0, 0, 100, 1), 1: hsb(0, 0, 0, 0)},
-	'border-color': hsb(0, 0, 0, 0.5)
+	'border-color': hsb(0, 0, 0, 0.4),
+	'content-border-top-color': hsb(0, 0, 30),
+	'content-border-bottom-color': hsb(0, 0, 50),
+	'content-background-color': hsb(0, 0, 100)
 });
 
 ART.Sheet.defineStyle('window button', {
 	'pill': true,
-	'background-color': {0: hsb(200, 15, 75), 1: hsb(200, 35, 55)},
-	'reflection-color': {0: hsb(200, 10, 95), 1: hsb(200, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45),
-	'glyph-color': hsb(0, 0, 100, 0.5),
 	'height': 14,
-	'width': 14
+	'width': 14,
+	'background-color': {0: hsb(0, 0, 100, 0.6), 1: hsb(0, 0, 100, 0.6)},
+	'reflection-color': {0: hsb(0, 0, 100), 1: hsb(0, 0, 0, 0)},
+	'shadow-color': hsb(0, 0, 100, 0.2),
+	'border-color': hsb(0, 0, 45, 0.5),
+	'glyph-color': hsb(0, 0, 0, 0.4)
+});
+
+ART.Sheet.defineStyle('window:focus button', {
+	'background-color': {0: hsb(0, 0, 75), 1: hsb(0, 0, 55)},
+	'reflection-color': {0: hsb(0, 0, 95), 1: hsb(0, 0, 0, 0)},
+	'shadow-color': hsb(0, 0, 100, 0.4),
+	'border-color': hsb(0, 0, 45),
+	'glyph-color': hsb(0, 0, 0, 0.6)
 });
 
 ART.Sheet.defineStyle('window button:active', {
-	'background-color': hsb(200, 15, 65),
-	'reflection-color': {0: hsb(200, 35, 65), 1: hsb(0, 0, 0, 0)},
-	'border-color': hsb(200, 35, 45),
+	'background-color': hsb(0, 0, 65),
+	'reflection-color': {0: hsb(0, 0, 65), 1: hsb(0, 0, 0, 0)},
+	'border-color': hsb(0, 0, 45),
 	'glyph-color': hsb(0, 0, 100)
 });
 
@@ -68,6 +105,44 @@ ART.Sheet.defineStyle('window button.maximize', {
 	'glyph-left': 4
 });
 
+ART.WM = {
+
+	instances: [],
+	
+	register: function(instance){
+		
+		if (this.instances.contains(instance)) return;
+		
+		$(instance).addEvent('mousedown', function(){
+			if (!instance.focused) ART.WM.focus(instance);
+		});
+		
+		this.instances.push(instance);
+	},
+	
+	cascade: function(noAnim){
+		this.instances.each(function(current, i){
+			var styles = {top: 20 * i, left: 10 * i};
+			(noAnim) ? current.element.setStyles(styles) : current.morph.start(styles);
+		});
+	},
+	
+	unregister: function(instance){
+		this.instances.erase(instance);
+	},
+	
+	focus: function(instance){
+		if (instance) this.instances.erase(instance).push(instance);
+		
+		this.instances.each(function(current, i){
+			$(current).setStyle('z-index', i);
+			if (current === instance) current.focus();
+			else current.blur();
+		});
+	}
+	
+};
+
 ART.Widget.Window = new Class({
 	
 	Extends: ART.Widget,
@@ -75,74 +150,231 @@ ART.Widget.Window = new Class({
 	name: 'window',
 	
 	options: {
+		caption: null,
 		close: true,
 		minimize: true,
 		maximize: true,
-		resize: true
+		resizable: true,
+		draggable: true
 	},
 	
 	initialize: function(options){
 		this.parent(options);
+		var self = this;
 		
 		var relative = {'position': 'relative', 'top': 0, 'left': 0};
 		var absolute = {'position': 'absolute', 'top': 0, 'left': 0};
 		
+		var style = ART.Sheet.lookupStyle(this.getSelector());
+		
+		this.currentHeight = style.height;
+		this.currentWidth = style.width;
+		
+		this.element.setStyles({'position': 'absolute', 'top': style.top, 'left': style.left});
+		this.morph = new Fx.Morph(this.element);
+		
 		this.paint = new ART.Paint();
 		$(this.paint).setStyles(absolute).inject(this.element);
 		
-		this.element.setStyles({'position': 'relative'});
+		this.contents = new Element('div').inject(this.element);
+		this.contents.setStyles({'position': 'absolute', 'top': 5, 'left': 10});
+		
+		ART.WM.register(this);
 		
 		this.header = new Element('div', {'class': 'art-window-header'});
 		this.content = new Element('div', {'class': 'art-window-content'});
 		this.footer = new Element('div', {'class': 'art-window-footer'});
+		this.resizeHandle = new Element('div', {'class': 'art-window-resize-handle'});
 		
 		this.header.setStyles(relative);
 		this.content.setStyles(relative);
 		this.footer.setStyles(relative);
+
+		this.resizeHandle.setStyles({
+			'position': 'absolute',
+			'height': 17,
+			'width': 17,
+			'right': 0,
+			'bottom': 0
+		});
 		
-		this.element.adopt(this.header, this.content, this.footer);
+		this.footer.setStyles({
+			'top': 1,
+			'left': 1,
+			'overflow': 'hidden'
+		});
+		
+		this.header.setStyles({
+			'top': 1,
+			'left': 1,
+			'overflow': 'hidden'
+		});
+		
+		this.content.setStyles({
+			'overflow': 'auto'
+		});
+		
+		// this.footer.setStyles({'background-color': 'green', 'opacity': 0.5});
+		// this.header.setStyles({'background-color': 'green', 'opacity': 0.5});
+		// this.element.setStyles({'background-color': 'red', 'opacity': 0.5});
+		
+		this.resizeHandle.inject(this.footer);
+		
+		if (this.options.resizable){
+			
+			this.touchResize = new Touch(this.resizeHandle);
+			
+			this.touchResize.addEvent('start', function(){
+				self.startHeight = self.contents.offsetHeight;
+				self.startWidth = self.contents.offsetWidth;
+			});
+			
+			this.touchResize.addEvent('move', function(dx, dy){
+				self.resize(self.startHeight + dy, self.startWidth + dx);
+			});
+		}
+		
+		if (this.options.draggable){
+			
+			this.touchDrag = new Touch(this.header);
+			
+			this.touchDrag.addEvent('start', function(){
+				self.startTop = self.element.offsetTop;
+				self.startLeft = self.element.offsetLeft;
+			});
+			
+			this.touchDrag.addEvent('move', function(dx, dy){
+				var top = self.startTop + dy;
+				var left = self.startLeft + dx;
+				if (top < 0) top = 0;
+				if (left < 0) left = 0;
+				self.element.setStyles({
+					'top': top,
+					'left': left
+				});
+			});
+		}
+		
+		this.contents.adopt(this.header, this.content, this.footer);
 		
 		if (this.options.close){
 			this.close = new ART.Widget.Button({classes: ['close']});
 			this.close.setParent(this);
 			$(this.close).setStyles(absolute).inject(this.header);
+			this.close.addEvent('press', function(){
+				ART.WM.focus(self);
+				self.fireEvent('close');
+			});
 		}
 		
 		if (this.options.maximize){
 			this.maximize = new ART.Widget.Button({classes: ['maximize']});
 			this.maximize.setParent(this);
 			$(this.maximize).setStyles(absolute).inject(this.header);
+			this.maximize.addEvent('press', function(){
+				ART.WM.focus(self);
+				self.fireEvent('maximize');
+			});
 		}
 		
 		if (this.options.minimize){
 			this.minimize = new ART.Widget.Button({classes: ['minimize']});
 			this.minimize.setParent(this);
 			$(this.minimize).setStyles(absolute).inject(this.header);
+			this.minimize.addEvent('press', function(){
+				ART.WM.focus(self);
+				self.fireEvent('minimize');
+			});
 		}
 		
 		this.render();
 	},
 	
 	setContent: function(){
-		this.content.adopt(arguments);
+		$(this.content).adopt(arguments);
 		return this;
 	},
 	
-	render: function(){
+	setCaption: function(text){
+		this.options.caption = text;
+		this.render();
+		return this;
+	},
+	
+	resize: function(height, width){
+		this.render({'height': height, 'width': width});
+		return this;
+	},
+	
+	destroy: function(){
+		ART.WM.unregister(this);
+		this.element.dispose();
+		return this;
+	},
+	
+	render: function(override){
 		this.parent();
-		if (!this.paint) return this;
-
+		if (!this.paint) return;
+		
 		var style = ART.Sheet.lookupStyle(this.getSelector());
 		
-		this.paint.resize({x: style.width, y: style.height});
-		this.element.setStyles({height: style.height, width: style.width});
-		this.content.setStyles({top: 0, left: 1, height: style.height - style.footerHeight - style.headerHeight - 2, width: style.width -2});
+		// height / width management
+		
+		delete style.height;
+		delete style.width;
+
+		$mixin(style, override);
+		if (style.height == null) style.height = this.currentHeight;
+		if (style.width == null) style.width = this.currentWidth;
+		
+		style.height = style.height.limit(style.minHeight, style.maxHeight);
+		style.width = style.width.limit(style.minWidth, style.maxWidth);
+		
+		this.currentHeight = style.height;
+		this.currentWidth = style.width;
+		
+		this.paint.resize({x: style.width + 20, y: style.height + 20});
+		
+		this.contents.setStyles({
+			'height': style.height + 20,
+			'width': style.width + 20
+		});
+		
+		this.contents.setStyles({
+			'height': style.height,
+			'width': style.width
+		});
+		
+		this.content.setStyles({
+			'top': 2,
+			'left': 1,
+			'height': style.height - style.footerHeight - style.headerHeight - 2,
+			'width': style.width -2,
+			'background-color': style.contentBackgroundColor
+		});
+		
+		// border layer
+		this.paint.save();
+		
+		this.paint.shift({x: 10, y: 5});
 		
 		this.paint.start();
 		this.paint.shape('rounded-rectangle', {x: style.width, y: style.height}, style.cornerRadius + 1);
-		this.paint.end({'fill': true, 'fill-color': style.borderColor});
 		
-		this.header.setStyles({'width': style.width, height: style.headerHeight});
+		var border = {'fill': true, 'fill-color': style.borderColor};
+		
+		if (Browser.Engine.webkit) $mixin(border, {
+			'shadow-color': hsb(0, 0, 0),
+			'shadow-blur': 8,
+			'shadow-offset-x': 0,
+			'shadow-offset-y': 5
+		});
+		
+		this.paint.end(border);
+		
+		// header layers
+		
+		this.header.setStyles({'width': style.width - 2, height: style.headerHeight - 2});
 		
 		this.paint.start({x: 1, y: 1});
 		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.headerHeight - 2}, [style.cornerRadius, style.cornerRadius, 0, 0]);
@@ -152,7 +384,21 @@ ART.Widget.Window = new Class({
 		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.headerHeight - 3}, [style.cornerRadius, style.cornerRadius, 0, 0]);
 		this.paint.end({'fill': true, 'fill-color': style.headerBackgroundColor});
 		
-		this.footer.setStyles({'width': style.width, height: style.footerHeight});
+		// first content separator border
+		
+		this.paint.start({x: 1.5, y: style.headerHeight - 0.5});
+		this.paint.lineTo({x: style.width - 3, y: 0});
+		this.paint.end({'stroke': true, 'stroke-color': style.contentBorderTopColor});
+		
+		// second content separator border
+		
+		this.paint.start({x: 1.5, y: style.height - style.footerHeight - 1.5});
+		this.paint.lineTo({x: style.width - 3, y: 0});
+		this.paint.end({'stroke': true, 'stroke-color': style.contentBorderBottomColor});
+		
+		//footer layers
+		
+		this.footer.setStyles({'width': style.width - 2, 'height': style.footerHeight});
 		
 		this.paint.start({x: 1, y: style.height - style.footerHeight - 1});
 		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.footerHeight}, [0, 0, style.cornerRadius, style.cornerRadius]);
@@ -162,40 +408,60 @@ ART.Widget.Window = new Class({
 		this.paint.shape('rounded-rectangle', {x: style.width - 2, y: style.footerHeight - 1}, [0, 0, style.cornerRadius, style.cornerRadius]);
 		this.paint.end({'fill': true, 'fill-color': style.footerBackgroundColor});
 		
-		if (this.options.resize){
+		if (this.options.resizable){
 			
-			var drawLines = function(self){
-				self.paint.lineBy({x: -10, y: 10}).moveBy({x: 4, y: 0}).lineBy({x: 6, y: -6}).moveBy({x: 0, y: 4}).lineBy({x: -2, y: 2});
+			var drawLines = function(){
+				this.paint.lineBy({x: -10, y: 10}).moveBy({x: 4, y: 0}).lineBy({x: 6, y: -6}).moveBy({x: 0, y: 4}).lineBy({x: -2, y: 2});
 			};
 			
-			this.paint.start({x: style.width - 4, y: style.height - 14});
-			drawLines(this);
-			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 100, 0.6)});
+			this.paint.start({x: style.width - 2, y: style.height - 13});
+			drawLines.call(this);
+			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 100, 0.5)});
 			
-			this.paint.start({x: style.width - 5, y: style.height - 14});
-			drawLines(this);
-			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 0, 0.6)});
+			this.paint.start({x: style.width - 3, y: style.height - 13});
+			drawLines.call(this);
+			this.paint.end({'stroke': true, 'stroke-color': hsb(0, 0, 0, 0.4)});
 		}
 		
 		// painting buttons
 		
 		var baseLeft = 8;
-		var oneLeft = baseLeft + style.buttonMargin;
-		var twoLeft = oneLeft + oneLeft - baseLeft;
+		var oneLeft = baseLeft + style.buttonSpacing;
+		var twoLeft = oneLeft + oneLeft - baseLeft;		
+		if (this.close){
+			$(this.close).setStyles({top: style.headerPaddingTop, left: baseLeft});
+		}
 		
-		if (this.close) $(this.close).setStyles({top: style.buttonTop, left: baseLeft});
+		if (this.minimize){
+			$(this.minimize).setStyles({
+				'top': style.headerPaddingTop,
+				'left': (this.close) ? oneLeft : baseLeft
+			});
+		}
 		
-		if (this.maximize) $(this.maximize).setStyles({
-			top: style.buttonTop,
-			left: (this.close && this.maximize) ? twoLeft : (this.close || this.maximize) ? oneLeft : baseLeft
-		});
+		if (this.maximize){
+			$(this.maximize).setStyles({
+				'top': style.headerPaddingTop,
+				'left': (this.close && this.maximize) ? twoLeft : (this.close || this.maximize) ? oneLeft : baseLeft
+			});
+		}
 		
-		if (this.minimize) $(this.minimize).setStyles({
-			top: style.buttonTop,
-			left: (this.close) ? oneLeft : baseLeft
-		});
+		if (this.options.caption == null) return;
 		
-		return this;
+		// font
+		
+		var font = ART.Paint.lookupFont(style.captionFont);
+		var fontBounds = font.measure(style.captionFontSize, this.options.caption);
+		
+		// header text
+		
+		var spare = (style.width - fontBounds.x) / 2;
+		
+		this.paint.start({x: spare, y: style.headerPaddingTop + 3});
+		this.paint.text(font, style.captionFontSize, this.options.caption);
+		this.paint.end({'fill': true, 'fill-color': style.captionFontColor});
+		
+		this.paint.restore();
 	}
 	
 });

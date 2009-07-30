@@ -5,10 +5,6 @@ License:
 	MIT-style license.
 */
 
-// kappa!
-
-Math.kappa = (4 * (Math.sqrt(2) - 1) / 3);
-
 // ART.Paint Class
 
 ART.Paint = new Class({

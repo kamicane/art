@@ -56,15 +56,24 @@ ART.Widget.Button = new Class({
 		$(this.paint).inject(this.element);
 
 		var self = this;
-
-		var deactivate = function(){
-			self.deactivate();
-			document.removeEvent('mouseup', deactivate);
-		};
-
-		this.element.addEvent('mousedown', function(){
+		
+		this.element.addEvent('mousedown', function(e){
+			e.stopPropagation();
+		});
+		
+		var click = new Touch(this.element);
+		
+		click.addEvent('start', function(){
 			self.activate();
-			document.addEvent('mouseup', deactivate);
+		});
+		
+		click.addEvent('end', function(){
+			self.deactivate();
+		});
+		
+		click.addEvent('cancel', function(){
+			self.deactivate();
+			self.fireEvent('press');
 		});
 
 		this.render();

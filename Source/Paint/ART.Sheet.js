@@ -44,7 +44,7 @@ ART.Sheet = {};
 				'selector': parseSelector(selector),
 				'style': {}
 			};
-			for (p in style) rule.style[p.camelCase()] = style[p];
+			for (var p in style) rule.style[p.camelCase()] = style[p];
 			rules.push(rule);
 		});
 	};
