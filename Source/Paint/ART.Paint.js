@@ -9,7 +9,7 @@ License:
 
 ART.Paint = new Class({
 	
-	Extends: ART.Adapter.Canvas,
+	Extends: ART.getDefaultAdapter(),
 	
 	roundCapLeftTo: function(vector){
 		return this.roundCapLeftBy({x: vector.x - this.now.x, y: vector.y - this.now.y});

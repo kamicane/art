@@ -25,10 +25,10 @@ ART.Font = new Class({
 	measure: function(size, text){
 		var width = 0, height = size;
 		size = size / this.units;
-		Array.each(text, function(t){
-			var glyph = this.glyphs[t] || this.glyphs[' '];
+		for (var i = 0, l = text.length; i < l; ++i){
+			var glyph = this.glyphs[text.charAt(i)] || this.glyphs[' '];
 			width += size * (glyph.w || this.width);
-		}, this);
+		}
 		return {x: width, y: size * (this.ascent - this.descent)};
 	}
 
@@ -47,38 +47,20 @@ ART.Font = new Class({
 	};
 })();
 
-(function(){
-	
-	var renderGlyph = function(ctx, s, glyph){
-		var regexp = /([mrvxe])([^a-z]*)/g, match;
-		while ((match = regexp.exec(glyph))){
-			var c = match[2].split(',');
-			switch (match[1]){
-				case 'v': ctx.bezierBy({x: s * ~~c[0], y: s * ~~c[1]}, {x: s * ~~c[2], y: s * ~~c[3]}, {x: s * ~~c[4], y: s * ~~c[5]}); break;
-				case 'r': ctx.lineBy({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'm': ctx.moveTo({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'x': ctx.join(); break;
-				case 'e': return;
-			}
-		}
-	};
+ART.Paint.implement('text', function(font, size, text){
+	if (typeof font == 'string') font = ART.Paint.lookupFont(font);
+	if (!font) return this;
 
-	ART.Paint.implement('text', function(font, size, text){
-		if (typeof font == 'string') font = ART.Paint.lookupFont(font);
-		if (!font) return this;
-
-		this.save();
-		var width = 0;
-		size = size / font.units;
-		this.shift({x: 0, y: Math.round(size * font.ascent)});
-		Array.each(text, function(t){
-			var glyph = font.glyphs[t] || font.glyphs[' '];
-			if (glyph.d) renderGlyph(this, size, 'm' + glyph.d);
-			var w = size * (glyph.w || font.width);
-			width += w;
-			this.shift({x: w, y: 0});
-		}, this);
-		return this.restore();
-	});
-	
-})();
+	this.save();
+	var width = 0;
+	size = size / font.units;
+	this.shift({x: 0, y: Math.round(size * font.ascent)});
+	for (var i = 0, l = text.length; i < l; ++i){
+		var glyph = font.glyphs[text.charAt(i)] || font.glyphs[' '];
+		if (glyph.d) this.path('m' + glyph.d, size);
+		var w = size * (glyph.w || font.width);
+		width += w;
+		this.shift({x: w, y: 0});
+	}
+	return this.restore();
+});

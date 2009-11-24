@@ -22,8 +22,13 @@
 		},
 		
 		"ART.Adapter.Canvas": {
-			"deps": ["ART.Adapter"],
+			"deps": ["ART", "ART.Adapter"],
 			"desc": "Adds Canvas support to ART.Adapter."
+		},
+		
+		"ART.Adapter.VML": {
+			"deps": ["ART", "ART.Adapter"],
+			"desc": "Adds VML support to ART.Adapter."
 		},
 		
 		"ART.Paint": {

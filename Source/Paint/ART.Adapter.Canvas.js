@@ -12,7 +12,7 @@ ART.Adapter.Canvas = new Class({
 	initialize: function(id, width, height){
 		this.element = new Element('canvas', {'id': id || 'c-' + $time()});
 		this.context = this.element.getContext('2d');
-		this.resize({x: width, y: height});
+		if (width && height) this.resize({x: width, y: height});
 		this.parent();
 	},
 	
@@ -99,3 +99,10 @@ ART.Adapter.Canvas = new Class({
 	}
 	
 });
+
+ART.Adapter.Canvas.prepare = function(){
+	var dummy = document.createElement('canvas');
+	return dummy && dummy.getContext;
+};
+
+ART.registerAdapter(ART.Adapter.Canvas, 0.8);
