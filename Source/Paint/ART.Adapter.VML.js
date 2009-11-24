@@ -25,8 +25,8 @@ ART.Adapter.VML = new Class({
 	resize: function(size){
 		this.clear(); // for canvas compatibility
 		var style = this.element.style;
-		style.width = size.x + 'px';
-		style.height = size.y + 'px';
+		style.pixelWidth = size.x;
+		style.pixelHeight = size.y;
 		this.size = size;
 		this.coordSize = {
 			x: size.x * this.precisionFactor,
@@ -42,7 +42,6 @@ ART.Adapter.VML = new Class({
 		var style = this.contextShape.style;
 		style.width = '100%';
 		style.height = '100%';
-		this.element.appendChild(this.contextShape);
 		this.drawingPath = [];
 		return this.parent(vector);
 	},
@@ -140,6 +139,7 @@ ART.Adapter.VML = new Class({
 		this.contextShape.appendChild(fill);
 		var stretch = 'm' + this.contextShape.coordorigin + 'l' + this.contextShape.coordsize;
 		this.contextShape.path = this.drawingPath.join('') + 'e' + stretch + 'nsnf';
+		this.element.appendChild(this.contextShape);
 		return this;
 	},
 
@@ -157,8 +157,6 @@ ART.Adapter.VML = new Class({
 	getColor: function(color){
 		var alpha = 1;
 		switch ($type(color)){
-			case 'string':
-				break;
 			case 'object':
 				for (var pos in color){
 					color = color[pos];
