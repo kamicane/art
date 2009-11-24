@@ -157,30 +157,30 @@ Color.implement({
 		var color = Color[this.type.toUpperCase() + 'To' + (to || 'rgb').toUpperCase()](this.color);
 		color[3] = this.color[3];
 		return color;
-	},
-	
-	toString: function(type){
-		type = type || 'rgb';
-		if (type == 'hex'){
-			var hex = this.toArray('hex');
-			var alpha = hex[3];
-			if (alpha != 1){
-				alpha = Math.round((alpha * 255)).toString(16);
-				if (alpha.length == 1) alpha += alpha;
-				hex[3] = alpha;
-			}
-			else hex = hex.slice(0, 3);
-			return '#' + hex.join('');
-		}
-		var bits = this.toArray(type);
-		if (bits[3] == 1) bits = bits.slice(0, 3);
-		else type = type + 'a';
-		return type + '(' + bits.join(', ') + ')';
 	}
 
 });
 
 Color.alias('toRGB', 'valueOf');
+
+Color.prototype.toString = function(type){
+	type = type || 'rgb';
+	if (type == 'hex'){
+		var hex = this.toArray('hex');
+		var alpha = hex[3];
+		if (alpha != 1){
+			alpha = Math.round((alpha * 255)).toString(16);
+			if (alpha.length == 1) alpha += alpha;
+			hex[3] = alpha;
+		}
+		else hex = hex.slice(0, 3);
+		return '#' + hex.join('');
+	}
+	var bits = this.toArray(type);
+	if (bits[3] == 1) bits = bits.slice(0, 3);
+	else type = type + 'a';
+	return type + '(' + bits.join(', ') + ')';
+};
 
 var hex = Color.hex = function(hex){
 	return new Color(hex, 'hex');
