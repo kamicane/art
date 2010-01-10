@@ -36,10 +36,11 @@ ART.Adapter.VML = new Class({
 	},
 
 	start: function(vector){
+		var style, halfPixel = Math.floor(this.precisionFactor / 2);
 		this.contextShape = this.createElement('shape');
-		this.contextShape.coordorigin = '0,0';
+		this.contextShape.coordorigin = halfPixel + ',' + halfPixel; // optimize for fills
 		this.contextShape.coordsize = this.coordSize.x + ',' + this.coordSize.y;
-		var style = this.contextShape.style;
+		style = this.contextShape.style;
 		style.width = '100%';
 		style.height = '100%';
 		this.drawingPath = [];
