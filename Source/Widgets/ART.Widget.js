@@ -21,7 +21,7 @@ ART.Widget = new Class({
 		// onBlur: $empty,
 		// onEnable: $empty,
 		// onDisable: $empty,
-		classes: [],
+		className: '',
 		style: null
 	},
 	
@@ -32,6 +32,7 @@ ART.Widget = new Class({
 		this.element = new Element('div');
 		this.element.addClass(this.ns).addClass(this.prefix);
 		this.classes = this.options.classes;
+		this.classes = (this.options.className) ? this.options.className.split(' ') : [];
 		this.pseudos = [];
 		this.childWidgets = [];
 
@@ -99,6 +100,11 @@ ART.Widget = new Class({
 			this.fireEvent('focus');
 			this.element.addClass(this.prefix + '-focused');
 			this.addPseudo('focus');
+			
+			this.childWidgets.each(function(child){
+				child.focus();
+			});
+			
 			this.render();
 		}
 		return this;
@@ -145,6 +151,11 @@ ART.Widget = new Class({
 			this.fireEvent('blur');
 			this.element.removeClass(this.prefix + '-focused');
 			this.removePseudo('focus');
+			
+			this.childWidgets.each(function(child){
+				child.blur();
+			});
+			
 			this.render();
 		}
 		return this;
