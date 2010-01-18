@@ -1,18 +1,32 @@
 /*
-Script: ART.Adapter.VML.js
+Script: ART.VML.js
 
 License:
 	MIT-style license.
 */
 
-ART.Adapter.VML = new Class({
+(function(){
+	
+var ARTNameSpace = 'art', ARTTag = 'canvas', namespaces = document.namespaces, sheet, dummy;
 
-	Extends: ART.Adapter,
+if (!namespaces) return;
 
+namespaces.add(ARTNameSpace, 'urn:schemas-microsoft-com:vml');
+sheet = document.createStyleSheet();
+sheet.addRule(ARTTag, 'display:inline-block;position:relative;');
+['shape', 'stroke', 'fill'].each(function(tag){
+	sheet.addRule(ARTNameSpace + '\\:' + tag, 'behavior:url(#default#VML);display:inline-block;position:absolute;margin:-1px 0 0 -1px;');
+});
+
+dummy = document.createElement(ARTNameSpace + ':shape');
+dummy.style.behavior = 'url(#default#VML)';
+
+ART.VML = new Class({
+
+	Extends: ART.Base,
+	
 	initialize: function(id, width, height){
-		this.namespace = ART.Adapter.VML.namespace;
-		this.tag = ART.Adapter.VML.tag;
-		this.element = new Element(this.tag, {'id': id || 'c-' + $time()});
+		this.element = new Element(ARTTag, {'id': id || 'c-' + $time()});
 		this.contextShape = null;
 		this.drawingPath = [];
 		this.precisionFactor = 10;
@@ -152,7 +166,7 @@ ART.Adapter.VML = new Class({
 	/* privates */
 
 	createElement: function(tag){
-		return document.createElement(this.namespace + ':' + tag);
+		return document.createElement(ARTNameSpace + ':' + tag);
 	},
 
 	getColor: function(color){
@@ -188,29 +202,7 @@ ART.Adapter.VML = new Class({
 
 });
 
-ART.Adapter.VML.namespace = 'artvml';
-ART.Adapter.VML.tag = 'avcanvas';
 
-ART.Adapter.VML.prepare = function(){
-	var ns = ART.Adapter.VML.namespace,
-		namespaces = document.namespaces,
-		sheet, dummy;
-	if (!namespaces) return;
-	if (!namespaces[ns]){
-		namespaces.add(ns, 'urn:schemas-microsoft-com:vml');
-		sheet = document.createStyleSheet();
-		sheet.addRule(
-			ART.Adapter.VML.tag,
-			'display:inline-block;position:relative;');
-		['shape', 'stroke', 'fill'].each(function(tag){
-			sheet.addRule(
-				ns + '\\:' + tag,
-				'behavior:url(#default#VML);display:inline-block;position:absolute;margin:-1px 0 0 -1px;')
-		});
-	}
-	dummy = document.createElement(ns + ':shape');
-	dummy.style.behavior = 'url(#default#VML)';
-	return !!dummy.coordsize;
-};
-
-ART.registerAdapter(ART.Adapter.VML, 0.5);
+if (!!dummy.coordsize) ART.registerAdapter(ART.VML);
+	
+})();

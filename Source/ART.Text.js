@@ -35,21 +35,19 @@ ART.Font = new Class({
 });
 
 (function(){
-	var fonts = {};
 
-	ART.Paint.defineFont = function(name, font){
-		fonts[name.camelCase()] = new ART.Font(font);
-		return this;
-	};
+window.fonts = {};
 
-	ART.Paint.lookupFont = function(name){
-		return fonts[name.camelCase()];
-	};
-})();
+ART.registerFont = function(font){
+	var face = font.face, name = face['font-family'].toLowerCase().split(' ');
+	if (face['font-weight'] > 400) name.push('bold');
+	if (face['font-stretch'] == 'oblique') name.push('italic');
+	fonts[name.join('-')] = new ART.Font(font);
+};
 
-ART.Paint.implement('text', function(font, size, text){
-	if (typeof font == 'string') font = ART.Paint.lookupFont(font);
-	if (!font) return this;
+ART.implement({'text': function(font, size, text){
+	if (typeof font == 'string') font = fonts[font];
+	if (!font) return new Error('The specified font has not been found.');
 
 	this.save();
 	var width = 0;
@@ -63,4 +61,6 @@ ART.Paint.implement('text', function(font, size, text){
 		this.shift({x: w, y: 0});
 	}
 	return this.restore();
-});
+}});
+
+})();

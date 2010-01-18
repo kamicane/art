@@ -1,45 +1,50 @@
 /*
-Script: ART.Adapter.Canvas.js
+Script: ART.Canvas.js
 
 License:
 	MIT-style license.
 */
 
-ART.Adapter.Canvas = new Class({
+(function(){
 	
-	Extends: ART.Adapter,
-	
+var dummy = document.createElement('canvas');
+var canvas = !!(dummy && dummy.getContext);
+
+ART.Canvas = new Class({
+
+	Extends: ART.Base,
+
 	initialize: function(id, width, height){
-		this.element = new Element('canvas', {'id': id || 'c-' + $time()});
+		this.element = new Element('canvas', {'id': id || 'art-' + $time()});
 		this.context = this.element.getContext('2d');
 		if (width && height) this.resize({x: width, y: height});
 		this.parent();
 	},
-	
+
 	/* canvas implementation */
-	
+
 	resize: function(size){
 		this.element.width = size.x;
 		this.element.height = size.y;
 		return this;
 	},
-	
+
 	start: function(vector){
 		this.context.beginPath();
 		return this.parent(vector);
 	},
-	
+
 	join: function(){
 		this.context.closePath();
 		return this.parent();
 	},
-	
+
 	moveTo: function(vector){
 		var now = this.parent(vector);
 		this.context.moveTo(now.x, now.y);
 		return this;
 	},
-	
+
 	lineTo: function(vector){
 		var now = this.parent(vector);
 		this.context.lineTo(now.x, now.y);
@@ -51,7 +56,7 @@ ART.Adapter.Canvas = new Class({
 		this.context.bezierCurveTo(now[0].x, now[0].y, now[1].x, now[1].y, now[2].x, now[2].y);
 		return this;
 	},
-	
+
 	end: function(style){
 		this.started = false;
 		style = this.sanitizeStyle(style);
@@ -75,19 +80,19 @@ ART.Adapter.Canvas = new Class({
 		if (style.stroke) this.context.stroke();
 		return this;
 	},
-	
+
 	clear: function(){
 		this.context.clearRect(0, 0, this.element.width, this.element.height);
 		return this;
 	},
-	
+
 	/* privates */
-	
+
 	getColor: function(color){
 		color = color.valueOf();
 		var type = $type(color);
 		if (type == 'string') return color;
-		
+
 		var gradient = this.context.createLinearGradient(0, this.boundsMin.y, 0, this.boundsMax.y);
 		switch (type){
 			case 'object': for (var pos in color) gradient.addColorStop(pos, color[pos].valueOf()); break;
@@ -97,12 +102,9 @@ ART.Adapter.Canvas = new Class({
 		}
 		return gradient;
 	}
-	
+
 });
 
-ART.Adapter.Canvas.prepare = function(){
-	var dummy = document.createElement('canvas');
-	return dummy && dummy.getContext;
-};
-
-ART.registerAdapter(ART.Adapter.Canvas, 0.8);
+if (canvas) ART.registerAdapter(ART.Canvas);
+	
+})();

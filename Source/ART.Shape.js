@@ -13,27 +13,27 @@ ART.Shape = function(shape){
 	return shape;
 };
 
-ART.Paint.defineShape = function(name, shape){
+// connect to ART
+
+ART.defineShape = function(name, shape){
 	ART.Shape[name.camelCase()] = new ART.Shape(shape);
 	return this;
 };
 
-ART.Paint.defineShapes = function(shapes){
+ART.defineShapes = function(shapes){
 	for (var shape in shapes) this.defineShape(shape, shapes[shape]);
 	return this;
 };
 
-ART.Paint.lookupShape = function(name){
+ART.lookupShape = function(name){
 	return ART.Shape[name.camelCase()];
 };
 
-// connect to ART.Paint
-
-ART.Paint.implement({
+ART.implement({
 
 	shape: function(shape){
 		var args = Array.slice(arguments, 1);
-		if (typeof shape == 'string') shape = ART.Paint.lookupShape(shape.camelCase());
+		if (typeof shape == 'string') shape = ART.lookupShape(shape.camelCase());
 		if (!shape) return this;
 		this.save();
 		shape.apply(this, args);
@@ -44,7 +44,7 @@ ART.Paint.implement({
 
 // default shapes
 
-ART.Paint.defineShapes({
+ART.defineShapes({
 
 	rectangle: function(end){
 		this.lineBy({x: end.x, y: 0}).lineBy({x: 0, y: end.y}).lineBy({x: -end.x, y: 0}).lineBy({x: 0, y: -end.y});
@@ -88,34 +88,34 @@ ART.Paint.defineShapes({
 
 // And some extra glyphs
 
-ART.Paint.defineShape('horizontal-pill', function(size){
+ART.defineShape('horizontal-pill', function(size){
 	var r = (size.y / 2);
 	this.shape('rounded-rectangle', {x: size.x, y: size.y}, r);
 });
 
-ART.Paint.defineShape('vertical-pill', function(size){
+ART.defineShape('vertical-pill', function(size){
 	var r = (size.x / 2);
 	this.shape('rounded-rectangle', {x: size.x, y: size.y}, r);
 });
 
-ART.Paint.defineShape('plus-icon', function(size){
+ART.defineShape('plus-icon', function(size){
 	this.moveBy({x: 0, y: (size.y / 2)});
 	this.lineBy({x: size.x, y: 0});
 	this.moveBy({x: -(size.x / 2), y: -(size.y / 2)});
 	this.lineBy({x: 0, y: size.y});
 });
 
-ART.Paint.defineShape('resize-icon', function(size){
+ART.defineShape('resize-icon', function(size){
 	this.moveBy({x: size.x, y: 0});
 	this.lineBy({x: -size.x, y: size.y});
 });
 
-ART.Paint.defineShape('minus-icon', function(size){
+ART.defineShape('minus-icon', function(size){
 	this.moveBy({x: 0, y: (size.y / 2)});
 	this.lineBy({x: size.x, y: 0});
 });
 
-ART.Paint.defineShape('search-icon', function(size){
+ART.defineShape('search-icon', function(size){
 	ratio = 0.8;
 	var max = ratio, min = 1 - ratio;
 	this.shape('ellipse', {x: size.x * max, y: size.y * max});
@@ -124,7 +124,7 @@ ART.Paint.defineShape('search-icon', function(size){
 	this.lineBy({x: (size.x * min) - lift.x, y: (size.y * min) - lift.y});
 });
 
-ART.Paint.defineShape('close-icon', function(size){
+ART.defineShape('close-icon', function(size){
 	this.moveBy({x: size.x, y: 0});
 	this.lineBy({x: -size.x, y: size.y});
 	this.moveBy({x: 0, y: -size.y});

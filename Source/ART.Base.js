@@ -1,13 +1,23 @@
 /*
-Script: ART.Adapter.js
+Script: ART.js
 
 License:
 	MIT-style license.
 */
 
-// Generic adapter base Class.
+// kappa!
 
-ART.Adapter = new Class({
+Math.kappa = (4 * (Math.sqrt(2) - 1) / 3);
+
+var ART = function(){
+	return new Error('No suitable adapter found.');
+};
+
+// Generic base Class.
+
+(function(){
+
+var Base = ART.Base = new Class({
 	
 	style: {
 		'fill': false,
@@ -130,11 +140,35 @@ ART.Adapter = new Class({
 		}
 	},
 	
+	/* roundCaps */
+	
+	roundCapLeftTo: function(vector){
+		return this.roundCapLeftBy({x: vector.x - this.now.x, y: vector.y - this.now.y});
+	},
+	
+	roundCapRightTo: function(vector){
+		return this.roundCapRightBy({x: vector.x - this.now.x, y: vector.y - this.now.y});
+	},
+
+	roundCapLeftBy: function(end){
+		var kappa = {x: end.x * Math.kappa, y: end.y * Math.kappa};
+		this.bezierBy({x: 0, y: kappa.y}, {x: end.x - kappa.x, y: end.y}, end);
+		return this;
+	},
+	
+	roundCapRightBy: function(end){
+		var kappa = {x: end.x * Math.kappa, y: end.y * Math.kappa};
+		this.bezierBy({x: kappa.x, y: 0}, {x: end.x, y: end.y - kappa.y}, end);
+		return this;
+	},
+	
 	/* to element */
 	
 	toElement: function(){
 		return this.element;
 	},
+	
+	/* privates */
 	
 	getUpdatedVector: function(vector){
 		var sum = {x: this.global.x + this.local.x + vector.x, y: this.global.y + this.local.y + vector.y};
@@ -163,3 +197,16 @@ ART.Adapter = new Class({
 	}
 	
 });
+
+var adapter;
+
+var registerAdapter = ART.registerAdapter = function(klass){
+	if (adapter) return null;
+	adapter = true;
+	ART = klass;
+	ART.Base = Base;
+	ART.registerAdapter = registerAdapter;
+	return ART;
+};
+
+})();
