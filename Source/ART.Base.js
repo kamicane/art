@@ -53,9 +53,7 @@ var Base = ART.Base = new Class({
 		this.stack.local = [];
 		this.stack.pointer = [];
 		this.local = {x: 0, y: 0};
-		// this.pointer = {x: 0, y: 0};
-		
-		this.moveTo({x: 0, y: 0});
+		this.pointer = {x: 0, y: 0};
 		
 		return this.shift(vector);
 	},
