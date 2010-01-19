@@ -36,7 +36,7 @@ ART.Font = new Class({
 
 (function(){
 
-window.fonts = {};
+var fonts = {};
 
 ART.registerFont = function(font){
 	var face = font.face, name = face['font-family'].toLowerCase().split(' ');
