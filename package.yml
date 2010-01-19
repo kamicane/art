@@ -17,6 +17,6 @@ sources:
   - "Source/ART.Canvas.js"
   - "Source/ART.VML.js"
   - "Source/ART.Shape.js"
-  - "Source/ART.Text.js"
+  - "Source/ART.Font.js"
   - "Fonts/MgOpen.Moderna.js"
   - "Fonts/MgOpen.Moderna.Bold.js"

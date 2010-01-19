@@ -5,7 +5,7 @@ name: ART.Font
 
 description: Fonts for ART, implements code from Cufón (http://wiki.github.com/sorccu/cufon/about), (http://cufon.shoqolate.com/)
 
-provides: [ART:text, Art.Font]
+provides: [ART:text, ART.Font]
 
 requires: [ART.Canvas, ART.VML]
 
