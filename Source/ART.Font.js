@@ -45,19 +45,35 @@ ART.registerFont = function(font){
 	fonts[name.join('-')] = new ART.Font(font);
 };
 
+var path = function(path, s, self){
+	var X = 0, Y = 0;
+	var regexp = /([mrvxe])([^a-z]*)/g, match;
+	while ((match = regexp.exec(path))){
+		var c = match[2].split(',');
+		switch (match[1]){
+			case 'v':
+				self.bezierTo({x: X + s * ~~c[0], y: Y + s * ~~c[1]}, {x: X + s * ~~c[2], y: Y + s * ~~c[3]}, {x: X += s * ~~c[4], y: Y += s * ~~c[5]});
+				break;
+			case 'r': self.lineTo({x: X += s * ~~c[0], y: Y += s * ~~c[1]}); break;
+			case 'm': self.moveTo({x: X = s * ~~c[0], y: Y = s * ~~c[1]}); break;
+			case 'x': self.join(); break;
+			case 'e': return;
+		}
+	}
+};
+
 ART.implement({'text': function(font, size, text){
 	if (typeof font == 'string') font = fonts[font];
 	if (!font) return new Error('The specified font has not been found.');
 
 	this.save();
-	var width = 0;
 	size = size / font.units;
-	this.shift({x: 0, y: Math.round(size * font.ascent)});
+	// Temporary "relative" fix shifting the whole layer by the pointer, since the pointer is lost with path. Should not matter since it's later restored.
+	this.shift({x: this.pointer.x, y: this.pointer.y + Math.round(size * font.ascent)});
 	for (var i = 0, l = text.length; i < l; ++i){
 		var glyph = font.glyphs[text.charAt(i)] || font.glyphs[' '];
-		if (glyph.d) this.path('m' + glyph.d, size);
+		if (glyph.d) path('m' + glyph.d, size, this);
 		var w = size * (glyph.w || font.width);
-		width += w;
 		this.shift({x: w, y: 0});
 	}
 	return this.restore();

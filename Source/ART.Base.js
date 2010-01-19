@@ -57,6 +57,7 @@ var Base = ART.Base = new Class({
 		
 		this.stack.local = [];
 		this.stack.pointer = [];
+
 		this.local = {x: 0, y: 0};
 		this.pointer = {x: 0, y: 0};
 		
@@ -132,22 +133,6 @@ var Base = ART.Base = new Class({
 	bezierBy: function(c1, c2, end){
 		var n = this.pointer;
 		return this.bezierTo({x: c1.x + n.x, y: c1.y + n.y}, {x: c2.x + n.x, y: c2.y + n.y}, {x: end.x + n.x, y: end.y + n.y});
-	},
-	
-	/* path */
-	
-	path: function(path, s){
-		var regexp = /([mrvxe])([^a-z]*)/g, match;
-		while ((match = regexp.exec(path))){
-			var c = match[2].split(',');
-			switch (match[1]){
-				case 'v': this.bezierBy({x: s * ~~c[0], y: s * ~~c[1]}, {x: s * ~~c[2], y: s * ~~c[3]}, {x: s * ~~c[4], y: s * ~~c[5]}); break;
-				case 'r': this.lineBy({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'm': this.moveTo({x: s * ~~c[0], y: s * ~~c[1]}); break;
-				case 'x': this.join(); break;
-				case 'e': return;
-			}
-		}
 	},
 	
 	/* roundCaps */
