@@ -63,11 +63,17 @@ var Base = ART.Base = new Class({
 		
 		return this.shift(vector);
 	},
+	
+	end: function(){
+		this.started = false;
+	},
 
 	shift: function(vector){
 		if (this.started){
 			this.local = {x: this.local.x + vector.x, y: this.local.y + vector.y};
 			this.moveBy({x: 0, y: 0});
+		} else {
+			this.global = {x: this.global.x + vector.x, y: this.global.y + vector.y};
 		}
 		
 		return this;
@@ -77,16 +83,25 @@ var Base = ART.Base = new Class({
 		if (this.started){
 			this.stack.pointer.push(this.pointer);
 			this.stack.local.push(this.local);
+		} else {
+			this.stack.global.push(this.global);
 		}
 		
 		return this;
 	},
 	
-	restore: function(){		
-		var pointerVector = this.stack.pointer.pop();
-		var localVector = this.stack.local.pop();
-		this.local = localVector;
-		this.moveTo(pointerVector);
+	restore: function(){
+		if (this.started){
+			var pointerVector = this.stack.pointer.pop();
+			var localVector = this.stack.local.pop();
+			this.local = localVector;
+			this.moveTo(pointerVector);
+		} else {
+			var globalVector = this.stack.global.pop();
+			this.global = globalVector;
+		}
+		
+		return this;
 	},
 	
 	/* join */

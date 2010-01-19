@@ -65,7 +65,7 @@ ART.Canvas = new Class({
 	},
 
 	end: function(style){
-		this.started = false;
+		this.parent();
 		style = this.sanitizeStyle(style);
 		var ctx = this.context;
 		for (var key in style){

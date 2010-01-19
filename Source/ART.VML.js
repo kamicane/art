@@ -92,7 +92,7 @@ ART.VML = new Class({
 	},
 
 	end: function(style){
-		this.started = false;
+		this.parent();
 		style = this.sanitizeStyle(style);
 		var stroke = this.createElement('stroke');
 		var fill = this.createElement('fill');
