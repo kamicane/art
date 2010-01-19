@@ -1,3 +1,17 @@
+/*
+---
+
+name: Moderna
+
+description: MgOpen Moderna built with Cufón (http://wiki.github.com/sorccu/cufon/about)
+
+provides: Moderna
+
+requires: ART.Font
+
+...
+*/
+
 /*!
  * The following copyright notice may not be removed under any circumstances.
  * 

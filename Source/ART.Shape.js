@@ -1,13 +1,16 @@
 /*
-Script: ART.Shape.js
+---
 
-License:
-	MIT-style license.
+name: ART.Shape
+
+description: Shapes for ART
+
+provides: [ART.Shape, ART:shape]
+
+requires: [ART.Canvas, ART.VML]
+
+...
 */
-
-// ART.Shape Class stub.
-// Will probably support defining shapes as json at some point.
-// Right now, its just functions.
 
 ART.Shape = function(shape){
 	return shape;

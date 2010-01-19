@@ -1,8 +1,15 @@
 /*
-Script: ART.VML.js
+---
 
-License:
-	MIT-style license.
+name: ART.VML
+
+description: VML implementation for ART
+
+provides: ART.VML
+
+requires: ART.Base
+
+...
 */
 
 (function(){

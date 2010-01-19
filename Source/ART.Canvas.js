@@ -1,8 +1,15 @@
 /*
-Script: ART.Canvas.js
+---
 
-License:
-	MIT-style license.
+name: ART.Canvas
+
+description: Canvas implementation for ART
+
+provides: ART.Canvas
+
+requires: ART.Base
+
+...
 */
 
 (function(){

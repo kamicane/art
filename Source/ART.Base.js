@@ -1,8 +1,13 @@
 /*
-Script: ART.js
+---
 
-License:
-	MIT-style license.
+name: ART.Base
+
+description: The heart of ART.
+
+provides: ART.Base
+
+...
 */
 
 // kappa!
