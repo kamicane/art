@@ -70,11 +70,13 @@ ART.implement({'text': function(font, size, text){
 	size = size / font.units;
 	// Temporary "relative" fix shifting the whole layer by the pointer, since the pointer is lost with path. Should not matter since it's later restored.
 	this.shift({x: this.pointer.x, y: this.pointer.y + Math.round(size * font.ascent)});
+	var width = 0;
 	for (var i = 0, l = text.length; i < l; ++i){
 		var glyph = font.glyphs[text.charAt(i)] || font.glyphs[' '];
-		if (glyph.d) path('m' + glyph.d, size, this);
+		if (glyph.d) path('m' + glyph.d + 'x', size, this);
 		var w = size * (glyph.w || font.width);
 		this.shift({x: w, y: 0});
+		width += w;
 	}
 	return this.restore();
 }});
