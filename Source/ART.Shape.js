@@ -98,13 +98,8 @@ ART.defineShapes({
 
 // And some extra glyphs
 
-ART.defineShape('horizontal-pill', function(size){
-	var r = (size.y / 2);
-	this.shape('rounded-rectangle', {x: size.x, y: size.y}, r);
-});
-
-ART.defineShape('vertical-pill', function(size){
-	var r = (size.x / 2);
+ART.defineShape('pill', function(size){
+	var m = size.x < size.y ? 'x' : 'y', r = size[m] / 2;
 	this.shape('rounded-rectangle', {x: size.x, y: size.y}, r);
 });
 
