@@ -55,7 +55,7 @@ ART.defineShapes({
 		this.moveBy({x: 0, y: radius.y});
 		this.roundCapLeftBy({x: radius.x, y: -radius.y}).roundCapRightBy({x: radius.x, y: radius.y});
 		this.roundCapLeftBy({x: -radius.x, y: radius.y}).roundCapRightBy({x: -radius.x, y: -radius.y});
-		this.moveBy({x: end.x, y: - radius.y + end.y});
+		// this.moveBy({x: end.x, y: - radius.y + end.y});
 	},
 	
 	roundedRectangle: function(end, radius){
@@ -81,7 +81,14 @@ ART.defineShapes({
 		if (bl > 0) this.roundCapRightBy({x: -bl, y: -bl});
 		this.lineBy({x: 0, y: - Math.abs(end.y) + (bl + tl)});
 		
-		this.moveBy({x: end.x, y: -tl + end.y});
+		// this.moveBy({x: end.x, y: -tl + end.y});
+	},
+	
+	shiftShape: function(end){
+		
+		this.shift({x: 1, y: 1});
+		this.shape('rectangle', {x: 100, y: 100});
+		
 	}
 	
 });

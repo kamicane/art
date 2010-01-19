@@ -51,37 +51,44 @@ var Base = ART.Base = new Class({
 		this.drawn = false;
 		
 		this.stack.local = [];
+		this.stack.pointer = [];
 		this.local = {x: 0, y: 0};
-
+		// this.pointer = {x: 0, y: 0};
+		
+		this.moveTo({x: 0, y: 0});
+		
 		return this.shift(vector);
 	},
 
 	shift: function(vector){
-		var p = (this.started) ? 'local' : 'global';
-		this[p] = {x: this[p].x + vector.x, y: this[p].y + vector.y};
-		if (this.started) this.moveTo({x: 0, y: 0});
+		if (this.started){
+			this.local = {x: this.local.x + vector.x, y: this.local.y + vector.y};
+			this.moveBy({x: 0, y: 0});
+		}
+		
 		return this;
 	},
 	
 	save: function(){
-		var p = (this.started) ? 'local' : 'global';
-		this.stack[p].push(this[p]);
+		if (this.started){
+			this.stack.pointer.push(this.pointer);
+			this.stack.local.push(this.local);
+		}
+		
 		return this;
 	},
 	
-	restore: function(){
-		var p = (this.started) ? 'local' : 'global';
-		var vector = this.stack[p].pop();
-		if (!vector) return this;
-		this[p] = vector;
-		if (this.started) this.moveTo({x: 0, y: 0});
-		return this;
+	restore: function(){		
+		var pointerVector = this.stack.pointer.pop();
+		var localVector = this.stack.local.pop();
+		this.local = localVector;
+		this.moveTo(pointerVector);
 	},
 	
 	/* join */
 	
 	join: function(){
-		this.now = this.joinVector;
+		this.pointer = this.joinVector;
 		this.drawn = false;
 		this.joinVector = {x: 0, y: 0};
 		return this;
@@ -90,37 +97,37 @@ var Base = ART.Base = new Class({
 	/* to methods */
 	
 	moveTo: function(vector){
-		this.now = vector;
-		return this.getUpdatedVector(this.now);
+		this.pointer = vector;
+		return this.getUpdatedVector(this.pointer);
 	},
 	
 	lineTo: function(vector){
 		this.updateJoinVector();
-		this.now = vector;
-		return this.getUpdatedVector(this.now);
+		this.pointer = vector;
+		return this.getUpdatedVector(this.pointer);
 	},
 
 	bezierTo: function(c1, c2, end){
 		this.updateJoinVector();
 		c1 = this.getUpdatedVector(c1);
 		c2 = this.getUpdatedVector(c2);
-		this.now = end;
-		var now = this.getUpdatedVector(this.now);
+		this.pointer = end;
+		var now = this.getUpdatedVector(this.pointer);
 		return [c1, c2, now];
 	},
 	
 	/* by methods */
 	
 	moveBy: function(vector){
-		return this.moveTo({x: this.now.x + vector.x, y: this.now.y + vector.y});
+		return this.moveTo({x: this.pointer.x + vector.x, y: this.pointer.y + vector.y});
 	},
 	
 	lineBy: function(vector){
-		return this.lineTo({x: this.now.x + vector.x, y: this.now.y + vector.y});
+		return this.lineTo({x: this.pointer.x + vector.x, y: this.pointer.y + vector.y});
 	},
 	
 	bezierBy: function(c1, c2, end){
-		var n = this.now;
+		var n = this.pointer;
 		return this.bezierTo({x: c1.x + n.x, y: c1.y + n.y}, {x: c2.x + n.x, y: c2.y + n.y}, {x: end.x + n.x, y: end.y + n.y});
 	},
 	
@@ -143,11 +150,11 @@ var Base = ART.Base = new Class({
 	/* roundCaps */
 	
 	roundCapLeftTo: function(vector){
-		return this.roundCapLeftBy({x: vector.x - this.now.x, y: vector.y - this.now.y});
+		return this.roundCapLeftBy({x: vector.x - this.pointer.x, y: vector.y - this.pointer.y});
 	},
 	
 	roundCapRightTo: function(vector){
-		return this.roundCapRightBy({x: vector.x - this.now.x, y: vector.y - this.now.y});
+		return this.roundCapRightBy({x: vector.x - this.pointer.x, y: vector.y - this.pointer.y});
 	},
 
 	roundCapLeftBy: function(end){
@@ -184,7 +191,7 @@ var Base = ART.Base = new Class({
 	updateJoinVector: function(){
 		if (!this.drawn){
 			this.drawn = true;
-			this.joinVector = this.now;
+			this.joinVector = this.pointer;
 		}
 	},
 	
