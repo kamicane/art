@@ -14,6 +14,8 @@ requires: [ART.Canvas, ART.VML]
 ...
 */
 
+// stub
+
 ART.Shape = function(shape){
 	return shape;
 };

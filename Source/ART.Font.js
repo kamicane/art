@@ -14,37 +14,29 @@ requires: [ART.Canvas, ART.VML]
 ...
 */
 
-ART.Font = new Class({
-	
-	initialize: function(font){
-		this.ascent = font.face.ascent;
-		this.descent = font.face.descent;
-		this.units = font.face['units-per-em'];
-		this.glyphs = font.glyphs;
-		this.width = font.w;
-	},
-	
-	measure: function(size, text){
-		var width = 0, height = size;
-		size = size / this.units;
-		for (var i = 0, l = text.length; i < l; ++i){
-			var glyph = this.glyphs[text.charAt(i)] || this.glyphs[' '];
-			width += size * (glyph.w || this.width);
-		}
-		return {x: width, y: size * (this.ascent - this.descent)};
-	}
+// stub
 
-});
+ART.Font = function(font){
+	return font;
+};
 
 (function(){
 
 var fonts = {};
 
+ART.defineFont = function(name, font){
+	fonts[name] = new ART.Font(font);
+};
+
+ART.lookupFont = function(name){
+	return fonts[name];
+};
+
 ART.registerFont = function(font){
 	var face = font.face, name = face['font-family'].toLowerCase().split(' ');
 	if (face['font-weight'] > 400) name.push('bold');
 	if (face['font-stretch'] == 'oblique') name.push('italic');
-	fonts[name.join('-')] = new ART.Font(font);
+	ART.defineFont(name.join('-'), font);
 };
 
 var path = function(path, s, self){
@@ -69,18 +61,19 @@ ART.implement({'text': function(font, size, text){
 	if (!font) return new Error('The specified font has not been found.');
 
 	this.save();
-	size = size / font.units;
+	size = size / font.face['units-per-em'];
 	// Temporary "relative" fix shifting the whole layer by the pointer, since the pointer is lost with path. Should not matter since it's later restored.
-	this.shift({x: this.pointer.x, y: this.pointer.y + Math.round(size * font.ascent)});
+	this.shift({x: this.pointer.x, y: this.pointer.y + Math.round(size * font.face.ascent)});
 	var width = 0;
 	for (var i = 0, l = text.length; i < l; ++i){
 		var glyph = font.glyphs[text.charAt(i)] || font.glyphs[' '];
 		if (glyph.d) path('m' + glyph.d + 'x', size, this);
-		var w = size * (glyph.w || font.width);
+		var w = size * (glyph.w || font.w);
 		this.shift({x: w, y: 0});
 		width += w;
 	}
-	return this.restore();
+	this.restore();
+	return {x: width, y: size * (font.face.ascent - font.face.descent)};
 }});
 
 })();
