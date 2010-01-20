@@ -85,13 +85,6 @@ ART.defineShapes({
 		this.lineBy({x: 0, y: - Math.abs(end.y) + (bl + tl)});
 		
 		// this.moveBy({x: end.x, y: -tl + end.y});
-	},
-	
-	shiftShape: function(end){
-		
-		this.shift({x: 1, y: 1});
-		this.shape('rectangle', {x: 100, y: 100});
-		
 	}
 	
 });
