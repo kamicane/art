@@ -5,6 +5,8 @@ name: ART.Base
 
 description: The heart of ART.
 
+authors: [Valerio Proietti](http://mad4milk.net) && [MooTools development team](http://mootools.net/developers)
+
 provides: ART.Base
 
 ...

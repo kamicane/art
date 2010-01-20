@@ -5,6 +5,8 @@ name: ART.VML
 
 description: VML implementation for ART
 
+author: [Simo Kinnunen](http://twitter.com/sorccu)
+
 provides: ART.VML
 
 requires: ART.Base

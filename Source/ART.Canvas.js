@@ -5,6 +5,8 @@ name: ART.Canvas
 
 description: Canvas implementation for ART
 
+authors: [Valerio Proietti](http://mad4milk.net) && [MooTools development team](http://mootools.net/developers)
+
 provides: ART.Canvas
 
 requires: ART.Base
