@@ -119,22 +119,21 @@ var Base = ART.Base = new Class({
 	
 	moveTo: function(vector){
 		this.pointer = vector;
-		return this.getUpdatedVector(this.pointer);
+		return this.updateVector(this.pointer, false);
 	},
 	
 	lineTo: function(vector){
+		this.updateVector(this.pointer);
 		this.updateJoinVector();
 		this.pointer = vector;
-		return this.getUpdatedVector(this.pointer);
+		return this.updateVector(this.pointer);
 	},
 
 	bezierTo: function(c1, c2, end){
+		this.updateVector(this.pointer);
 		this.updateJoinVector();
-		c1 = this.getUpdatedVector(c1);
-		c2 = this.getUpdatedVector(c2);
 		this.pointer = end;
-		var now = this.getUpdatedVector(this.pointer);
-		return [c1, c2, now];
+		return [this.updateVector(c1), this.updateVector(c2), this.updateVector(end)];
 	},
 	
 	/* by methods */
@@ -182,15 +181,17 @@ var Base = ART.Base = new Class({
 	
 	/* privates */
 	
-	getUpdatedVector: function(vector){
+	updateVector: function(vector, setBounds){
 		var sum = {x: this.global.x + this.local.x + vector.x, y: this.global.y + this.local.y + vector.y};
-		
-		if (this.boundsMax.x == null || this.boundsMax.x < sum.x) this.boundsMax.x = sum.x;
-		if (this.boundsMax.y == null || this.boundsMax.y < sum.y) this.boundsMax.y = sum.y;
-		if (this.boundsMin.x == null || this.boundsMin.x > sum.x) this.boundsMin.x = sum.x;
-		if (this.boundsMin.y == null || this.boundsMin.y > sum.y) this.boundsMin.y = sum.y;
-		
-		return {x: sum.x, y: sum.y};
+		if (setBounds !== false) this.updateBounds(sum);
+		return sum;
+	},
+	
+	updateBounds: function(vector){
+		if (this.boundsMax.x == null || this.boundsMax.x < vector.x) this.boundsMax.x = vector.x;
+		if (this.boundsMax.y == null || this.boundsMax.y < vector.y) this.boundsMax.y = vector.y;
+		if (this.boundsMin.x == null || this.boundsMin.x > vector.x) this.boundsMin.x = vector.x;
+		if (this.boundsMin.y == null || this.boundsMin.y > vector.y) this.boundsMin.y = vector.y;
 	},
 	
 	updateJoinVector: function(){

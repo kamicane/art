@@ -202,8 +202,8 @@ ART.VML = new Class({
 		};
 	},
 
-	getUpdatedVector: function(vector){
-		var v = this.parent(vector);
+	updateVector: function(vector, setBounds){
+		var v = this.parent(vector, setBounds);
 		v.x *= this.precisionFactor;
 		v.y *= this.precisionFactor;
 		return v;
