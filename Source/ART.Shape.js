@@ -9,7 +9,7 @@ authors: [Valerio Proietti](http://mad4milk.net) && [MooTools development team](
 
 provides: [ART.Shape, ART:shape]
 
-requires: [ART.Canvas, ART.VML]
+requires: ART
 
 ...
 */
@@ -51,6 +51,28 @@ ART.implement({
 		this.save();
 		shape.apply(this, args);
 		return this.restore();
+	},
+	
+	/* some round caps to make things easier */
+	
+	roundCapLeftTo: function(vector){
+		return this.roundCapLeftBy({x: vector.x - this.pointer.x, y: vector.y - this.pointer.y});
+	},
+	
+	roundCapRightTo: function(vector){
+		return this.roundCapRightBy({x: vector.x - this.pointer.x, y: vector.y - this.pointer.y});
+	},
+
+	roundCapLeftBy: function(end){
+		var kappa = {x: end.x * Math.kappa, y: end.y * Math.kappa};
+		this.bezierBy({x: 0, y: kappa.y}, {x: end.x - kappa.x, y: end.y}, end);
+		return this;
+	},
+	
+	roundCapRightBy: function(end){
+		var kappa = {x: end.x * Math.kappa, y: end.y * Math.kappa};
+		this.bezierBy({x: kappa.x, y: 0}, {x: end.x, y: end.y - kappa.y}, end);
+		return this;
 	}
 	
 });
@@ -68,7 +90,6 @@ ART.defineShapes({
 		this.moveBy({x: 0, y: radius.y});
 		this.roundCapLeftBy({x: radius.x, y: -radius.y}).roundCapRightBy({x: radius.x, y: radius.y});
 		this.roundCapLeftBy({x: -radius.x, y: radius.y}).roundCapRightBy({x: -radius.x, y: -radius.y});
-		// this.moveBy({x: end.x, y: - radius.y + end.y});
 	},
 	
 	roundedRectangle: function(end, radius){
@@ -93,8 +114,6 @@ ART.defineShapes({
 		
 		if (bl > 0) this.roundCapRightBy({x: -bl, y: -bl});
 		this.lineBy({x: 0, y: - Math.abs(end.y) + (bl + tl)});
-		
-		// this.moveBy({x: end.x, y: -tl + end.y});
 	},
 	
 	pill: function(size){

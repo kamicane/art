@@ -9,41 +9,19 @@ author: [Simo Kinnunen](http://twitter.com/sorccu)
 
 provides: ART.VML
 
-requires: ART.Base
+requires: ART
 
 ...
 */
 
-(function(){
-	
-var ARTNameSpace = 'art', ARTTag = 'canvas', namespaces = document.namespaces, sheet, dummy;
-
-if (!namespaces) return;
-
-namespaces.add(ARTNameSpace, 'urn:schemas-microsoft-com:vml');
-sheet = document.createStyleSheet();
-sheet.addRule(ARTTag, 'display:inline-block;position:relative;');
-['shape', 'stroke', 'fill'].each(function(tag){
-	sheet.addRule(ARTNameSpace + '\\:' + tag, 'behavior:url(#default#VML);display:inline-block;position:absolute;margin:-1px 0 0 -1px;');
-});
-
-dummy = document.createElement(ARTNameSpace + ':shape');
-dummy.style.behavior = 'url(#default#VML)';
-
 ART.VML = new Class({
-
-	Extends: ART.Base,
 	
 	initialize: function(id, width, height){
-		this.element = new Element(ARTTag, {'id': id || 'c-' + $time()});
-		this.contextShape = null;
-		this.drawingPath = [];
+		this.element = new Element('canvas', {'id': id || 'c-' + $time()});
 		this.precisionFactor = 10;
-		if (width && height) this.resize({x: width, y: height});
-		this.parent();
+		this.halfPixel = Math.floor(this.precisionFactor / 2);
+		this.resize({x: width, y: height});
 	},
-
-	/* vml implementation */
 
 	resize: function(size){
 		this.clear(); // for canvas compatibility
@@ -57,161 +35,156 @@ ART.VML = new Class({
 		};
 		return this;
 	},
+	
+	clear: function(){
+		this.element.innerHTML = '';
+		return this;
+	},
 
-	start: function(vector){
-		var style, halfPixel = Math.floor(this.precisionFactor / 2);
-		this.contextShape = this.createElement('shape');
-		this.contextShape.coordorigin = halfPixel + ',' + halfPixel; // optimize for fills
-		this.contextShape.coordsize = this.coordSize.x + ',' + this.coordSize.y;
-		style = this.contextShape.style;
+	start: function(){
+		this.currentShape = document.createElement('av:shape');
+		this.currentShape.coordorigin = this.halfPixel + ',' + this.halfPixel; // optimize for fills
+		this.currentShape.coordsize = this.coordSize.x + ',' + this.coordSize.y;
+		var style = this.currentShape.style;
 		style.width = '100%';
 		style.height = '100%';
-		this.drawingPath = [];
-		return this.parent(vector);
+		this.currentPath = [];
+	},
+	
+	end: function(style){
+		
+		this.outline(style.outline, style.outlineWidth, style.outlineCap, style.outlineJoin);
+		
+		var fill = $splat(style.fill);
+		this.fill(fill[0], fill[1], style.fillMode);
+		
+		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset);
+		
+		var stretch = 'm' + this.currentShape.coordorigin + 'l' + this.currentShape.coordsize;
+		this.currentShape.path = this.currentPath.join('') + 'e' + stretch + 'nsnf';
+		this.element.appendChild(this.currentShape);
+		
+		return this;
 	},
 
 	join: function(){
-		this.drawingPath.push('x');
-		return this.parent();
+		this.currentPath.push('x');
 	},
 
-	moveTo: function(vector){
-		var now = this.parent(vector);
-		this.drawingPath.push('m' + ~~now.x + ',' + ~~now.y);
+	move: function(vector){
+		var p = this.precisionFactor;
+		this.currentPath.push('m' + ~~(vector.x * p) + ',' + ~~(vector.y * p));
 		return this;
 	},
 
-	lineTo: function(vector){
-		var now = this.parent(vector);
-		this.drawingPath.push('l' + ~~now.x + ',' + ~~now.y);
+	line: function(vector){
+		var p = this.precisionFactor;
+		this.currentPath.push('l' + ~~(vector.x * p) + ',' + ~~(vector.y * p));
 		return this;
 	},
 
-	bezierTo: function(c1, c2, end){
-		var now = this.parent(c1, c2, end);
-		this.drawingPath.push('c' + ~~now[0].x + ',' + ~~now[0].y + ',' + ~~now[1].x + ',' + ~~now[1].y + ',' + ~~now[2].x + ',' + ~~now[2].y);
+	bezier: function(c1, c2, end){
+		var p = this.precisionFactor;
+		this.currentPath.push('c' + ~~(c1.x * p) + ',' + ~~(c1.y * p) + ',' + ~~(c2.x * p) + ',' + ~~(c2.y * p) + ',' + ~~(end.x * p) + ',' + ~~(end.y * p));
 		return this;
 	},
+	
+	/* styles */
+	
+	fill: function(color1, color2, mode){
+		var fill = document.createElement('av:fill'), on = false;
 
-	end: function(style){
-		this.parent();
-		style = this.sanitizeStyle(style);
-		var stroke = this.createElement('stroke');
-		var fill = this.createElement('fill');
-		for (var key in style){
-			var current = style[key];
-			if (current == null) continue;
-			switch (key){
-				case 'fillColor':
-					var stops = [], colors = {};
-					switch ($type(current)){
-						case 'object':
-							for (var stop in current){
-								stops.push(stop);
-								colors[stop] = this.getColor(current[stop]);
-							}
-							break;
-						case 'array':
-							current.each(function(color, i, all){
-								var stop = i / (all.length - 1);
-								stops.push(stop);
-								colors[stop] = this.getColor(color);
-							}, this);
-							break;
-						default:
-							colors[stops[0] = 0] = this.getColor(current);
-							break;
-					}
-					stops.sort();
-					var color1 = colors[stops.shift()], color2;
-					fill.color = color1.color;
-					fill.opacity = color1.alpha;
-					if (stops.length){
-						fill.type = 'gradient';
-						fill.angle = 180;
-						fill.method = 'none';
-						color2 = colors[stops.pop()];
-						fill.color2 = color2.color;
-						// opacity2 doesn't seem to have any effect
-						fill.opacity2 = color2.alpha;
-						if (stops.length) fill.colors = stops.map(function(stop){
-							return (stop * 100) + '% ' + colors[stop].color;
-						}).join(', ');
-					}
-					break;
-				case 'strokeColor':
-					current = this.getColor(current);
-					stroke.color = current.color;
-					stroke.opacity = current.alpha;
-					break;
-				// can't be less than 1 full pixel
-				case 'strokeWidth': stroke.width = Number(current); break;
-				// butt => flat, round, square
-				case 'strokeCap': stroke.endcap = (current == 'butt') ? 'flat' : current; break;
-				// bevel, round, miter
-				case 'strokeJoin': stroke.joinstyle = current; break;
-				// UNIMPLEMENTED. For now.
-				//case 'shadowColor': ctx.shadowColor = this.getSolidColor(current); break;
-				//case 'shadowBlur': ctx.shadowBlur = Number(current); break;
-				//case 'shadowOffsetX': ctx.shadowOffsetX = Number(current); break;
-				//case 'shadowOffsetY': ctx.shadowOffsetY = Number(current); break;*/
+		if (color1 != null){
+			
+			color1 = new Color(color1);
+			var opacity1 = color1.get('alpha');
+			fill.color = color1.set('alpha', 1).toString();
+			fill.opacity = opacity1;
+			
+			if (color2 != null){
+				fill.method = 'none';
+				fill.type = 'gradient';
+				var angle;
+				if (mode == 'horizontal') angle = 270;
+				else if (mode == 'vertical') angle = 180;
+				fill.angle = angle;
+				
+				color2 = new Color(color2);
+				var opacity2 = color2.get('alpha');
+				fill.color2 = color2.set('alpha', 1).toString();
+				fill['ao:opacity2'] = opacity2;
 			}
+
+			on = true;
 		}
-		stroke.on = !!style.stroke;
-		fill.on = !!style.fill;
-		this.contextShape.appendChild(stroke);
-		this.contextShape.appendChild(fill);
-		var stretch = 'm' + this.contextShape.coordorigin + 'l' + this.contextShape.coordsize;
-		this.contextShape.path = this.drawingPath.join('') + 'e' + stretch + 'nsnf';
-		this.element.appendChild(this.contextShape);
+		
+		fill.on = on;
+		this.currentShape.appendChild(fill);
 		return this;
 	},
+	
+	outline: function(color, width, cap, join){
+		var outline = document.createElement('av:stroke'), on = false;
+		
+		if (color != null){
+			
+			if (width == null) width = 1;
+			if (cap == null) cap = 'round';
+			if (join == null) join = 'round';
+			
+			outline.weight = width;
+			outline.endcap = (cap == 'butt') ? 'flat' : cap;
+			outline.joinstyle = join;
 
-	clear: function(){
-		this.element.empty();
+			color = new Color(color);
+			outline.color = color.copy().set('alpha', 1).toString();
+			outline.opacity = color.get('alpha');
+
+			on = true;
+		}
+
+		outline.on = on;
+		this.currentShape.appendChild(outline);
 		return this;
 	},
-
-	/* privates */
-
-	createElement: function(tag){
-		return document.createElement(ARTNameSpace + ':' + tag);
+	
+	shadow: function(color, offset){
+		var shadow = document.createElement('av:shadow');
+		color = new Color(color);
+		var alpha = color.get('alpha');
+		shadow.color = color.set('alpha', 1).toString();
+		shadow.opacity = alpha;
+		shadow.offset = offset.x + 'px,' + offset.y + 'px';
+		shadow.on = true;
+		this.currentShape.appendChild(shadow);
+		return this;
 	},
-
-	getColor: function(color){
-		var alpha = 1;
-		switch ($type(color)){
-			case 'object':
-				for (var pos in color){
-					color = color[pos];
-					break;
-				}
-				break;
-			case 'array':
-				if (color.length) color = color[0];
-				break;
-		}
-		if ($type(color) == 'color'){
-			color = color.copy();
-			alpha = color.get('alpha');
-			color.set('alpha', 1);
-		}
-		return {
-			color: color.valueOf(),
-			alpha: alpha
-		};
-	},
-
-	updateVector: function(vector, setBounds){
-		var v = this.parent(vector, setBounds);
-		v.x *= this.precisionFactor;
-		v.y *= this.precisionFactor;
-		return v;
+	
+	/* $ */
+	
+	toElement: function(){
+		return this.element;
 	}
 
 });
 
+// create XMLNS
 
-if (!!dummy.coordsize) ART.registerAdapter(ART.VML);
+(function(){
+	
+var namespaces = document.namespaces;
+
+if (namespaces == null) return;
+
+namespaces.add('av', 'urn:schemas-microsoft-com:vml');
+namespaces.add('ao', 'urn:schemas-microsoft-com:office:office');
+
+var sheet = document.createStyleSheet();
+sheet.addRule('canvas', 'display:inline-block;position:relative;');
+
+sheet.addRule('av\\:*', 'behavior:url(#default#VML);display:inline-block;position:absolute;');
+sheet.addRule('ao\\:*', 'behavior:url(#default#VML);');
+
+ART.registerAdapter(ART.VML);
 	
 })();

@@ -13,7 +13,7 @@ copyright: "&copy; [MooTools](http://mootools.net)"
 authors: "[Valerio Proietti](http://mad4milk.net) && [MooTools development team](http://mootools.net/developers)"
 
 sources:
-  - "Source/ART.Base.js"
+  - "Source/ART.js"
   - "Source/ART.Canvas.js"
   - "Source/ART.VML.js"
   - "Source/ART.Shape.js"
