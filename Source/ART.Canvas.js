@@ -37,6 +37,7 @@ ART.Canvas = new Class({
 		this.drawStack = [];
 		this.drawn = false;
 		this.previousOutline = null;
+		this.previousFill = null;
 		this.bounds = {x: [], y: []};
 		this.context.beginPath();
 		return this;
@@ -98,6 +99,7 @@ ART.Canvas = new Class({
 	/* privates */
 	
 	fill: function(color1, color2, mode){
+		this.previousFill = true;
 
 		var fillStyle = color1.valueOf();
 		
@@ -135,11 +137,12 @@ ART.Canvas = new Class({
 	
 	shadow: function(color, offset, blur){
 		this.context.globalCompositeOperation = 'destination-over';
-		var oldPath = this.drawStack, outline = this.previousOutline;
+		var oldPath = this.drawStack, outline = this.previousOutline, fill = this.previousFill;
 		this.context.translate(offset.x, offset.y);
 		this.start();
 		this.drawStack = oldPath;
-		var end = {fill: color, outline: null, shadow: null};
+		var end = {fill: null, outline: null, shadow: null};
+		if (fill != null) end.fill = color;
 		if (outline != null) $extend(end, {outline: color, outlineWidth: outline[0], outlineCap: outline[1], outlineJoin: outline[2]});
 		this.end(end);
 		this.context.translate(-offset.x, -offset.y);
