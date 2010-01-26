@@ -126,7 +126,7 @@ ART.Canvas = new Class({
 	},
 	
 	outline: function(color, width, cap, join){
-		this.previousOutline = [width, cap, join];
+		this.previousOutline = {outlineWidth: width, outlineCap: cap, outlineJoin: join};
 		this.context.strokeStyle = color.valueOf();
 		this.context.lineWidth = Number(width);
 		this.context.lineCap = cap;
@@ -143,7 +143,10 @@ ART.Canvas = new Class({
 		this.drawStack = oldPath;
 		var end = {fill: null, outline: null, shadow: null};
 		if (fill != null) end.fill = color;
-		if (outline != null) $extend(end, {outline: color, outlineWidth: outline[0], outlineCap: outline[1], outlineJoin: outline[2]});
+		if (outline != null){
+			end.outline = color;
+			$extend(end, outline);
+		}
 		this.end(end);
 		this.context.translate(-offset.x, -offset.y);
 		this.context.globalCompositeOperation = 'source-over';
