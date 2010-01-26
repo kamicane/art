@@ -25,12 +25,10 @@ ART.Canvas = new Class({
 	resize: function(size){
 		this.element.width = size.x;
 		this.element.height = size.y;
-		return this;
 	},
 	
 	clear: function(){
 		this.context.clearRect(0, 0, this.element.width, this.element.height);
-		return this;
 	},
 
 	start: function(){
@@ -40,7 +38,6 @@ ART.Canvas = new Class({
 		this.previousFill = null;
 		this.bounds = {x: [], y: []};
 		this.context.beginPath();
-		return this;
 	},
 	
 	end: function(style){
@@ -57,13 +54,10 @@ ART.Canvas = new Class({
 		if (style.outline != null) this.outline(style.outline, style.outlineWidth, style.outlineCap, style.outlineJoin);
 		
 		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
-		
-		return this;
 	},
 
 	join: function(){
 		this.drawStack.push(['closePath', []]);
-		return this;
 	},
 	
 	/* drawing methods */
@@ -71,7 +65,6 @@ ART.Canvas = new Class({
 	move: function(vector){
 		if (!this.drawn) this.lastVector = vector;
 		this.drawStack.push(['moveTo', [vector.x, vector.y]]);
-		return this;
 	},
 
 	line: function(vector){
@@ -79,7 +72,6 @@ ART.Canvas = new Class({
 		this.bounds.x.push(vector.x);
 		this.bounds.y.push(vector.y);
 		this.drawStack.push(['lineTo', [vector.x, vector.y]]);
-		return this;
 	},
 
 	bezier: function(c1, c2, end){
@@ -87,7 +79,6 @@ ART.Canvas = new Class({
 		this.bounds.x.push(c1.x, c2.x, end.x);
 		this.bounds.y.push(c1.y, c2.y, end.y);
 		this.drawStack.push(['bezierCurveTo', [c1.x, c1.y, c2.x, c2.y, end.x, end.y]]);
-		return this;
 	},
 	
 	setStartCoordinate: function(){
@@ -122,7 +113,6 @@ ART.Canvas = new Class({
 		this.context.fillStyle = fillStyle;
 		
 		this.context.fill();
-		return this;
 	},
 	
 	outline: function(color, width, cap, join){
@@ -132,7 +122,6 @@ ART.Canvas = new Class({
 		this.context.lineCap = cap;
 		this.context.lineJoin = join;
 		this.context.stroke();
-		return this;
 	},
 	
 	shadow: function(color, offset, blur){

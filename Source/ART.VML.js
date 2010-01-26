@@ -33,12 +33,10 @@ ART.VML = new Class({
 			x: size.x * this.precisionFactor,
 			y: size.y * this.precisionFactor
 		};
-		return this;
 	},
 	
 	clear: function(){
 		this.element.innerHTML = '';
-		return this;
 	},
 
 	start: function(){
@@ -63,8 +61,6 @@ ART.VML = new Class({
 		var stretch = 'm' + this.currentShape.coordorigin + 'l' + this.currentShape.coordsize;
 		this.currentShape.path = this.currentPath.join('') + 'e' + stretch + 'nsnf';
 		this.element.appendChild(this.currentShape);
-		
-		return this;
 	},
 
 	join: function(){
@@ -74,19 +70,16 @@ ART.VML = new Class({
 	move: function(vector){
 		var p = this.precisionFactor;
 		this.currentPath.push('m' + ~~(vector.x * p) + ',' + ~~(vector.y * p));
-		return this;
 	},
 
 	line: function(vector){
 		var p = this.precisionFactor;
 		this.currentPath.push('l' + ~~(vector.x * p) + ',' + ~~(vector.y * p));
-		return this;
 	},
 
 	bezier: function(c1, c2, end){
 		var p = this.precisionFactor;
 		this.currentPath.push('c' + ~~(c1.x * p) + ',' + ~~(c1.y * p) + ',' + ~~(c2.x * p) + ',' + ~~(c2.y * p) + ',' + ~~(end.x * p) + ',' + ~~(end.y * p));
-		return this;
 	},
 	
 	/* styles */
@@ -120,7 +113,6 @@ ART.VML = new Class({
 		
 		fill.on = on;
 		this.currentShape.appendChild(fill);
-		return this;
 	},
 	
 	outline: function(color, width, cap, join){
@@ -145,7 +137,6 @@ ART.VML = new Class({
 
 		outline.on = on;
 		this.currentShape.appendChild(outline);
-		return this;
 	},
 	
 	shadow: function(color, offset){
@@ -157,7 +148,6 @@ ART.VML = new Class({
 		shadow.offset = offset.x + 'px,' + offset.y + 'px';
 		shadow.on = true;
 		this.currentShape.appendChild(shadow);
-		return this;
 	},
 	
 	/* $ */
