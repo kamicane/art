@@ -34,13 +34,19 @@ ART.Canvas = new Class({
 	start: function(){
 		this.drawStack = [];
 		this.drawn = false;
-		this.previousOutline = null;
-		this.previousFill = null;
+		this.drawStyle = null;
 		this.bounds = {x: [], y: []};
 		this.context.beginPath();
 	},
 	
 	end: function(style){
+		this.drawStyle = style;
+		
+		if (style.shadow != null){
+			this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
+			return;
+		}
+		
 		var stack = this.drawStack;
 		for (var i=0; i < stack.length; i++){
 			var s = stack[i], method = s[0], args = s[1];
@@ -52,8 +58,6 @@ ART.Canvas = new Class({
 			this.fill(fill[0], fill[1], style.fillMode);
 		}
 		if (style.outline != null) this.outline(style.outline, style.outlineWidth, style.outlineCap, style.outlineJoin);
-		
-		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
 	},
 
 	join: function(){
@@ -90,10 +94,7 @@ ART.Canvas = new Class({
 	/* privates */
 	
 	fill: function(color1, color2, mode){
-		this.previousFill = true;
-
 		var fillStyle = color1.valueOf();
-		
 		if (color2 != null){
 			var gradient;
 			
@@ -116,7 +117,6 @@ ART.Canvas = new Class({
 	},
 	
 	outline: function(color, width, cap, join){
-		this.previousOutline = {outlineWidth: width, outlineCap: cap, outlineJoin: join};
 		this.context.strokeStyle = color.valueOf();
 		this.context.lineWidth = Number(width);
 		this.context.lineCap = cap;
@@ -125,20 +125,21 @@ ART.Canvas = new Class({
 	},
 	
 	shadow: function(color, offset, blur){
-		this.context.globalCompositeOperation = 'destination-over';
-		var oldPath = this.drawStack, outline = this.previousOutline, fill = this.previousFill;
+		var path = this.drawStack, style = this.drawStyle, bounds = this.bounds;
 		this.context.translate(offset.x, offset.y);
-		this.start();
-		this.drawStack = oldPath;
-		var end = {fill: null, outline: null, shadow: null};
-		if (fill != null) end.fill = color;
-		if (outline != null){
-			end.outline = color;
-			$extend(end, outline);
-		}
-		this.end(end);
+		this.end({
+			fill: (style.fill != null) ? color : null,
+			outline: (style.outline != null) ? color : null,
+			outlineWidth: style.outlineWidth,
+			outlineCap: style.outlineCap,
+			outlineJoin: style.outlineJoin,
+			shadow: null
+		});
 		this.context.translate(-offset.x, -offset.y);
-		this.context.globalCompositeOperation = 'source-over';
+		this.start();
+		this.drawStack = path;
+		this.bounds = bounds;
+		this.end($extend(style, {shadow: null}));
 	},
 	
 	/* $ */
