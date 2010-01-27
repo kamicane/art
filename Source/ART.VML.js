@@ -56,7 +56,7 @@ ART.VML = new Class({
 		var fill = $splat(style.fill);
 		this.fill(fill[0], fill[1], style.fillMode);
 		
-		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset);
+		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
 		
 		var stretch = 'm' + this.currentShape.coordorigin + 'l' + this.currentShape.coordsize;
 		this.currentShape.path = this.currentPath.join('') + 'e' + stretch + 'nsnf';
@@ -139,7 +139,9 @@ ART.VML = new Class({
 		this.currentShape.appendChild(outline);
 	},
 	
-	shadow: function(color, offset){
+	shadow: function(color, offset, blur){
+		// The VML shadow element works correctly in terms of offsets, opacity and color. However, it does not support blur.
+		if (blur != 0) return;
 		var shadow = document.createElement('av:shadow');
 		color = new Color(color);
 		var alpha = color.get('alpha');

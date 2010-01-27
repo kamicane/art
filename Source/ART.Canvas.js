@@ -43,6 +43,7 @@ ART.Canvas = new Class({
 		this.drawStyle = style;
 		
 		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
+		else this.context.shadowColor = 'rgba(0, 0, 0, 0)'; //this makes sure the shadow is not drawn from a previous shape
 		
 		var stack = this.drawStack;
 		for (var i=0; i < stack.length; i++){
@@ -122,20 +123,32 @@ ART.Canvas = new Class({
 	},
 	
 	shadow: function(color, offset, blur){
-		var path = this.drawStack, style = this.drawStyle, bounds = this.bounds;
-		this.context.translate(offset.x, offset.y);
-		this.end({
-			fill: (style.fill != null) ? color : null,
-			outline: (style.outline != null) ? color : null,
-			outlineWidth: style.outlineWidth,
-			outlineCap: style.outlineCap,
-			outlineJoin: style.outlineJoin,
-			shadow: null
-		});
-		this.context.translate(-offset.x, -offset.y);
-		this.start();
-		this.drawStack = path;
-		this.bounds = bounds;
+		// If blur is not zero, we need to use real canvas shadows. The problem with those is that
+		// 1: WebKit cannot draw shadows if the element being shadowed is filled with a gradient. This is a bug.
+		// 2: WebKit and Gecko calculate the shadow opacity based on the element opacity, which is wrong. This is not real life, but a drawing API.
+		// It is then impossible to draw a transparent element with a shadow in place of the real element as a workaround for (1),
+		// because of (2). A transparent element would have no shadow.
+		if (blur != 0){
+			this.context.shadowColor = color.valueOf();
+			this.context.shadowBlur = (Browser.Engine.gecko) ? blur * 3 : blur;
+			this.context.shadowOffsetX = offset.x;
+			this.context.shadowOffsetY = offset.y;
+		} else {
+			var path = this.drawStack, style = this.drawStyle, bounds = this.bounds;
+			this.context.translate(offset.x, offset.y);
+			this.end({
+				fill: (style.fill != null) ? color : null,
+				outline: (style.outline != null) ? color : null,
+				outlineWidth: style.outlineWidth,
+				outlineCap: style.outlineCap,
+				outlineJoin: style.outlineJoin,
+				shadow: null
+			});
+			this.context.translate(-offset.x, -offset.y);
+			this.start();
+			this.drawStack = path;
+			this.bounds = bounds;
+		}
 	},
 	
 	/* $ */
