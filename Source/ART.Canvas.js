@@ -42,10 +42,7 @@ ART.Canvas = new Class({
 	end: function(style){
 		this.drawStyle = style;
 		
-		if (style.shadow != null){
-			this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
-			return;
-		}
+		if (style.shadow != null) this.shadow(style.shadow, style.shadowOffset, style.shadowBlur);
 		
 		var stack = this.drawStack;
 		for (var i=0; i < stack.length; i++){
@@ -139,7 +136,6 @@ ART.Canvas = new Class({
 		this.start();
 		this.drawStack = path;
 		this.bounds = bounds;
-		this.end($extend(style, {shadow: null}));
 	},
 	
 	/* $ */
