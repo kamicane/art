@@ -3,7 +3,7 @@
 
 name: Moderna
 
-description: MgOpen Moderna built with Cufón (http://wiki.github.com/sorccu/cufon/about)
+description: MgOpen Moderna built with [Cufón](http://wiki.github.com/sorccu/cufon/about)
 
 provides: Moderna
 

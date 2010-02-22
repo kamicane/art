@@ -5,9 +5,9 @@ name: ART
 
 description: The heart of ART.
 
-authors: [Valerio Proietti](http://mad4milk.net) && [MooTools development team](http://mootools.net/developers)
+authors: [Valerio Proietti](http://mad4milk.net), [The MooTools development team](http://mootools.net/developers)
 
-provides: ART
+provides: [ART, ART.Element, ART.Container]
 
 ...
 */
@@ -16,184 +16,74 @@ provides: ART
 
 Math.kappa = (4 * (Math.sqrt(2) - 1) / 3);
 
-/* # ART */
+var ART = new Class;
 
-var ART = new Class({
+ART.Element = new Class({
 	
-	style: {
-		'fill': null,
-		'fill-mode': 'vertical',
-		'outline': null,
-		'outline-width': 1,
-		'outline-cap': 'round',
-		'outline-join': 'round',
-		'shadow': null,
-		'shadow-blur': 0,
-		'shadow-offset': {x: 0, y: 0}
-	},
-	
-	initialize: function(options){
-		options = options || {};
-		if (!options.height) options.height = 240;
-		if (!options.width) options.width = 320;
-		if (!options.id) options.id = 'art-' + $time();
-		var Adapter = (!options.adapter) ? ART.recoverAdapter() : options.adapter;
-		
-		if (!Adapter) new Error('No suitable adapter found.');
-		
-		this.adapter = new Adapter(options.id, options.width, options.height);
-		
-		this.stack = {global: []};
-		this.global = {x: 0, y: 0};
-		this.shift({x: 0, y: 0});
-	},
-	
-	resize: function(vector){
-		this.adapter.resize(vector);
+	/* dom */
+
+	inject: function(element){
+		if (element.toElement) element = element.toElement();
+		element.appendChild(this.element);
 		return this;
 	},
 	
-	/* beginning a layer and ending a layer */
-	
-	start: function(vector){
-		vector = vector || {x: 0, y: 0};
-
-		this.started = true;
-		
-		this.stack.local = [];
-		this.stack.pointer = [];
-
-		this.local = {x: 0, y: 0};
-		this.pointer = {x: 0, y: 0};
-		this.adapter.start();
-		return this.shift(vector);
-	},
-	
-	end: function(style){
-		this.started = false;
-		this.adapter.end(this.sanitizeStyle(style));
+	eject: function(){
+		var parent = this.element.parentNode;
+		if (parent) parent.removeChild(this.element);
 		return this;
 	},
 	
-	/* origin shifting */
+	/* attributes */
 	
-	shift: function(vector){
-		if (this.started){
-			this.local = {x: this.local.x + vector.x, y: this.local.y + vector.y};
-			this.moveBy({x: 0, y: 0});
+	set: function(k, v){
+		var element = this.toElement();
+		if (typeof k != 'string') for (var p in k) this.set(p, k[p]);
+		else element.setAttribute(k.hyphenate(), v);
+		return this;
+	},
+	
+	get: function(a){
+		var element = this.toElement();
+		if (arguments.length > 1){
+			var res = {};
+			for (var i = 0; i < arguments.length; i++){
+				var argCC = arguments[i].camelCase();
+				res[argCC] = element.getAttribute(arg.hyphenate());
+			}
+			return res;
 		} else {
-			this.global = {x: this.global.x + vector.x, y: this.global.y + vector.y};
+			return this.element.getAttribute(a.hyphenate());
 		}
-		
-		return this;
-	},
-	
-	/* states */
-	
-	save: function(){
-		if (this.started){
-			this.stack.pointer.push(this.pointer);
-			this.stack.local.push(this.local);
-		} else {
-			this.stack.global.push(this.global);
-		}
-		
-		return this;
-	},
-	
-	restore: function(){
-		if (this.started){
-			var pointerVector = this.stack.pointer.pop();
-			var localVector = this.stack.local.pop();
-			this.local = localVector;
-			this.moveTo(pointerVector);
-		} else {
-			var globalVector = this.stack.global.pop();
-			this.global = globalVector;
-		}
-		
-		return this;
-	},
-	
-	join: function(){
-		this.adapter.join();
-		return this;
-	},
-	
-	/* to methods */
-	
-	moveTo: function(vector){
-		this.pointer = vector;
-		this.adapter.move(this.updateVector(vector));
-		return this;
-	},
-	
-	lineTo: function(vector){
-		this.updateVector(this.pointer);
-		this.pointer = vector;
-		this.adapter.line(this.updateVector(vector));
-		return this;
-	},
-
-	bezierTo: function(c1, c2, end){
-		this.updateVector(this.pointer);
-		this.pointer = end;
-		this.adapter.bezier(this.updateVector(c1), this.updateVector(c2), this.updateVector(end));
-		return this;
-	},
-	
-	/* by methods */
-	
-	moveBy: function(vector){
-		return this.moveTo({x: this.pointer.x + vector.x, y: this.pointer.y + vector.y});
-	},
-	
-	lineBy: function(vector){
-		return this.lineTo({x: this.pointer.x + vector.x, y: this.pointer.y + vector.y});
-	},
-	
-	bezierBy: function(c1, c2, end){
-		var n = this.pointer;
-		return this.bezierTo({x: c1.x + n.x, y: c1.y + n.y}, {x: c2.x + n.x, y: c2.y + n.y}, {x: end.x + n.x, y: end.y + n.y});
-	},
-	
-	/* "protected" */
-	
-	updateVector: function(vector){
-		return {x: this.global.x + this.local.x + vector.x, y: this.global.y + this.local.y + vector.y};
-	},
-	
-	sanitizeStyle: function(style){
-		var tSCC = {}, sCC = {}, p;
-		for (p in this.style) tSCC[p.camelCase()] = this.style[p];
-
-		for (p in style){
-			var pCC = p.camelCase();
-			if (pCC in tSCC) sCC[pCC] = style[p];
-		}
-		
-		return $extend(tSCC, sCC);
 	},
 	
 	/* $ */
-	
+
 	toElement: function(){
-		return this.adapter.toElement();
+		return this.element;
 	}
-	
+
 });
 
-(function(){
+ART.Container = new Class({
 
-var adapter = null;
+	push: function(){
+		for (var i = 0; i < arguments.length; i++) arguments[i].inject(this);
+		return this;
+	},
+	
+	pull: function(){
+		var element = (this.toElement) ? this.toElement() : null;
+		for (var i = 0; i < arguments.length; i++){
+			var child = arguments[i], parent = child.parentNode;
+			if (child.parentNode && child.parentNode === element) child.eject();
+		}
+		return this;
+	}
 
-ART.registerAdapter = function(klass){
-	if (!adapter) adapter = klass;
-	return ART;
+});
+
+Color.detach = function(color){
+	color = new Color(color); var alpha = color.get('alpha');
+	return [color.set('alpha', 1).toString(), alpha];
 };
-
-ART.recoverAdapter = function(){
-	return adapter;
-};
-
-})();

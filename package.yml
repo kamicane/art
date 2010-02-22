@@ -14,9 +14,10 @@ authors: "[Valerio Proietti](http://mad4milk.net) && [MooTools development team]
 
 sources:
   - "Source/ART.js"
-  - "Source/ART.Canvas.js"
+  - "Source/ART.SVG.js"
   - "Source/ART.VML.js"
-  - "Source/ART.Shape.js"
+  - "Source/ART.Path.js"
+  - "Source/ART.Shapes.js"
   - "Source/ART.Font.js"
-  - "Fonts/MgOpen.Moderna.js"
-  - "Fonts/MgOpen.Moderna.Bold.js"
+  - "Fonts/Moderna.js"
+  - "Fonts/Moderna.Bold.js"
