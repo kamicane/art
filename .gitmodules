@@ -1,0 +1,6 @@
+[submodule "Color"]
+	path = Color
+	url = git://github.com/kamicane/mootools-color.git
+[submodule "Table"]
+	path = Table
+	url = git://github.com/kamicane/mootools-table.git
