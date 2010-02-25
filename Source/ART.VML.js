@@ -62,6 +62,10 @@ ART.VML = new Class({
 		});
 		
 		return this;
+	},
+	
+	toElement: function(){
+		return this.element;
 	}
 	
 });

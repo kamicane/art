@@ -44,6 +44,10 @@ ART.SVG = new Class({
 		element.setAttribute('width', width);
 		element.setAttribute('height', height);
 		return this;
+	},
+	
+	toElement: function(){
+		return this.element;
 	}
 
 });
