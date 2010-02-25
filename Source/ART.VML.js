@@ -292,30 +292,6 @@ ART.VML.Shape = new Class({
 	
 	// SVG parser
 	
-	// Possible SVG syntaxes that we want to support
-	// M & L could be M L C Z m l c z
-	// separators can always be spaces, one comma, or any combination of spaces and one comma
-	// numbers can also be separated by a minus or plus sign. "100+100" means [100, 100], "100-100" means [100, -100]
-	
-	// Inputs Examples
-	
-	// 'M 100.5,-100.5 L 100,100'  //space separator for methods, comma separators for vectors
-	// 'M100.5,-100.5L100,100' //no separator for methods, comma separators for vectors
-	// 'M100.5-100.5L100,100' //comma separator for vectors when needed (Adobe Illustrator)
-	// 'M100.5-100.5L100 100' //space separator for vectors when needed
-	// 'M 100.5 -100.5 L 100 -100' //space separator (ART.Path)
-	// 'M 100.5, -100.5 L 100, 100' //space separator for methods, comma + space separators for vectors
-	// 'M 100.5-100.5 L 100.5,100.5' //space separator for methods, comma separators for vectors when needed
-	// 'M 100.5,-100.5 L 100,100' //space separator for methods, comma separators for vectors
-	
-	// Outoput
-	
-	// any output would do, as long as it provides separated parts. These are a couple of examples:
-	
-	// [['M', 100.5, -100.5], ['L', 100, -100]]
-	
-	// [{method: 'M': vectors: [100.5, -100.5]}, {method: 'L', vectors: [100, -100]}]
-	
 	draw: function(path){
 		var boundsX = [], boundsY = [];
 		
