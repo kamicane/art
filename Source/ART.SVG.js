@@ -31,15 +31,18 @@ ART.SVG = new Class({
 	Implements: ART.Container,
 
 	initialize: function(width, height){
-		this.element = createElement('svg');
-		this.set({'xmlns': NS, version: 1.1});
-		this.defs = createElement('defs');
-		this.element.appendChild(this.defs);
+		var element = this.element = createElement('svg');
+		element.setAttribute('xmlns', NS);
+		element.setAttribute('version', 1.1);
+		var defs = this.defs = createElement('defs');
+		element.appendChild(defs);
 		this.resize(width, height);
 	},
 
 	resize: function(width, height){
-		this.set({width: width, height: height});
+		var element = this.element;
+		element.setAttribute('width', width);
+		element.setAttribute('height', height);
 		return this;
 	}
 
@@ -53,10 +56,12 @@ ART.SVG.Element = new Class({
 
 	initialize: function(tag){
 		this.uid = (UID++).toString(16);
-		this.element = createElement(tag);
-		this.set('id', 'e' + this.uid);
+		var element = this.element = createElement(tag);
+		element.setAttribute('id', 'e' + this.uid);
 		this.transform = {translate: [0, 0], scale: [1, 1], rotate: [0, 0, 0]};
 	},
+	
+	// get bounding box
 	
 	getBBox: function(){
 		return this.element.getBBox();
@@ -67,7 +72,7 @@ ART.SVG.Element = new Class({
 	_writeTransform: function(){
 		var transforms = [];
 		for (var transform in this.transform) transforms.push(transform + '(' + this.transform[transform].join(',') + ')');
-		this.set('transform', transforms.join(' '));
+		this.element.setAttribute('transform', transforms.join(' '));
 	},
 	
 	rotate: function(deg, x, y){
@@ -89,6 +94,18 @@ ART.SVG.Element = new Class({
 	translate: function(x, y){
 		this.transform.translate = [x, y];
 		this._writeTransform();
+		return this;
+	},
+	
+	// visibility
+	
+	hide: function(){
+		this.element.setAttribute('display', 'none');
+		return this;
+	},
+	
+	show: function(){
+		this.element.setAttribute('display', '');
 		return this;
 	}
 	
@@ -117,7 +134,8 @@ ART.SVG.Base = new Class({
 
 	initialize: function(tag){
 		this.parent(tag);
-		this.set({fill: 'none', stroke: 'none'});
+		this.fill();
+		this.stroke();
 	},
 	
 	/* insertions */
@@ -180,30 +198,37 @@ ART.SVG.Base = new Class({
 	},
 	
 	_setColor: function(type, color){
+		var element = this.element;
 		if (color.length > 1){
 			color = this._createGradient(type, color);
 		} else {
 			color = Color.detach(color[0]);
-			this.set(type + '-opacity', color[1]);
+			element.setAttribute(type + '-opacity', color[1]);
 			color = color[0];
 		}
 		
-		this.set(type, color);
+		element.setAttribute(type, color);
 	},
 
 	fill: function(flag){
 		this._ejectGradient('fill');
 		this.fillGradient = null;
-		if (flag == null) this.set('fill', 'none');
+		if (flag == null) this.element.setAttribute('fill', 'none');
 		else this._setColor('fill', Array.slice(arguments));
 		return this;
 	},
 
-	stroke: function(flag){
+	stroke: function(flag, width, cap, join){
 		this._ejectGradient('stroke');
+		var element = this.element;
 		this.strokeGradient = null;
-		if (flag == null) this.set('stroke', 'none');
-		else this._setColor('stroke', Array.slice(arguments));
+		
+		element.setAttribute('stroke-width', (width != null) ? width : 1);
+		element.setAttribute('stroke-linecap', (cap != null) ? cap : 'round');
+		element.setAttribute('stroke-linejoin', (join != null) ? join : 'round');
+		
+		if (flag == null) element.setAttribute('stroke', 'none');
+		else this._setColor('stroke', [flag]);
 		return this;
 	}
 	
@@ -221,7 +246,7 @@ ART.SVG.Shape = new Class({
 	},
 	
 	draw: function(path){
-		this.set('d', path.toString());
+		this.element.setAttribute('d', path.toString());
 		return this;
 	}
 
