@@ -14,6 +14,10 @@ requires: ART
 ...
 */
 
+/* # kappa */
+
+Math.kappa = (4 * (Math.sqrt(2) - 1) / 3);
+
 ART.Path = new Class({
 	
 	initialize: function(){
