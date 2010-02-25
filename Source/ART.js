@@ -23,44 +23,62 @@ ART.Element = new Class({
 	/* dom */
 
 	inject: function(element){
-		if (element.toElement) element = element.toElement();
+		if (element.element) element = element.element;
 		element.appendChild(this.element);
 		return this;
 	},
 	
 	eject: function(){
-		var parent = this.element.parentNode;
-		if (parent) parent.removeChild(this.element);
+		var element = this.element, parent = element.parentNode;
+		if (parent) parent.removeChild(element);
 		return this;
 	},
 	
-	/* attributes */
+	/* events */
 	
-	set: function(k, v){
-		var element = this.toElement();
-		if (typeof k != 'string') for (var p in k) this.set(p, k[p]);
-		else element.setAttribute(k.hyphenate(), v);
-		return this;
-	},
-	
-	get: function(a){
-		var element = this.toElement();
-		if (arguments.length > 1){
-			var res = {};
-			for (var i = 0; i < arguments.length; i++){
-				var argCC = arguments[i].camelCase();
-				res[argCC] = element.getAttribute(arg.hyphenate());
-			}
-			return res;
-		} else {
-			return this.element.getAttribute(a.hyphenate());
+	listen: function(type, fn){
+		if (!this._events) this._events = {};
+		
+		if (typeof type != 'string'){ // listen type / fn with object
+			for (var t in type) this.listen(t, type[t]);
+		} else { // listen to one
+			if (!this._events[type]) this._events[type] = new Table;
+			var events = this._events[type];
+			if (events.get(fn)) return this;
+			var bound = fn.bind(this);
+			events.set(fn, bound);
+			var element = this.element;
+			if (element.addEventListener) element.addEventListener(type, bound, false);
+			else element.attachEvent('on' + type, bound);
 		}
+
+		return this;
 	},
 	
-	/* $ */
+	ignore: function(type, fn){
+		if (!this._events) return this;
+		
+		if (typeof type != 'string'){ // ignore type / fn with object
+			for (var t in type) this.ignore(t, type[t]);
+			return this;
+		}
+		
+		var events = this._events[type];
+		if (!events) return this;
+		
+		if (fn == null){ // ignore every of type
+			events.each(function(fn, bound){
+				this.ignore(type, fn);
+			}, this);
+		} else { // ignore one
+			var bound = events.get(fn);
+			if (!bound) return this;
+			var element = this.element;
+			if (element.removeEventListener) element.removeEventListener(type, bound, false);
+			else element.detachEvent('on' + type, bound);
+		}
 
-	toElement: function(){
-		return this.element;
+		return this;
 	}
 
 });
@@ -73,7 +91,7 @@ ART.Container = new Class({
 	},
 	
 	pull: function(){
-		var element = (this.toElement) ? this.toElement() : null;
+		var element = this.element;
 		for (var i = 0; i < arguments.length; i++){
 			var child = arguments[i], parent = child.parentNode;
 			if (child.parentNode && child.parentNode === element) child.eject();
@@ -84,6 +102,6 @@ ART.Container = new Class({
 });
 
 Color.detach = function(color){
-	color = new Color(color); var alpha = color.get('alpha');
-	return [color.set('alpha', 1).toString(), alpha];
+	color = new Color(color);
+	return [Color.rgb(color.red, color.green, color.blue).toString(), color.alpha];
 };
