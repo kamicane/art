@@ -9,7 +9,7 @@ authors: [Simo Kinnunen](http://twitter.com/sorccu), [Valerio Proietti](http://m
 
 provides: [ART.VML, ART.Group, ART.Shape]
 
-requires: [ART, ART.Element, ART.Container]
+requires: [ART, ART.Element, ART.Container, ART.Path]
 
 ...
 */
@@ -47,7 +47,8 @@ ART.VML = new Class({
 	initialize: function(width, height){
 		this.element = document.createElement('vml');
 		this.children = [];
-		this.resize(width, height);
+		if (width != null && height != null) this.resize(width, height);
+		else this.resize(1, 1);
 	},
 	
 	resize: function(width, height){
@@ -145,15 +146,6 @@ ART.VML.Group = new Class({
 		this.children = [];
 	},
 	
-	getBBox: function(){
-		var widths = [], heights = [];
-		this.children.each(function(child, i){
-			widths[i] = child.x + child.width + child.transform.translate[0];
-			heights[i] = child.y + child.height + child.transform.translate[1];
-		}, this);
-		return {x: 0, y: 0, width: Math.max.apply(Math, widths), height:  Math.max.apply(Math, heights)};
-	},
-	
 	/* dom */
 	
 	inject: function(container){
@@ -202,10 +194,6 @@ ART.VML.Base = new Class({
 		var stroke = this.strokeElement = document.createElement('av:stroke');
 		stroke.on = false;
 		shape.appendChild(stroke);
-	},
-	
-	getBBox: function(){
-		return {x: this.x || 0, y: this.y || 0, width: this.width || 0, height: this.height || 0};
 	},
 	
 	/* transform */
@@ -290,136 +278,28 @@ ART.VML.Shape = new Class({
 		if (path != null) this.draw(path);
 	},
 	
-	// SVG parser
+	// SVG to VML
 	
 	draw: function(path){
-		var boundsX = [], boundsY = [];
 		
-		var ux = function(x){
-			boundsX.push(x);
-			return Math.round(x * precision);
-		}, uy = function(y){
-			boundsY.push(y);
-			return Math.round(y * precision);
-		};
+		path = new ART.Path(path);
+		var vml = path.toVML(precision), size = path.measure();
 		
-		path = path.toString().replace(/\s*([A-Za-z,-])\s*/ig, function(f, m, i){
-			switch (m){
-				case '-': return ' ' + m;
-				case ',': return ' ';
-				default: return ' ' + m + ' ';
-			}
-		});
-
-		var parts = [], index = -1, i, bits = path.split(/\s+/), p = precision, p2 = p / 2;
-		
-		for (i = 0; i < bits.length; i++){
-			var bit = bits[i], e;
-			if (bit.match(/[A-Za-z]/i)) parts[++index] = [bit];
-			else parts[index].push(Number(bit));
-		}
-		
-		path = '';
-		
-		var reflect = function(sx, sy, ex, ey){
-			return [ex * 2 - sx, ey * 2 - sy];
-		};
-		
-		var X = 0, Y = 0, px = 0, py = 0, r;
-		
-		for (i = 0; i < parts.length; i++){
-			var v = parts[i];
-			
-			switch (v.shift()){
-				
-				case 'm':
-					path += 'm' + ux(X += v[0]) + ',' + uy(Y += v[1]);
-				break;
-				case 'M':
-					path += 'm' + ux(X = v[0]) + ',' + uy(Y = v[1]);
-				break;
-				
-				case 'l':
-					path += 'l' + ux(X += v[0]) + ',' + uy(Y += v[1]);
-				break;
-				case 'L':
-					path += 'l' + ux(X = v[0]) + ',' + uy(Y = v[1]);
-				break;
-				
-				case 'c':
-					px = X + v[2]; py = Y + v[3];
-					path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[4]) + ',' + uy(Y += v[5]);
-				break;
-				case 'C':
-					px = v[2]; py = v[3];
-					path += 'c' + ux(v[0]) + ',' + uy(v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[4]) + ',' + uy(Y = v[5]);
-				break;
-				
-				case 's':
-					r = reflect(px, py, X, Y);
-					px = X + v[0]; py = Y + v[1];
-					path += 'c' + ux(r[0]) + ',' + uy(r[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[2]) + ',' + uy(Y += v[3]);
-				break;
-				case 'S':
-					r = reflect(px, py, X, Y);
-					px = v[0]; py = v[1];
-					path += 'c' + ux(r[0]) + ',' + uy(r[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[2]) + ',' + uy(Y = v[3]);
-				break;
-				
-				case 'q':
-					px = X + v[0]; py = Y + v[1];
-					path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[2]) + ',' + uy(Y += v[3]);
-				break;
-				case 'Q':
-					px = v[0]; py = v[1];
-					path += 'c' + ux(v[0]) + ',' + uy(v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[2]) + ',' + uy(Y = v[3]);
-				break;
-				
-				case 't':
-					r = reflect(px, py, X, Y);
-					px = X + r[0]; py = Y + r[1];
-					path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[0]) + ',' + uy(Y += v[1]);
-				break;
-				case 'T':
-					r = reflect(px, py, X, Y);
-					px = r[0]; py = r[1];
-					path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[0]) + ',' + uy(Y = v[1]);
-				break;
-				
-				case 'h':
-					path += 'l' + ux(X += v[0]) + ',' + uy(Y);
-				break;
-				case 'H':
-					path += 'l' + ux(X = v[0]) + ',' + uy(Y);
-				break;
-				
-				case 'v':
-					path += 'l' + ux(X) + ',' + uy(Y += v[0]);
-				break;
-				case 'V':
-					
-					path += 'l' + ux(X) + ',' + uy(Y = v[0]);
-				break;
-				
-				case 'z':
-					path += 'x';
-				break;
-				case 'Z':
-					path += 'x';
-				break;
-				
-			}
-		}
-		
-		this.width = Math.max.apply(Math, boundsX);
-		this.height = Math.max.apply(Math, boundsY);
-		this.x = Math.min.apply(Math, boundsX);
-		this.y = Math.min.apply(Math, boundsY);
+		this.right = size.right;
+		this.bottom = size.bottom;
+		this.top = size.top;
+		this.left = size.left;
+		this.height = size.height;
+		this.width = size.width;
 		
 		this._transform();
 
-		this.shape.path = path + 'e';
+		this.shape.path = vml + 'e';
 		return this;
+	},
+	
+	measure: function(){
+		return {left: this.x || 0, top: this.y || 0, right: this.right || 0, bottom: this.bottom || 0, width: this.width || 0, height: this.height || 0};
 	}
 
 });

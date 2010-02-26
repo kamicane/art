@@ -9,7 +9,7 @@ authors: [Valerio Proietti](http://mad4milk.net)
 
 provides: [ART.SVG, ART.Group, ART.Shape]
 
-requires: [ART, ART.Element, ART.Container]
+requires: [ART, ART.Element, ART.Container, ART.Path]
 
 ...
 */
@@ -36,7 +36,8 @@ ART.SVG = new Class({
 		element.setAttribute('version', 1.1);
 		var defs = this.defs = createElement('defs');
 		element.appendChild(defs);
-		this.resize(width, height);
+		if (width != null && height != null) this.resize(width, height);
+		else this.resize(1, 1);
 	},
 
 	resize: function(width, height){
@@ -65,12 +66,6 @@ ART.SVG.Element = new Class({
 		this.transform = {translate: [0, 0], scale: [1, 1], rotate: [0, 0, 0]};
 	},
 	
-	// get bounding box
-	
-	getBBox: function(){
-		return this.element.getBBox();
-	},
-	
 	/* transforms */
 	
 	_writeTransform: function(){
@@ -79,15 +74,15 @@ ART.SVG.Element = new Class({
 		this.element.setAttribute('transform', transforms.join(' '));
 	},
 	
-	rotate: function(deg, x, y){
-		if (x == null || y == null){
-			var box = this.getBBox();
-			x = box.x + box.width / 2; y = box.y + box.height / 2;
-		}
-		this.transform.rotate = [deg, x, y];
-		this._writeTransform();
-		return this;
-	},
+	// rotate: function(deg, x, y){
+	// 	if (x == null || y == null){
+	// 		var box = this.measure();
+	// 		x = box.x + box.width / 2; y = box.y + box.height / 2;
+	// 	}
+	// 	this.transform.rotate = [deg, x, y];
+	// 	this._writeTransform();
+	// 	return this;
+	// },
 
 	scale: function(x, y){
 		this.transform.scale = [x, y];
@@ -250,8 +245,14 @@ ART.SVG.Shape = new Class({
 	},
 	
 	draw: function(path){
-		this.element.setAttribute('d', path.toString());
+		this.currentPath = path.toString();
+		this.element.setAttribute('d', this.currentPath);
 		return this;
+	},
+	
+	measure: function(){
+		var path = new ART.Path(this.currentPath);
+		return path.measure();
 	}
 
 });
