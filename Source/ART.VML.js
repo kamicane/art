@@ -299,7 +299,7 @@ ART.VML.Shape = new Class({
 	},
 	
 	measure: function(){
-		return {left: this.x || 0, top: this.y || 0, right: this.right || 0, bottom: this.bottom || 0, width: this.width || 0, height: this.height || 0};
+		return {left: this.left || 0, top: this.top || 0, right: this.right || 0, bottom: this.bottom || 0, width: this.width || 0, height: this.height || 0};
 	}
 
 });
