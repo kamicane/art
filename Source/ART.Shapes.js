@@ -37,6 +37,11 @@ ART.Rectangle = new Class({
 
 			var tl = radius[0], tr = radius[1], br = radius[2], bl = radius[3];
 
+			if (tl < 0) tl = 0;
+			if (tr < 0) tr = 0;
+			if (bl < 0) bl = 0;
+			if (br < 0) br = 0;
+
 			path.move(0, tl);
 
 			if (width < 0) path.move(width, 0);
