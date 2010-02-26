@@ -170,26 +170,28 @@ ART.Path = new Class({
 		else this.path = parse(path); //string path
 	},
 	
+	push: function(){
+		this.boundingBox = null;
+		this.path.push(Array.slice(arguments));
+		return this;
+	},
+	
 	/*utility*/
 	
 	move: function(x, y){
-		this.path.push(['m', x, y]);
-		return this;
+		return this.push('m', x, y);
 	},
 	
 	line: function(x, y){
-		this.path.push(['l', x, y]);
-		return this;
+		return this.push('l', x, y);
 	},
 	
 	close: function(){
-		this.path.push(['z']);
-		return this;
+		return this.push('z');
 	},
 	
 	bezier: function(c1x, c1y, c2x, c2y, ex, ey){
-		this.path.push(['c', c1x, c1y, c2x, c2y, ex, ey]);
-		return this;
+		return this.push('c', c1x, c1y, c2x, c2y, ex, ey);
 	},
 	
 	arcLeft: function(x, y){
