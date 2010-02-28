@@ -151,6 +151,7 @@ ART.VML.Group = new Class({
 		this.parent(container);
 		this.width = container.width;
 		this.height = container.height;
+		this._transform();
 	},
 	
 	eject: function(){
@@ -182,17 +183,15 @@ ART.VML.Base = new Class({
 	
 	initialize: function(tag){
 		this.parent(tag);
-		var shape = this.shape = this.element;
-		var element = this.element = document.createElement('av:group');
-		element.appendChild(shape);
+		var element = this.element;
 
 		var fill = this.fillElement = document.createElement('av:fill');
 		fill.on = false;
-		shape.appendChild(fill);
+		element.appendChild(fill);
 		
 		var stroke = this.strokeElement = document.createElement('av:stroke');
 		stroke.on = false;
-		shape.appendChild(stroke);
+		element.appendChild(stroke);
 	},
 	
 	/* transform */
@@ -200,20 +199,18 @@ ART.VML.Base = new Class({
 	_transform: function(){
 		var container = this.container;
 		if (!container) return;
+		
 		var cw = container.width, ch = container.height, w = this.width, h = this.height;
 		if (cw == null || ch == null || w == null || h == null) return;
 	
 		var p = precision, hp = p / 2;
 		var ct = this.container.transform, cts = (ct) ? ct.scale : [1, 1], ctt = (ct) ? ct.translate : [0, 0];
 		var ttt = this.transform.translate, tts = this.transform.scale;
-		
 		// translate + halfpixel
 		this.element.coordorigin = (-((ctt[0] + (cts[0] * ttt[0])) * p) + hp) + ',' + (-((ctt[1] + (cts[1] * ttt[1])) * p) + hp);
-		this.shape.coordorigin = '0,0';
 		
 		// scale
-		this.element.coordsize = (cw * p) + ',' + (ch * p);
-		this.shape.coordsize = ((cw * p) / (cts[0] * tts[0])) + ',' + ((ch * p) / (cts[1] * tts[1]));
+		this.element.coordsize = ((cw * p) / (cts[0] * tts[0])) + ',' + ((ch * p) / (cts[1] * tts[1]));
 	},
 	
 	/* styles */
@@ -293,7 +290,7 @@ ART.VML.Shape = new Class({
 		
 		this._transform();
 
-		this.shape.path = vml + 'e';
+		this.element.path = vml + 'e';
 		return this;
 	},
 	
