@@ -134,7 +134,6 @@ var measureAndTransform = function(parts, precision){
 				path += 'l' + ux(X) + ',' + uy(Y += v[0]);
 			break;
 			case 'V':
-				
 				path += 'l' + ux(X) + ',' + uy(Y = v[0]);
 			break;
 			
@@ -218,8 +217,8 @@ ART.Path = new Class({
 	
 	measure: function(){
 		if (this.boundingBox) return this.boundingBox;
-		var data = measureAndTransform(this.path);
-		return this.boundingBox = data[1];
+		if (this.path.length) return this.boundingBox = measureAndTransform(this.path)[1];
+		else return {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
 	}
 	
 });
