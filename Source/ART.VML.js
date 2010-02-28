@@ -119,6 +119,12 @@ ART.VML.Element = new Class({
 		return this;
 	},
 	
+	rotate: function(deg, x, y){
+		this.transform.rotate = [deg, x, y];
+		this._transform();
+		return this;
+	},
+	
 	// visibility
 	
 	hide: function(){
@@ -204,13 +210,22 @@ ART.VML.Base = new Class({
 		if (cw == null || ch == null || w == null || h == null) return;
 	
 		var p = precision, hp = p / 2;
-		var ct = this.container.transform, cts = (ct) ? ct.scale : [1, 1], ctt = (ct) ? ct.translate : [0, 0];
-		var ttt = this.transform.translate, tts = this.transform.scale;
+		var ct = this.container.transform, cts = (ct) ? ct.scale : [1, 1], ctt = (ct) ? ct.translate : [0, 0], ctr = (ct) ? ct.rotate : [0, 0, 0];
+		var ttt = this.transform.translate, tts = this.transform.scale, ttr = this.transform.rotate;
+		
+		var tx = ctt[0] + ttt[0], ty = ctt[1] + ttt[1];
+		var sx = cts[0] * tts[0], sy = cts[1] * tts[1];
+		
+		var realX = tx / sx, realY = ty / sy;
+
 		// translate + halfpixel
-		this.element.coordorigin = (-((ctt[0] + (cts[0] * ttt[0])) * p) + hp) + ',' + (-((ctt[1] + (cts[1] * ttt[1])) * p) + hp);
+		this.element.coordorigin = (-(realX * p) - hp) + ',' + (-(realY * p) - hp);
 		
 		// scale
-		this.element.coordsize = ((cw * p) / (cts[0] * tts[0])) + ',' + ((ch * p) / (cts[1] * tts[1]));
+		this.element.coordsize = ((cw * p) / sx) + ',' + ((ch * p) / sy);
+		
+		//rotation
+		this.element.rotation = 0;
 	},
 	
 	/* styles */
