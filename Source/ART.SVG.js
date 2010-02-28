@@ -37,7 +37,6 @@ ART.SVG = new Class({
 		var defs = this.defs = createElement('defs');
 		element.appendChild(defs);
 		if (width != null && height != null) this.resize(width, height);
-		else this.resize(1, 1);
 	},
 
 	resize: function(width, height){
@@ -251,8 +250,7 @@ ART.SVG.Shape = new Class({
 	},
 	
 	measure: function(){
-		var path = new ART.Path(this.currentPath);
-		return path.measure();
+		return new ART.Path(this.currentPath).measure();
 	}
 
 });

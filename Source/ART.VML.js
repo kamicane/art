@@ -48,7 +48,6 @@ ART.VML = new Class({
 		this.element = document.createElement('vml');
 		this.children = [];
 		if (width != null && height != null) this.resize(width, height);
-		else this.resize(1, 1);
 	},
 	
 	resize: function(width, height){
@@ -162,7 +161,7 @@ ART.VML.Group = new Class({
 	_transform: function(){
 		var container = this.container;
 		if (!container) return;
-		var cw = container.width, ch = container.height, w = this.width, h = this.height, x = this.x, y = this.y;
+		var cw = container.width, ch = container.height, w = this.width, h = this.height;
 		if (cw == null || ch == null || w == null || h == null) return;
 		
 		this.element.coordorigin = (precision) + ',' + (precision);
@@ -201,7 +200,7 @@ ART.VML.Base = new Class({
 	_transform: function(){
 		var container = this.container;
 		if (!container) return;
-		var cw = container.width, ch = container.height, w = this.width, h = this.height, x = this.x, y = this.y;
+		var cw = container.width, ch = container.height, w = this.width, h = this.height;
 		if (cw == null || ch == null || w == null || h == null) return;
 	
 		var p = precision, hp = p / 2;
@@ -282,7 +281,7 @@ ART.VML.Shape = new Class({
 	
 	draw: function(path){
 		
-		path = new ART.Path(path);
+		path = this.currentPath = new ART.Path(path);
 		var vml = path.toVML(precision), size = path.measure();
 		
 		this.right = size.right;
@@ -299,7 +298,7 @@ ART.VML.Shape = new Class({
 	},
 	
 	measure: function(){
-		return {left: this.left || 0, top: this.top || 0, right: this.right || 0, bottom: this.bottom || 0, width: this.width || 0, height: this.height || 0};
+		return new ART.Path(this.currentPath).measure();
 	}
 
 });
