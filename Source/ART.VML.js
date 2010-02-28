@@ -119,6 +119,16 @@ ART.VML.Element = new Class({
 		return this;
 	},
 	
+	rotate: function(rad, x, y){
+		if (x == null || y == null){
+			var box = this.measure();
+			x = box.left + box.width / 2; y = box.top + box.height / 2;
+		}
+		this.transform.rotate = [rad, x, y];
+		this._transform();
+		return this;
+	},
+
 	// visibility
 	
 	hide: function(){
@@ -202,12 +212,20 @@ ART.VML.Base = new Class({
 		
 		var cw = container.width, ch = container.height, w = this.width, h = this.height;
 		if (cw == null || ch == null || w == null || h == null) return;
-	
+
 		var p = precision, hp = p / 2;
 		var ct = this.container.transform, cts = (ct) ? ct.scale : [1, 1], ctt = (ct) ? ct.translate : [0, 0];
-		var ttt = this.transform.translate, tts = this.transform.scale;
+		var ttt = this.transform.translate, tts = this.transform.scale, ttr = this.transform.rotate;
+
+		var sin = Math.sin(ttr[0]), cos = Math.cos(ttr[0]);
+		var offsetX = cw / 2 - ttr[1], offsetY = ch / 2 - ttr[2];
+		var dx = ttt[0] - offsetX, dy = ttt[1] - offsetY;
+		this.element.rotation = ttr[0] * 180 / Math.PI;
+
 		// translate + halfpixel
-		this.element.coordorigin = (-((ctt[0] + (cts[0] * ttt[0])) * p) + hp) + ',' + (-((ctt[1] + (cts[1] * ttt[1])) * p) + hp);
+		this.element.coordorigin =
+			(-((ctt[0] + (cts[0] * (dx * cos + dy * sin + offsetX))) * p) + hp) + ',' +
+			(-((ctt[1] + (cts[1] * (dy * cos - dx * sin + offsetY))) * p) + hp);
 		
 		// scale
 		this.element.coordsize = ((cw * p) / (cts[0] * tts[0])) + ',' + ((ch * p) / (cts[1] * tts[1]));

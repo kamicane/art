@@ -73,15 +73,16 @@ ART.SVG.Element = new Class({
 		this.element.setAttribute('transform', transforms.join(' '));
 	},
 	
-	// rotate: function(deg, x, y){
-	// 	if (x == null || y == null){
-	// 		var box = this.measure();
-	// 		x = box.x + box.width / 2; y = box.y + box.height / 2;
-	// 	}
-	// 	this.transform.rotate = [deg, x, y];
-	// 	this._writeTransform();
-	// 	return this;
-	// },
+	rotate: function(rad, x, y){
+		if (x == null || y == null){
+			var box = this.measure();
+			console.log(box);
+			x = box.left + box.width / 2; y = box.top + box.height / 2;
+		}
+		this.transform.rotate = [rad * 180 / Math.PI, x, y]; // TODO should probably not be stored in degrees
+		this._writeTransform();
+		return this;
+	},
 
 	scale: function(x, y){
 		this.transform.scale = [x, y];
