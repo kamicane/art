@@ -114,6 +114,7 @@ ART.VML.Element = new Class({
 	},
 	
 	scale: function(x, y){
+		if (y == null) y = x;
 		this.transform.scale = [x, y];
 		this._transform();
 		return this;
@@ -209,26 +210,74 @@ ART.VML.Base = new Class({
 	_transform: function(){
 		var container = this.container;
 		if (!container) return;
+
+		var cw = container.width,
+			ch = container.height;
+		if (cw == null || ch == null || this.width == null || this.height == null) return;
+
+		var ct = this.container.transform,
+			ctt = (ct) ? ct.translate : [0, 0],
+			cts = (ct) ? ct.scale : [1, 1];
+		var tt = this.transform,
+			ttt = tt.translate,
+			tts = tt.scale,
+			ttr = tt.rotate;
+
+		var coordsize = [cw, ch];
+		var coordorigin = [0, 0];
+		var rotation = ttr[0] * 180 / Math.PI;;
+
+		// translate
+		coordorigin[0] -= ttt[0];
+		coordorigin[1] -= ttt[1];
 		
-		var cw = container.width, ch = container.height, w = this.width, h = this.height;
-		if (cw == null || ch == null || w == null || h == null) return;
-
-		var p = precision, hp = p / 2;
-		var ct = this.container.transform, cts = (ct) ? ct.scale : [1, 1], ctt = (ct) ? ct.translate : [0, 0];
-		var ttt = this.transform.translate, tts = this.transform.scale, ttr = this.transform.rotate;
-
-		var sin = Math.sin(ttr[0]), cos = Math.cos(ttr[0]);
-		var offsetX = cw / 2 - ttr[1], offsetY = ch / 2 - ttr[2];
-		var dx = ttt[0] - offsetX, dy = ttt[1] - offsetY;
-		this.element.rotation = ttr[0] * 180 / Math.PI;
-
-		// translate + halfpixel
-		this.element.coordorigin =
-			(-((ctt[0] + (cts[0] * (dx * cos + dy * sin + offsetX))) * p) + hp) + ',' +
-			(-((ctt[1] + (cts[1] * (dy * cos - dx * sin + offsetY))) * p) + hp);
+		// rotate
+		function rotate(x, y, theta){
+			if (ttr[0]) console.log('rotate ', x, ',', y);
+			var sin = Math.sin(theta),
+				cos = Math.cos(theta);
+			return [
+				cos * x - sin * y,
+				sin * x + cos * y];
+		};
+		// rotates p around q by theta
+		function rotatePQ(p, q, theta){
+			var sin = Math.sin(theta),
+				cos = Math.cos(theta);
+			var x = p[0] - q[0],
+				y = p[1] - q[1];
+			var res = [
+				cos * x + sin * y,
+				cos * y - sin * x];
+			return [
+				res[0] + q[0],
+				res[1] + q[1]];
+		};
 		
+		var forth = Math.abs(ttr[0] - 1.2566370614359172) < 0.001;
+
+		var realRotCenter = [-cw / 2, -ch / 2],
+			wantedRotCenter = [cw / 2 + coordorigin[0], ch / 2 + coordorigin[1]];
+
+		coordorigin = rotatePQ(coordorigin, realRotCenter, ttr[0]);
+
 		// scale
-		this.element.coordsize = ((cw * p) / (cts[0] * tts[0])) + ',' + ((ch * p) / (cts[1] * tts[1]));
+		coordsize[0] /= cts[0] * tts[0];
+		coordsize[1] /= cts[1] * tts[1];
+		
+		// halfpixel
+		coordorigin[0] += 0.5;
+		coordorigin[1] += 0.5;
+		
+		// transform into multiplied precision space
+		coordorigin[0] *= precision;
+		coordorigin[1] *= precision;
+		coordsize[0] *= precision;
+		coordsize[1] *= precision;
+		
+		this.element.coordorigin = coordorigin.join(',');
+		this.element.coordsize = coordsize.join(',');
+		this.element.rotation = rotation;
 	},
 	
 	/* styles */
