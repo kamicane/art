@@ -253,7 +253,7 @@ ART.VML.Base = new Class({
 				res[0] + q[0],
 				res[1] + q[1]];
 		};
-		
+
 		var forth = Math.abs(ttr[0] - 1.2566370614359172) < 0.001;
 
 		var realRotCenter = [-cw / 2, -ch / 2],
@@ -261,20 +261,22 @@ ART.VML.Base = new Class({
 
 		coordorigin = rotatePQ(coordorigin, realRotCenter, ttr[0]);
 
-		// scale
-		coordsize[0] /= cts[0] * tts[0];
-		coordsize[1] /= cts[1] * tts[1];
-		
 		// halfpixel
 		coordorigin[0] += 0.5;
 		coordorigin[1] += 0.5;
-		
+
+		// scale
+		coordsize[0] /= cts[0] * tts[0];
+		coordsize[1] /= cts[1] * tts[1];
+		coordorigin[0] /= tts[0];
+		coordorigin[1] /= tts[1];
+
 		// transform into multiplied precision space
 		coordorigin[0] *= precision;
 		coordorigin[1] *= precision;
 		coordsize[0] *= precision;
 		coordsize[1] *= precision;
-		
+
 		this.element.coordorigin = coordorigin.join(',');
 		this.element.coordsize = coordsize.join(',');
 		this.element.rotation = rotation;
