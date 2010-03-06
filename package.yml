@@ -1,7 +1,5 @@
 name: "ART"
 
-exports: "mootools-art.js"
-
 web: "[mootools.net](http://mootools.net)"
 
 description: "The graphics framework."
@@ -16,6 +14,7 @@ sources:
   - "Source/ART.js"
   - "Source/ART.SVG.js"
   - "Source/ART.VML.js"
+  - "Source/ART.Base.js"
   - "Source/ART.Path.js"
   - "Source/ART.Shapes.js"
   - "Source/ART.Font.js"
