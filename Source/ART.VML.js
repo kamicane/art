@@ -7,7 +7,7 @@ description: VML implementation for ART
 
 authors: [Simo Kinnunen](http://twitter.com/sorccu), [Valerio Proietti](http://mad4milk.net)
 
-provides: [ART.VML, ART.Group, ART.Shape]
+provides: [ART.VML, ART.VML.Group, ART.VML.Shape]
 
 requires: [ART, ART.Element, ART.Container, ART.Path]
 
@@ -15,25 +15,6 @@ requires: [ART, ART.Element, ART.Container, ART.Path]
 */
 
 (function(){
-
-try {
-	
-	var namespaces = document.namespaces;
-	
-	namespaces.add('av', 'urn:schemas-microsoft-com:vml');
-	namespaces.add('ao', 'urn:schemas-microsoft-com:office:office');
-
-	var sheet = document.createStyleSheet();
-	sheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
-
-	sheet.addRule('av\\:*', 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;');
-	sheet.addRule('ao\\:*', 'behavior:url(#default#VML);');
-	
-} catch(e){
-
-	return;
-
-}
 
 var precision = 100, UID = 0;
 
@@ -215,8 +196,13 @@ ART.VML.Base = new Class({
 		
 		var tx = ctt[0] + ttt[0], ty = ctt[1] + ttt[1];
 		var sx = cts[0] * tts[0], sy = cts[1] * tts[1];
-		
 		var realX = tx / sx, realY = ty / sy;
+
+		// var rd = ctr[0] + ttr[0], rx = ctr[1] + ttr[1], ry = ctr[2] + ttr[2];
+		// 
+		// var rr = rd * Math.PI / 180;
+		// var sin = Math.sin(rr), cos = Math.cos(rr);
+		// var offsetX = (cw / 2) - rx, offsetY = (ch / 2) - ry;
 
 		// translate + halfpixel
 		this.element.coordorigin = (-(realX * p) - hp) + ',' + (-(realY * p) - hp);
@@ -314,11 +300,5 @@ ART.VML.Shape = new Class({
 	}
 
 });
-
-// Assign to ART
-
-ART.Shape = new Class({Extends: ART.VML.Shape});
-ART.Group = new Class({Extends: ART.VML.Group});
-ART.implement({Extends: ART.VML});
 	
 })();
