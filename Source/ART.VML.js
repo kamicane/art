@@ -139,11 +139,13 @@ ART.VML.Group = new Class({
 		this.width = container.width;
 		this.height = container.height;
 		this._transform();
+		return this;
 	},
 	
 	eject: function(){
 		this.parent();
 		this.width = this.height = null;
+		return this;
 	},
 	
 	_transform: function(){
