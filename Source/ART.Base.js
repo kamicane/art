@@ -28,22 +28,9 @@ var VML = function(){
 	var namespaces = document.namespaces;
 	if (!namespaces) return false;
 
-	try { //this currently throws an error in some IE8 modes. NEED TO FIX.
-
-		namespaces.add('av', 'urn:schemas-microsoft-com:vml');
-		namespaces.add('ao', 'urn:schemas-microsoft-com:office:office');
-
-		var sheet = document.createStyleSheet();
-		sheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
-
-		sheet.addRule('av\\:*', 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;');
-		sheet.addRule('ao\\:*', 'behavior:url(#default#VML);');
-		
-		return true;
-
-	} catch(e){
-		return false;
-	}
+	namespaces.add('av', 'urn:schemas-microsoft-com:vml');
+	namespaces.add('ao', 'urn:schemas-microsoft-com:office:office');
+	return true;
 
 };
 

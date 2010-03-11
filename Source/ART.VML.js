@@ -18,6 +18,19 @@ requires: [ART, ART.Element, ART.Container, ART.Path]
 
 var precision = 100, UID = 0;
 
+// VML Style Sheet
+
+var sheet = document.createStyleSheet();
+sheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
+var styledTags = {};
+var styleTag = function(tag){
+	styledTags[tag] = sheet.addRule('av\\:' + tag, 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;');
+};
+styleTag('fill');
+styleTag('stroke');
+
+// sheet.addRule('ao\\:*', 'behavior:url(#default#VML);'); - Office extension elements currently not in use
+
 // VML Base Class
 
 ART.VML = new Class({
@@ -59,6 +72,8 @@ ART.VML.Element = new Class({
 	
 	initialize: function(tag){
 		this.uid = (UID++).toString(16);
+		if (!(tag in styledTags)) styleTag(tag);
+
 		var element = this.element = document.createElement('av:' + tag);
 		element.setAttribute('id', 'e' + this.uid);
 		
