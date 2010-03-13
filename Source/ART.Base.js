@@ -25,12 +25,7 @@ var SVG = function(){
 
 var VML = function(){
 
-	var namespaces = document.namespaces;
-	if (!namespaces) return false;
-
-	namespaces.add('av', 'urn:schemas-microsoft-com:vml');
-	namespaces.add('ao', 'urn:schemas-microsoft-com:office:office');
-	return true;
+	return ART.VML.init(document);
 
 };
 

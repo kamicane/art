@@ -18,19 +18,6 @@ requires: [ART, ART.Element, ART.Container, ART.Path]
 
 var precision = 100, UID = 0;
 
-// VML Style Sheet
-
-var sheet = document.createStyleSheet();
-sheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
-var styledTags = {};
-var styleTag = function(tag){
-	styledTags[tag] = sheet.addRule('av\\:' + tag, 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;');
-};
-styleTag('fill');
-styleTag('stroke');
-
-// sheet.addRule('ao\\:*', 'behavior:url(#default#VML);'); - Office extension elements currently not in use
-
 // VML Base Class
 
 ART.VML = new Class({
@@ -63,6 +50,31 @@ ART.VML = new Class({
 	}
 	
 });
+
+// VML Initialization
+
+var styleSheet, styledTags = {}, styleTag = function(tag){
+	if (styleSheet) styledTags[tag] = styleSheet.addRule('av\\:' + tag, 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;');
+};
+
+ART.VML.init = function(document){
+
+	var namespaces = document.namespaces;
+	if (!namespaces) return false;
+
+	namespaces.add('av', 'urn:schemas-microsoft-com:vml');
+	namespaces.add('ao', 'urn:schemas-microsoft-com:office:office');
+
+	styleSheet = document.createStyleSheet();
+	styleSheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
+	styleTag('fill');
+	styleTag('stroke');
+
+	// sheet.addRule('ao\\:*', 'behavior:url(#default#VML);'); - Office extension elements currently not in use
+
+	return true;
+
+};
 
 // VML Element Class
 
