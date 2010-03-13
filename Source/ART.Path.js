@@ -149,8 +149,8 @@ var measureAndTransform = function(parts, precision){
 	
 	var right = Math.max.apply(Math, boundsX),
 		bottom = Math.max.apply(Math, boundsY),
-		top = Math.min.apply(Math, boundsX),
-		left = Math.min.apply(Math, boundsY),
+		left = Math.min.apply(Math, boundsX),
+		top = Math.min.apply(Math, boundsY),
 		height = bottom - top,
 		width = right - left;
 	
