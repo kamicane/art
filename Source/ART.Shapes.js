@@ -47,16 +47,16 @@ ART.Rectangle = new Class({
 			if (width < 0) path.move(width, 0);
 			if (height < 0) path.move(0, height);
 
-			if (tl > 0) path.arcLeft(tl, -tl);
+			if (tl > 0) path.arc(tl, -tl);
 			path.line(Math.abs(width) - (tr + tl), 0);
 
-			if (tr > 0) path.arcRight(tr, tr);
+			if (tr > 0) path.arc(tr, tr);
 			path.line(0, Math.abs(height) - (tr + br));
 
-			if (br > 0) path.arcLeft(-br, br);
+			if (br > 0) path.arc(-br, br);
 			path.line(- Math.abs(width) + (br + bl), 0);
 
-			if (bl > 0) path.arcRight(-bl, -bl);
+			if (bl > 0) path.arc(-bl, -bl);
 			path.line(0, - Math.abs(height) + (bl + tl));
 		}
 
@@ -87,7 +87,7 @@ ART.Ellipse = new Class({
 	draw: function(width, height){
 		var path = new ART.Path;
 		var rx = width / 2, ry = height / 2;
-		path.move(0, ry).arcLeft(rx, -ry).arcRight(rx, ry).arcLeft(-rx, ry).arcRight(-rx, -ry);
+		path.move(0, ry).arc(width, 0, rx, ry).arc(-width, 0, rx, ry);
 		return this.parent(path);
 	}
 

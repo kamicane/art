@@ -15,10 +15,6 @@ requires: ART
 */
 
 (function(){
-	
-/* # kappa */
-
-Math.kappa = (4 * (Math.sqrt(2) - 1) / 3);
 
 /* private functions */
 
@@ -44,6 +40,44 @@ var parse = function(path){
 
 };
 
+var east = Math.PI / 4, south = east * 2, west = south + east, circle = south * 2;
+
+var calculateArc = function(rx, ry, large, clockwise, x, y, tX, tY){
+	var xp = -x / 2, yp = -y / 2,
+		rxry = rx * rx * ry * ry, ryxp = ry * ry * xp * xp, rxyp = rx * rx * yp * yp,
+		a = rxry - rxyp - ryxp;
+
+	if (a < 0){
+		a = Math.sqrt(1 - a / rxry);
+		rx *= a; ry *= a;
+		a = 0;
+	} else {
+		a = Math.sqrt(a / (rxyp + ryxp));
+		if (large == clockwise) a = -a;
+	}
+
+	var cx = a * rx * yp / ry - xp,
+		cy = -a * ry * xp / rx - yp,
+
+		sa = Math.atan2(Math.sqrt(cx * cx + cy * cy) - cy, -cx),
+		ea = Math.atan2(Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) + y - cy, x - cx);
+
+	if (!clockwise){ var t = sa; sa = ea; ea = t; }
+	if (ea < sa){ ea += circle; }
+	
+	return {
+		circle: [cx - rx + tX, cy - ry + tY, cx + rx + tX, cy + ry + tY],
+		boundsX: [
+			ea > circle + west || (sa < west && ea > west) ? cx - rx + tX : tX,
+			ea > circle + east || (sa < east && ea > east) ? cx + rx + tX : tX
+		],
+		boundsY: [
+			ea > circle ? cy - ry + tY : tY,
+			ea > circle + south || (sa < south && ea > south) ? cy + ry + tY : tY
+		]
+	};
+};
+
 var measureAndTransform = function(parts, precision){
 	
 	var boundsX = [], boundsY = [];
@@ -54,6 +88,8 @@ var measureAndTransform = function(parts, precision){
 	}, uy = function(y){
 		boundsY.push(y);
 		return (precision) ? Math.round(y * precision) : y;
+	}, np = function(v){
+		return (precision) ? Math.round(v * precision) : v;
 	};
 
 	var reflect = function(sx, sy, ex, ey){
@@ -65,7 +101,7 @@ var measureAndTransform = function(parts, precision){
 	var path = '';
 	
 	for (i = 0; i < parts.length; i++){
-		var v = parts[i];
+		var v = Array.slice(parts[i]);
 		
 		switch (v.shift()){
 			
@@ -122,7 +158,25 @@ var measureAndTransform = function(parts, precision){
 				px = r[0]; py = r[1];
 				path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[0]) + ',' + uy(Y = v[1]);
 			break;
-			
+
+			case 'A':
+				// TODO
+			case 'a':
+				px = X + v[5]; py = Y + v[6];
+
+				if (!+v[0] || !+v[1] || (px == X && py == Y)){
+					path += 'l' + ux(X = px) + ',' + uy(X = py);
+					break;
+				}
+
+				r = calculateArc(v[r ? 1 : 0], v[r ? 0 : 1], v[3], v[4], v[5], v[6], X, Y);
+
+				boundsX.push.apply(boundsX, r.boundsX);
+				boundsY.push.apply(boundsY, r.boundsY);
+
+				path += (v[4] == 1 ? 'wa' : 'at') + r.circle.map(np) + ',' + ux(X) + ',' + uy(Y) + ',' + ux(X = px) + ',' + uy(Y = py);
+			break;
+
 			case 'h':
 				path += 'l' + ux(X += v[0]) + ',' + uy(Y);
 			break;
@@ -165,7 +219,7 @@ ART.Path = new Class({
 	initialize: function(path){
 		this.boundingBox = null;
 		if (path == null) this.path = [];  //no path
-		else if (path.path) this.path = path.path; //already a path
+		else if (path.path) this.path = Array.slice(path.path); //already a path
 		else this.path = parse(path); //string path
 	},
 	
@@ -193,12 +247,12 @@ ART.Path = new Class({
 		return this.push('c', c1x, c1y, c2x, c2y, ex, ey);
 	},
 	
-	arcLeft: function(x, y){
-		return this.bezier(0, y * Math.kappa, x - (x * Math.kappa), y, x, y);
+	arc: function(x, y, rx, ry, large){
+		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 1, x, y);
 	},
 	
-	arcRight: function(x, y){
-		return this.bezier(x * Math.kappa, 0, x, y - (y * Math.kappa), x, y);
+	counterArc: function(x, y, rx, ry, large){
+		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 0, x, y);
 	},
 	
 	/* transformation, measurement */
