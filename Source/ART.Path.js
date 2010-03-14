@@ -42,7 +42,7 @@ var parse = function(path){
 
 var east = Math.PI / 4, south = east * 2, west = south + east, circle = south * 2;
 
-var calculateArc = function(rx, ry, large, clockwise, x, y, tX, tY){
+var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
 	var xp = -x / 2, yp = -y / 2,
 		rxry = rx * rx * ry * ry, ryxp = ry * ry * xp * xp, rxyp = rx * rx * yp * yp,
 		a = rxry - rxyp - ryxp;
@@ -62,7 +62,7 @@ var calculateArc = function(rx, ry, large, clockwise, x, y, tX, tY){
 		sa = Math.atan2(Math.sqrt(cx * cx + cy * cy) - cy, -cx),
 		ea = Math.atan2(Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) + y - cy, x - cx);
 
-	if (!clockwise){ var t = sa; sa = ea; ea = t; }
+	if (!+clockwise){ var t = sa; sa = ea; ea = t; }
 	if (ea < sa){ ea += circle; }
 	
 	return {
@@ -101,75 +101,51 @@ var measureAndTransform = function(parts, precision){
 	var path = '';
 	
 	for (i = 0; i < parts.length; i++){
-		var v = Array.slice(parts[i]);
+		var v = Array.slice(parts[i]), f = v.shift(), l = f.toLowerCase();
+		var refX = l == f ? X : 0, refY = l == f ? Y : 0;
 		
-		switch (v.shift()){
+		switch (l){
 			
 			case 'm':
-				path += 'm' + ux(X += v[0]) + ',' + uy(Y += v[1]);
-			break;
-			case 'M':
-				path += 'm' + ux(X = v[0]) + ',' + uy(Y = v[1]);
+				path += 'm' + ux(X = refX + v[0]) + ',' + uy(Y = refY + v[1]);
 			break;
 			
 			case 'l':
-				path += 'l' + ux(X += v[0]) + ',' + uy(Y += v[1]);
-			break;
-			case 'L':
-				path += 'l' + ux(X = v[0]) + ',' + uy(Y = v[1]);
+				path += 'l' + ux(X = refX + v[0]) + ',' + uy(Y = refY + v[1]);
 			break;
 			
 			case 'c':
-				px = X + v[2]; py = Y + v[3];
-				path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[4]) + ',' + uy(Y += v[5]);
+				px = refX + v[2]; py = refY + v[3];
+				path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[4]) + ',' + uy(Y = refY + v[5]);
 			break;
-			case 'C':
-				px = v[2]; py = v[3];
-				path += 'c' + ux(v[0]) + ',' + uy(v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[4]) + ',' + uy(Y = v[5]);
-			break;
-			
+
 			case 's':
 				r = reflect(px, py, X, Y);
-				px = X + v[0]; py = Y + v[1];
-				path += 'c' + ux(r[0]) + ',' + uy(r[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[2]) + ',' + uy(Y += v[3]);
-			break;
-			case 'S':
-				r = reflect(px, py, X, Y);
-				px = v[0]; py = v[1];
-				path += 'c' + ux(r[0]) + ',' + uy(r[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[2]) + ',' + uy(Y = v[3]);
+				px = refX + v[0]; py = refY + v[1];
+				path += 'c' + ux(r[0]) + ',' + uy(r[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[2]) + ',' + uy(Y = refY + v[3]);
 			break;
 			
 			case 'q':
-				px = X + v[0]; py = Y + v[1];
-				path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[2]) + ',' + uy(Y += v[3]);
-			break;
-			case 'Q':
-				px = v[0]; py = v[1];
-				path += 'c' + ux(v[0]) + ',' + uy(v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[2]) + ',' + uy(Y = v[3]);
+				px = refX + v[0]; py = refY + v[1];
+				path += 'c' + ux(refX + v[0]) + ',' + uy(refY + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[2]) + ',' + uy(Y = refY + v[3]);
 			break;
 			
 			case 't':
 				r = reflect(px, py, X, Y);
-				px = X + r[0]; py = Y + r[1];
-				path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X += v[0]) + ',' + uy(Y += v[1]);
-			break;
-			case 'T':
-				r = reflect(px, py, X, Y);
-				px = r[0]; py = r[1];
-				path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = v[0]) + ',' + uy(Y = v[1]);
+				px = refX + r[0]; py = refY + r[1];
+				path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[0]) + ',' + uy(Y = refY + v[1]);
 			break;
 
-			case 'A':
-				// TODO
 			case 'a':
-				px = X + v[5]; py = Y + v[6];
+				px = refX + v[5]; py = refY + v[6];
 
 				if (!+v[0] || !+v[1] || (px == X && py == Y)){
 					path += 'l' + ux(X = px) + ',' + uy(X = py);
 					break;
 				}
-
-				r = calculateArc(v[r ? 1 : 0], v[r ? 0 : 1], v[3], v[4], v[5], v[6], X, Y);
+				
+				v.push(X, Y);
+				r = calculateArc.apply(null, v);
 
 				boundsX.push.apply(boundsX, r.boundsX);
 				boundsY.push.apply(boundsY, r.boundsY);
@@ -178,23 +154,14 @@ var measureAndTransform = function(parts, precision){
 			break;
 
 			case 'h':
-				path += 'l' + ux(X += v[0]) + ',' + uy(Y);
-			break;
-			case 'H':
-				path += 'l' + ux(X = v[0]) + ',' + uy(Y);
+				path += 'l' + ux(X = refX + v[0]) + ',' + uy(Y);
 			break;
 			
 			case 'v':
-				path += 'l' + ux(X) + ',' + uy(Y += v[0]);
-			break;
-			case 'V':
-				path += 'l' + ux(X) + ',' + uy(Y = v[0]);
+				path += 'l' + ux(X) + ',' + uy(Y = refY + v[0]);
 			break;
 			
 			case 'z':
-				path += 'x';
-			break;
-			case 'Z':
 				path += 'x';
 			break;
 			
