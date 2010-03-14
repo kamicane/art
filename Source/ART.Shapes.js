@@ -7,7 +7,7 @@ description: Shapes for ART
 
 authors: [Valerio Proietti](http://mad4milk.net)
 
-provides: [ART.Shapes, ART.Rectangle, ART.Pill, ART.Ellipse]
+provides: [ART.Shapes, ART.Rectangle, ART.Pill, ART.Ellipse, ART.Wedge]
 
 requires: [ART.Path, ART.Shape]
 
