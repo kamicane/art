@@ -40,7 +40,7 @@ var parse = function(path){
 
 };
 
-var east = Math.PI / 4, south = east * 2, west = south + east, circle = south * 2;
+var circle = Math.PI * 2, north = circle / 2, west = north / 2, east = -west, south = 0;
 
 var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
 	var xp = -x / 2, yp = -y / 2,
@@ -56,24 +56,23 @@ var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
 		if (large == clockwise) a = -a;
 	}
 
-	var cx = a * rx * yp / ry - xp,
-		cy = -a * ry * xp / rx - yp,
-
-		sa = Math.atan2(Math.sqrt(cx * cx + cy * cy) - cy, -cx),
-		ea = Math.atan2(Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) + y - cy, x - cx);
+	var cx = a * rx * yp / ry - xp, cy = -a * ry * xp / rx - yp,
+		sa = Math.atan2(cx, -cy), ea = Math.atan2(-x + cx, y - cy);
 
 	if (!+clockwise){ var t = sa; sa = ea; ea = t; }
 	if (ea < sa){ ea += circle; }
 	
+	cx += tX; cy += tY;
+
 	return {
-		circle: [cx - rx + tX, cy - ry + tY, cx + rx + tX, cy + ry + tY],
+		circle: [cx - rx, cy - ry, cx + rx, cy + ry],
 		boundsX: [
-			ea > circle + west || (sa < west && ea > west) ? cx - rx + tX : tX,
-			ea > circle + east || (sa < east && ea > east) ? cx + rx + tX : tX
+			ea > circle + west || (sa < west && ea > west) ? cx - rx : tX,
+			ea > circle + east || (sa < east && ea > east) ? cx + rx : tX
 		],
 		boundsY: [
-			ea > circle ? cy - ry + tY : tY,
-			ea > circle + south || (sa < south && ea > south) ? cy + ry + tY : tY
+			ea > north ? cy - ry : tY,
+			ea > circle + south || (sa < south && ea > south) ? cy + ry : tY
 		]
 	};
 };
@@ -140,7 +139,7 @@ var measureAndTransform = function(parts, precision){
 				px = refX + v[5]; py = refY + v[6];
 
 				if (!+v[0] || !+v[1] || (px == X && py == Y)){
-					path += 'l' + ux(X = px) + ',' + uy(X = py);
+					path += 'l' + ux(X = px) + ',' + uy(Y = py);
 					break;
 				}
 				
