@@ -43,25 +43,23 @@ var parse = function(path){
 var circle = Math.PI * 2, north = circle / 2, west = north / 2, east = -west, south = 0;
 
 var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
-	var xp = -x / 2, yp = -y / 2,
-		rxry = rx * rx * ry * ry, ryxp = ry * ry * xp * xp, rxyp = rx * rx * yp * yp,
+	var cx = x / 2, cy = y / 2,
+		rxry = rx * rx * ry * ry, ryxp = ry * ry * cx * cx, rxyp = rx * rx * cy * cy,
 		a = rxry - rxyp - ryxp;
 
 	if (a < 0){
 		a = Math.sqrt(1 - a / rxry);
 		rx *= a; ry *= a;
-		a = 0;
 	} else {
 		a = Math.sqrt(a / (rxyp + ryxp));
 		if (large == clockwise) a = -a;
+		cx += -a * cy * rx / ry; cy += a * x / 2 / rx * ry;
 	}
 
-	var cx = a * rx * yp / ry - xp, cy = -a * ry * xp / rx - yp,
-		sa = Math.atan2(cx, -cy), ea = Math.atan2(-x + cx, y - cy);
-
+	var sa = Math.atan2(cx, -cy), ea = Math.atan2(-x + cx, y - cy);
 	if (!+clockwise){ var t = sa; sa = ea; ea = t; }
-	if (ea < sa){ ea += circle; }
-	
+	if (ea < sa) ea += circle;
+
 	cx += tX; cy += tY;
 
 	return {
