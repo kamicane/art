@@ -20,19 +20,15 @@ requires: ART
 
 var parse = function(path){
 
-	path = path.replace(/\s*([A-Za-z,-])\s*/ig, function(f, m, i){
-		switch (m){
-			case '-': return ' ' + m;
-			case ',': return ' ';
-			default: return (i == 0) ? m + ' ' : ' ' + m + ' ';
-		}
+	path = path.replace(/\s*([a-df-z,])\s*/ig, function(f, m, i){
+		return m == ',' ? ' ' : (i == 0) ? m + ' ' : ' ' + m + ' ';
 	});
 
 	var parts = [], index = -1, bits = path.split(/\s+/);
 
 	for (var i = 0, l = bits.length; i < l; i++){
 		var bit = bits[i];
-		if (bit.match(/[A-Za-z]/i)) parts[++index] = [bit];
+		if (bit.match(/[a-df-z]/i)) parts[++index] = [bit];
 		else parts[index].push(Number(bit));
 	}
 	
@@ -142,7 +138,7 @@ var measureAndTransform = function(parts, precision){
 					break;
 				}
 				
-				v.push(X, Y);
+				v[7] = X; v[8] = Y;
 				r = calculateArc.apply(null, v);
 
 				boundsX.push.apply(boundsX, r.boundsX);
