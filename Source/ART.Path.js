@@ -44,16 +44,17 @@ var circle = Math.PI * 2, north = circle / 2, west = north / 2, east = -west, so
 
 var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
 	var cx = x / 2, cy = y / 2,
-		rxry = rx * rx * ry * ry, ryxp = ry * ry * cx * cx, rxyp = rx * rx * cy * cy,
-		a = rxry - rxyp - ryxp;
+		rxry = rx * rx * ry * ry, rycx = ry * ry * cx * cx, rxcy = rx * rx * cy * cy,
+		a = rxry - rxcy - rycx;
 
 	if (a < 0){
 		a = Math.sqrt(1 - a / rxry);
 		rx *= a; ry *= a;
 	} else {
-		a = Math.sqrt(a / (rxyp + ryxp));
+		a = Math.sqrt(a / (rxcy + rycx));
 		if (large == clockwise) a = -a;
-		cx += -a * cy * rx / ry; cy += a * x / 2 / rx * ry;
+		cx += -a * y / 2 * rx / ry;
+		cy +=  a * x / 2 * ry / rx;
 	}
 
 	var sa = Math.atan2(cx, -cy), ea = Math.atan2(-x + cx, y - cy);
@@ -113,7 +114,7 @@ var measureAndTransform = function(parts, precision){
 			
 			case 'c':
 				px = refX + v[2]; py = refY + v[3];
-				path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[4]) + ',' + uy(Y = refY + v[5]);
+				path += 'c' + ux(refX + v[0]) + ',' + uy(refY + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[4]) + ',' + uy(Y = refY + v[5]);
 			break;
 
 			case 's':
