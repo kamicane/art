@@ -20,15 +20,12 @@ requires: ART
 
 var parse = function(path){
 
-	path = path.replace(/\s*([a-df-z,])\s*/ig, function(f, m, i){
-		return m == ',' ? ' ' : (i == 0) ? m + ' ' : ' ' + m + ' ';
-	});
-
-	var parts = [], index = -1, bits = path.split(/\s+/);
+	var parts = [], index = -1,
+	    bits = path.match(/[a-df-z]|[\-+]?(?:[\d\.]e[\-+]?|[^\s\-+,a-z])+/ig);
 
 	for (var i = 0, l = bits.length; i < l; i++){
 		var bit = bits[i];
-		if (bit.match(/[a-df-z]/i)) parts[++index] = [bit];
+		if (bit.match(/^[a-z]/i)) parts[++index] = [bit];
 		else parts[index].push(Number(bit));
 	}
 	
