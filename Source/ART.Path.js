@@ -20,19 +20,12 @@ requires: ART
 
 var parse = function(path){
 
-	path = path.replace(/\s*([A-Za-z,-])\s*/ig, function(f, m, i){
-		switch (m){
-			case '-': return ' ' + m;
-			case ',': return ' ';
-			default: return (i == 0) ? m + ' ' : ' ' + m + ' ';
-		}
-	});
-
-	var parts = [], index = -1, bits = path.split(/\s+/);
+	var parts = [], index = -1,
+	    bits = path.match(/[a-df-z]|[\-+]?(?:[\d\.]e[\-+]?|[^\s\-+,a-z])+/ig);
 
 	for (var i = 0, l = bits.length; i < l; i++){
 		var bit = bits[i];
-		if (bit.match(/[A-Za-z]/i)) parts[++index] = [bit];
+		if (bit.match(/^[a-z]/i)) parts[++index] = [bit];
 		else parts[index].push(Number(bit));
 	}
 	
@@ -40,40 +33,38 @@ var parse = function(path){
 
 };
 
-var east = Math.PI / 4, south = east * 2, west = south + east, circle = south * 2;
+var circle = Math.PI * 2, north = circle / 2, west = north / 2, east = -west, south = 0;
 
 var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
-	var xp = -x / 2, yp = -y / 2,
-		rxry = rx * rx * ry * ry, ryxp = ry * ry * xp * xp, rxyp = rx * rx * yp * yp,
-		a = rxry - rxyp - ryxp;
+	var cx = x / 2, cy = y / 2,
+		rxry = rx * rx * ry * ry, rycx = ry * ry * cx * cx, rxcy = rx * rx * cy * cy,
+		a = rxry - rxcy - rycx;
 
 	if (a < 0){
 		a = Math.sqrt(1 - a / rxry);
 		rx *= a; ry *= a;
-		a = 0;
 	} else {
-		a = Math.sqrt(a / (rxyp + ryxp));
+		a = Math.sqrt(a / (rxcy + rycx));
 		if (large == clockwise) a = -a;
+		cx += -a * y / 2 * rx / ry;
+		cy +=  a * x / 2 * ry / rx;
 	}
 
-	var cx = a * rx * yp / ry - xp,
-		cy = -a * ry * xp / rx - yp,
-
-		sa = Math.atan2(Math.sqrt(cx * cx + cy * cy) - cy, -cx),
-		ea = Math.atan2(Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) + y - cy, x - cx);
-
+	var sa = Math.atan2(cx, -cy), ea = Math.atan2(-x + cx, y - cy);
 	if (!+clockwise){ var t = sa; sa = ea; ea = t; }
-	if (ea < sa){ ea += circle; }
-	
+	if (ea < sa) ea += circle;
+
+	cx += tX; cy += tY;
+
 	return {
-		circle: [cx - rx + tX, cy - ry + tY, cx + rx + tX, cy + ry + tY],
+		circle: [cx - rx, cy - ry, cx + rx, cy + ry],
 		boundsX: [
-			ea > circle + west || (sa < west && ea > west) ? cx - rx + tX : tX,
-			ea > circle + east || (sa < east && ea > east) ? cx + rx + tX : tX
+			ea > circle + west || (sa < west && ea > west) ? cx - rx : tX,
+			ea > circle + east || (sa < east && ea > east) ? cx + rx : tX
 		],
 		boundsY: [
-			ea > circle ? cy - ry + tY : tY,
-			ea > circle + south || (sa < south && ea > south) ? cy + ry + tY : tY
+			ea > north ? cy - ry : tY,
+			ea > circle + south || (sa < south && ea > south) ? cy + ry : tY
 		]
 	};
 };
@@ -116,7 +107,7 @@ var measureAndTransform = function(parts, precision){
 			
 			case 'c':
 				px = refX + v[2]; py = refY + v[3];
-				path += 'c' + ux(X + v[0]) + ',' + uy(Y + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[4]) + ',' + uy(Y = refY + v[5]);
+				path += 'c' + ux(refX + v[0]) + ',' + uy(refY + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[4]) + ',' + uy(Y = refY + v[5]);
 			break;
 
 			case 's':
@@ -140,11 +131,11 @@ var measureAndTransform = function(parts, precision){
 				px = refX + v[5]; py = refY + v[6];
 
 				if (!+v[0] || !+v[1] || (px == X && py == Y)){
-					path += 'l' + ux(X = px) + ',' + uy(X = py);
+					path += 'l' + ux(X = px) + ',' + uy(Y = py);
 					break;
 				}
 				
-				v.push(X, Y);
+				v[7] = X; v[8] = Y;
 				r = calculateArc.apply(null, v);
 
 				boundsX.push.apply(boundsX, r.boundsX);

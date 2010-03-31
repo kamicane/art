@@ -112,6 +112,70 @@ ART.VML.Element = new Class({
 		}
 		return this;
 	},
+
+	/* transform */
+
+	_transform: function(){
+		var l = this.left || 0, t = this.top || 0,
+		    w = this.width, h = this.height;
+		
+		if (w == null || h == null) return;
+		
+		var tn = this.transform,
+			tt = tn.translate,
+			ts = tn.scale,
+			tr = tn.rotate;
+
+		var cw = w, ch = h,
+		    cl = l, ct = t,
+		    pl = tt[0], pt = tt[1],
+		    rotation = tr[0],
+		    rx = tr[1], ry = tr[2];
+		
+		// rotation offset
+		var theta = rotation / 180 * Math.PI,
+		    sin = Math.sin(theta), cos = Math.cos(theta);
+		
+		var dx = w / 2 - rx,
+		    dy = h / 2 - ry;
+				
+		pl -= cos * -(dx + l) + sin * (dy + t) + dx;
+		pt -= cos * -(dy + t) - sin * (dx + l) + dy;
+		
+		// halfpixel
+		cl += 0.5;
+		ct += 0.5;
+ 
+		// scale
+		cw /= ts[0];
+		ch /= ts[1];
+		cl /= ts[0];
+		ct /= ts[1];
+ 
+		// transform into multiplied precision space		
+		cw *= precision;
+		ch *= precision;
+		cl *= precision;
+		ct *= precision;
+
+		// check if Element is within a precision space
+		// TODO: use av:group element as the root node so that elements are always placed in a precision space
+		if (!(this.container instanceof ART.VML)){
+			pl *= precision;
+			pt *= precision;
+			w *= precision;
+			h *= precision;
+		}
+		
+		var element = this.element;
+		element.coordorigin = cl + ',' + ct;
+		element.coordsize = cw + ',' + ch;
+		element.style.left = pl;
+		element.style.top = pt;
+		element.style.width = w;
+		element.style.height = h;
+		element.style.rotation = rotation;
+	},
 	
 	// transformations
 	
@@ -122,12 +186,17 @@ ART.VML.Element = new Class({
 	},
 	
 	scale: function(x, y){
+		if (y == null) y = x;
 		this.transform.scale = [x, y];
 		this._transform();
 		return this;
 	},
 	
 	rotate: function(deg, x, y){
+		if (x == null || y == null){
+			var box = this.measure();
+			x = box.left + box.width / 2; y = box.top + box.height / 2;
+		}
 		this.transform.rotate = [deg, x, y];
 		this._transform();
 		return this;
@@ -173,22 +242,8 @@ ART.VML.Group = new Class({
 		this.parent();
 		this.width = this.height = null;
 		return this;
-	},
-	
-	_transform: function(){
-		var container = this.container;
-		if (!container) return;
-		var cw = container.width, ch = container.height, w = this.width, h = this.height;
-		if (cw == null || ch == null || w == null || h == null) return;
-		
-		this.element.coordorigin = (precision) + ',' + (precision);
-		this.element.coordsize = (cw * precision) + ',' + (ch * precision);
-		
-		this.children.each(function(child){
-			child._transform();
-		});
 	}
-	
+
 });
 
 // VML Base Shape Class
@@ -208,39 +263,6 @@ ART.VML.Base = new Class({
 		var stroke = this.strokeElement = document.createElement('av:stroke');
 		stroke.on = false;
 		element.appendChild(stroke);
-	},
-	
-	/* transform */
-	
-	_transform: function(){
-		var container = this.container;
-		if (!container) return;
-		
-		var cw = container.width, ch = container.height, w = this.width, h = this.height;
-		if (cw == null || ch == null || w == null || h == null) return;
-	
-		var p = precision, hp = p / 2;
-		var ct = this.container.transform, cts = (ct) ? ct.scale : [1, 1], ctt = (ct) ? ct.translate : [0, 0], ctr = (ct) ? ct.rotate : [0, 0, 0];
-		var ttt = this.transform.translate, tts = this.transform.scale, ttr = this.transform.rotate;
-		
-		var tx = ctt[0] + ttt[0], ty = ctt[1] + ttt[1];
-		var sx = cts[0] * tts[0], sy = cts[1] * tts[1];
-		var realX = tx / sx, realY = ty / sy;
-
-		// var rd = ctr[0] + ttr[0], rx = ctr[1] + ttr[1], ry = ctr[2] + ttr[2];
-		// 
-		// var rr = rd * Math.PI / 180;
-		// var sin = Math.sin(rr), cos = Math.cos(rr);
-		// var offsetX = (cw / 2) - rx, offsetY = (ch / 2) - ry;
-
-		// translate + halfpixel
-		this.element.coordorigin = (-(realX * p) - hp) + ',' + (-(realY * p) - hp);
-		
-		// scale
-		this.element.coordsize = ((cw * p) / sx) + ',' + ((ch * p) / sy);
-		
-		//rotation
-		this.element.rotation = 0;
 	},
 	
 	/* styles */
