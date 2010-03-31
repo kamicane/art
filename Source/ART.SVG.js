@@ -92,6 +92,11 @@ ART.SVG.Element = new Class({
 		return this;
 	},
 	
+	setOpacity: function(opacity){
+		this.element.setAttribute('opacity', opacity);
+		return this;
+	},
+	
 	// visibility
 	
 	hide: function(){
@@ -250,6 +255,25 @@ ART.SVG.Shape = new Class({
 		return new ART.Path(this.currentPath).measure();
 	}
 
+});
+
+ART.SVG.Image = new Class({
+	
+	Extends: ART.SVG.Base,
+	
+	initialize: function(src, width, height){
+		this.parent('image');
+		if (arguments.length == 3) this.draw.apply(this, arguments);
+	},
+	
+	draw: function(src, width, height){
+		var element = this.element;
+		element.setAttributeNS(XLINK, 'href', src);
+		element.setAttribute('width', width);
+		element.setAttribute('height', height);
+		return this;
+	}
+	
 });
 
 })();
