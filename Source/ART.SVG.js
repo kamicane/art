@@ -59,7 +59,7 @@ ART.SVG.Element = new Class({
 		this.uid = (UID++).toString(16);
 		var element = this.element = createElement(tag);
 		element.setAttribute('id', 'e' + this.uid);
-		this.transform = {translate: [0, 0], scale: [1, 1], rotate: [0, 0, 0]};
+		this.transform = {translate: [0, 0], rotate: [0, 0, 0], scale: [1, 1]};
 	},
 	
 	/* transforms */
@@ -70,15 +70,15 @@ ART.SVG.Element = new Class({
 		this.element.setAttribute('transform', transforms.join(' '));
 	},
 	
-	// rotate: function(deg, x, y){
-	// 	if (x == null || y == null){
-	// 		var box = this.measure();
-	// 		x = box.x + box.width / 2; y = box.y + box.height / 2;
-	// 	}
-	// 	this.transform.rotate = [deg, x, y];
-	// 	this._writeTransform();
-	// 	return this;
-	// },
+	rotate: function(deg, x, y){
+		if (x == null || y == null){
+			var box = this.measure();
+			x = box.left + box.width / 2; y = box.top + box.height / 2;
+		}
+		this.transform.rotate = [deg, x, y];
+		this._writeTransform();
+		return this;
+	},
 
 	scale: function(x, y){
 		this.transform.scale = [x, y];
