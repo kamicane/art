@@ -1,16 +1,10 @@
 /*
 ---
-
 name: ART.Font
-
 description: Fonts for ART, implements code from [Cufón](http://cufon.shoqolate.com/)
-
 authors: [Simo Kinnunen](http://twitter.com/sorccu), ART adaptation by [Valerio Proietti](http://mad4milk.net/)
-
 provides: ART.Font
-
 requires: ART.Shape
-
 ...
 */
 

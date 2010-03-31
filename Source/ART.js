@@ -1,16 +1,9 @@
 /*
 ---
-
 name: ART
-
 description: The heart of ART.
-
-authors: [Valerio Proietti](http://mad4milk.net), [The MooTools development team](http://mootools.net/developers)
-
 requires: [Core/Class, Color/Color, Table/Table]
-
 provides: [ART, ART.Element, ART.Container]
-
 ...
 */
 

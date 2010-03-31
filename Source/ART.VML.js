@@ -1,16 +1,10 @@
 /*
 ---
-
 name: ART.VML
-
 description: VML implementation for ART
-
-authors: [Simo Kinnunen](http://twitter.com/sorccu), [Valerio Proietti](http://mad4milk.net)
-
+authors: ["[Simo Kinnunen](http://twitter.com/sorccu)", "[Valerio Proietti](http://mad4milk.net)", "[Sebastian Markbåge](http://calyptus.eu/)"]
 provides: [ART.VML, ART.VML.Group, ART.VML.Shape]
-
 requires: [ART, ART.Element, ART.Container, ART.Path]
-
 ...
 */
 
@@ -53,8 +47,10 @@ ART.VML = new Class({
 
 // VML Initialization
 
+var VMLCSS = 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;';
+
 var styleSheet, styledTags = {}, styleTag = function(tag){
-	if (styleSheet) styledTags[tag] = styleSheet.addRule('av\\:' + tag, 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;');
+	if (styleSheet) styledTags[tag] = styleSheet.addRule('av\\:' + tag, VMLCSS);
 };
 
 ART.VML.init = function(document){
