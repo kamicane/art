@@ -81,6 +81,7 @@ ART.SVG.Element = new Class({
 	},
 
 	scale: function(x, y){
+		if (y == null) y = x;
 		this.transform.scale = [x, y];
 		this._writeTransform();
 		return this;
