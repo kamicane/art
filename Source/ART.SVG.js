@@ -1,16 +1,9 @@
 /*
 ---
-
 name: ART.SVG
-
 description: SVG implementation for ART
-
-authors: [Valerio Proietti](http://mad4milk.net)
-
-provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape]
-
+provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image]
 requires: [ART, ART.Element, ART.Container, ART.Path]
-
 ...
 */
 
@@ -90,6 +83,11 @@ ART.SVG.Element = new Class({
 	translate: function(x, y){
 		this.transform.translate = [x, y];
 		this._writeTransform();
+		return this;
+	},
+	
+	setOpacity: function(opacity){
+		this.element.setAttribute('opacity', opacity);
 		return this;
 	},
 	
@@ -290,6 +288,25 @@ ART.SVG.Shape = new Class({
 		return new ART.Path(this.currentPath).measure();
 	}
 
+});
+
+ART.SVG.Image = new Class({
+	
+	Extends: ART.SVG.Base,
+	
+	initialize: function(src, width, height){
+		this.parent('image');
+		if (arguments.length == 3) this.draw.apply(this, arguments);
+	},
+	
+	draw: function(src, width, height){
+		var element = this.element;
+		element.setAttributeNS(XLINK, 'href', src);
+		element.setAttribute('width', width);
+		element.setAttribute('height', height);
+		return this;
+	}
+	
 });
 
 })();

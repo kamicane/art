@@ -1,16 +1,9 @@
 /*
 ---
-
 name: ART.Base
-
 description: implements ART, ART.Shape and ART.Group based on the current browser.
-
-authors: [Valerio Proietti](http://mad4milk.net)
-
 provides: [ART.Base, ART.Group, ART.Shape]
-
 requires: [ART.VML, ART.SVG]
-
 ...
 */
 
