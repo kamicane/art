@@ -130,6 +130,7 @@ ART.SVG.Base = new Class({
 
 	initialize: function(tag){
 		this.parent(tag);
+		this.element.setAttribute('fill-rule', 'evenodd');
 		this.fill();
 		this.stroke();
 	},
@@ -169,62 +170,100 @@ ART.SVG.Base = new Class({
 	
 	/* styles */
 	
-	_createGradient: function(type, colors){
-		var gradient = createElement('linearGradient');
-		//TODO angle calculation from angle argument
-		var coords = {x1: '0%', x2: '0%', y1: '0%', y2: '100%'};
-		for (var c in coords) gradient.setAttribute(c, coords[c]);
-		
-		var id = type + '-gradient-e' + this.uid;
-		
-		gradient.setAttribute('id', id);
+	_createGradient: function(type, style, stops){
+		this._ejectGradient(type);
+
+		var gradient = createElement(style + 'Gradient');
 
 		this[type + 'Gradient'] = gradient;
-		
-		for (var i = 0; i < colors.length; i++){
-			var stop = createElement('stop'), color = Color.detach(colors[i]);
-			stop.setAttribute('offset', i / (colors.length - 1));
+
+		var addColor = function(offset, color){
+			color = Color.detach(color);
+			var stop = createElement('stop');
+			stop.setAttribute('offset', offset);
 			stop.setAttribute('stop-color', color[0]);
 			stop.setAttribute('stop-opacity', color[1]);
 			gradient.appendChild(stop);
-		}
-		
+		};
+
+		// Enumerate stops, assumes offsets are enumerated in order
+		// TODO: Sort. Chrome doesn't always enumerate in expected order but requires stops to be specified in order.
+		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
+		else for (var offset in stops) addColor(offset, stops[offset]);
+
+		var id = type + '-gradient-e' + this.uid;
+		gradient.setAttribute('id', id);
+
 		this._injectGradient(type);
-		return 'url(#' + id + ')';
+
+		this.element.setAttribute(type, 'url(#' + id + ')');
+
+		return gradient;
 	},
 	
 	_setColor: function(type, color){
+		this[type + 'Gradient'] = null;
+		this._ejectGradient(type);
 		var element = this.element;
-		if (color.length > 1){
-			color = this._createGradient(type, color);
+		if (color == null){
+			element.setAttribute(type, 'none');
 		} else {
-			color = Color.detach(color[0]);
+			color = Color.detach(color);
+			element.setAttribute(type, color[0]);
 			element.setAttribute(type + '-opacity', color[1]);
-			color = color[0];
 		}
-		
-		element.setAttribute(type, color);
 	},
 
-	fill: function(flag){
-		this._ejectGradient('fill');
-		this.fillGradient = null;
-		if (flag == null) this.element.setAttribute('fill', 'none');
-		else this._setColor('fill', Array.slice(arguments));
+	fill: function(color){
+		if (arguments.length > 1) this.fillLinear(arguments);
+		else this._setColor('fill', color);
 		return this;
 	},
 
-	stroke: function(flag, width, cap, join){
-		this._ejectGradient('stroke');
+	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
+		var gradient = this._createGradient('fill', 'radial', stops);
+
+		if (focusX != null) gradient.setAttribute('fx', focusX);
+		if (focusY != null) gradient.setAttribute('fy', focusY);
+
+		if (radius) gradient.setAttribute('r', radius);
+
+		if (centerX == null) centerX = focusX;
+		if (centerY == null) centerY = focusY;
+
+		if (centerX != null) gradient.setAttribute('cx', centerX);
+		if (centerY != null) gradient.setAttribute('cy', centerY);
+
+		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
+
+		return this;
+	},
+
+	fillLinear: function(stops, angle){
+		var gradient = this._createGradient('fill', 'linear', stops);
+
+		angle = (angle || 0) * Math.PI / 180;
+
+		var x = Math.cos(angle), y = -Math.sin(angle),
+			l = (Math.abs(x) + Math.abs(y)) / 2;
+
+		x *= l; y *= l;
+
+		gradient.setAttribute('x1', .5 - x);
+		gradient.setAttribute('x2', .5 + x);
+		gradient.setAttribute('y1', .5 - y);
+		gradient.setAttribute('y2', .5 + y);
+
+		return this;
+	},
+
+	stroke: function(color, width, cap, join){
 		var element = this.element;
-		this.strokeGradient = null;
-		
 		element.setAttribute('stroke-width', (width != null) ? width : 1);
 		element.setAttribute('stroke-linecap', (cap != null) ? cap : 'round');
 		element.setAttribute('stroke-linejoin', (join != null) ? join : 'round');
-		
-		if (flag == null) element.setAttribute('stroke', 'none');
-		else this._setColor('stroke', [flag]);
+
+		this._setColor('stroke', color);
 		return this;
 	}
 	

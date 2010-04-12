@@ -26,17 +26,31 @@ ART.VML = new Class({
 	Implements: ART.Container,
 	
 	initialize: function(width, height){
-		this.element = document.createElement('vml');
+		this.vml = document.createElement('vml');
+		this.element = document.createElement('av:group');
+		this.vml.appendChild(this.element);
 		this.children = [];
 		if (width != null && height != null) this.resize(width, height);
+	},
+	
+	inject: function(element){
+		if (element.element) element = element.element;
+		element.appendChild(this.vml);
 	},
 	
 	resize: function(width, height){
 		this.width = width;
 		this.height = height;
-		var style = this.element.style;
+		var style = this.vml.style;
 		style.pixelWidth = width;
 		style.pixelHeight = height;
+		
+		style = this.element.style;
+		style.width = width;
+		style.height = height;
+
+		this.element.coordorigin = '0,0';
+		this.element.coordsize = (width * precision) + ',' + (height * precision);
 
 		this.children.each(function(child){
 			child._transform();
@@ -46,7 +60,7 @@ ART.VML = new Class({
 	},
 	
 	toElement: function(){
-		return this.element;
+		return this.vml;
 	}
 	
 });
@@ -69,8 +83,8 @@ ART.VML.init = function(document){
 	styleSheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
 	styleTag('fill');
 	styleTag('stroke');
-
-	// sheet.addRule('ao\\:*', 'behavior:url(#default#VML);'); - Office extension elements currently not in use
+	styleTag('path');
+	styleTag('group');
 
 	return true;
 
@@ -158,14 +172,10 @@ ART.VML.Element = new Class({
 		cl *= precision;
 		ct *= precision;
 
-		// check if Element is within a precision space
-		// TODO: use av:group element as the root node so that elements are always placed in a precision space
-		if (!(this.container instanceof ART.VML)){
-			pl *= precision;
-			pt *= precision;
-			w *= precision;
-			h *= precision;
-		}
+		pl *= precision;
+		pt *= precision;
+		w *= precision;
+		h *= precision;
 		
 		var element = this.element;
 		element.coordorigin = cl + ',' + ct;
@@ -266,50 +276,91 @@ ART.VML.Base = new Class({
 	},
 	
 	/* styles */
-	
-	fill: function(flag){
+
+	_createGradient: function(style, stops){
 		var fill = this.fillElement;
 
-		if (flag == null){
-			fill.on = false;
-		} else {
-			var color1 = Color.detach(arguments[0]);
-			fill.color = color1[0];
-			fill.opacity = color1[1];
-			
-			if (arguments.length > 1){
-				fill.method = 'none';
-				fill.type = 'gradient';
-				var color2 = Color.detach(arguments[arguments.length - 1]);
-				fill.angle = 180; //TODO angle
-				fill.color2 = color2[0];
-				fill['ao:opacity2'] = color2[1];
-			} else {
-				fill.color2 = null;
-				fill['ao:opacity2'] = null;
-			}
-			
-			fill.on = true;
-		}
+		fill.type = style;
+		fill.method = 'none';
+		fill.rotate = true;
 
-		return this;
+		var colors = [], color1, color2;
+
+		var addColor = function(offset, color){
+			color = Color.detach(color);
+			if (color1 == null) color1 = color; else color2 = color;
+			colors.push(offset + ' ' + color[0]);
+		};
+
+		// Enumerate stops, assumes offsets are enumerated in order
+		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
+		else for (var offset in stops) addColor(offset, stops[offset]);
+		
+		fill.color = color1[0];
+		fill.color2 = color2[0];
+
+		if (fill.colors) fill.colors.value = colors;
+		else fill.colors = colors;
+
+		// Opacity order gets flipped when color stops are specified
+		fill.opacity = color2[1];
+		fill['ao:opacity2'] = color1[1];
+
+		fill.on = true;
+		return fill;
 	},
 	
-	stroke: function(flag, width, cap, join){
+	_setColor: function(type, color){
+		var element = this[type + 'Element'];
+		if (color == null){
+			element.on = false;
+		} else {
+			color = Color.detach(color);
+			element.color = color[0];
+			element.opacity = color[1];
+			element.on = true;
+		}
+	},
+	
+	fill: function(color){
+		if (arguments.length > 1){
+			this.fillLinear(arguments);
+		} else {
+			var fill = this.fillElement;
+			fill.type = 'solid';
+			fill.color2 = '';
+			fill['ao:opacity2'] = '';
+			fill.colors = '';
+			this._setColor('fill', color);
+		}
+		return this;
+	},
+
+	fillRadial: function(stops, focusX, focusY, radius){
+		var fill = this._createGradient('gradientradial', stops);
+		fill.focus = 50;
+		fill.focussize = '0 0';
+		fill.focusposition = (focusX == null ? .5 : focusX) + ',' + (focusY == null ? .5 : focusY);
+		fill.focus = radius == null || radius > .5 ? '100%' : Math.round(radius * 200) + '%';
+		return this;
+	},
+
+	fillLinear: function(stops, angle){
+		var fill = this._createGradient('gradient', stops);
+		fill.focus = '100%';
+		fill.angle = angle == null ? 0 : (90 + angle) % 360;
+		return this;
+	},
+
+	/* stroke */
+	
+	stroke: function(color, width, cap, join){
 		var stroke = this.strokeElement;
-		
-		stroke.weight = (width != null) ? width : 1;
+		stroke.weight = (width != null) ? (width / 2) + 'pt' : 1;
 		stroke.endcap = (cap != null) ? ((cap == 'butt') ? 'flat' : cap) : 'round';
 		stroke.joinstyle = (join != null) ? join : 'round';
 
-		if (flag == null){
-			stroke.on = false;
-		} else {
-			var color = Color.detach(arguments[0]);
-			stroke.color = color[0];
-			stroke.opacity = color[1];
-			stroke.on = true;
-		}
+		this._setColor('stroke', color);
 		return this;
 	}
 
@@ -323,6 +374,11 @@ ART.VML.Shape = new Class({
 	
 	initialize: function(path){
 		this.parent('shape');
+
+		var p = this.pathElement = document.createElement('av:path');
+		p.gradientshapeok = true;
+		this.element.appendChild(p);
+		
 		if (path != null) this.draw(path);
 	},
 	
@@ -331,7 +387,8 @@ ART.VML.Shape = new Class({
 	draw: function(path){
 		
 		path = this.currentPath = new ART.Path(path);
-		var vml = path.toVML(precision), size = path.measure();
+		this.currentVML = path.toVML(precision)
+		var size = path.measure();
 		
 		this.right = size.right;
 		this.bottom = size.bottom;
@@ -341,13 +398,81 @@ ART.VML.Shape = new Class({
 		this.width = size.width;
 		
 		this._transform();
-
-		this.element.path = vml + 'e';
+		this._redraw(this._radial);
+		
 		return this;
 	},
 	
 	measure: function(){
 		return new ART.Path(this.currentPath).measure();
+	},
+	
+	// radial gradient workaround
+
+	_redraw: function(radial){
+		var vml = this.currentVML || '';
+
+		this._radial = radial;
+		if (radial){
+			var cx = Math.round((this.left + this.width * radial.x) * precision),
+				cy = Math.round((this.top + this.height * radial.y) * precision),
+
+				rx = Math.round(this.width * radial.r * precision),
+				ry = Math.round(this.height * radial.r * precision),
+
+				arc = ['wa', cx - rx, cy - ry, cx + rx, cy + ry].join(' ');
+
+			vml = [
+				// Resolve rendering bug
+				'm', cx, cy - ry, 'l', cx, cy - ry,
+
+				// Merge existing path
+				vml,
+
+				// Draw an ellipse around the path to force an elliptical gradient on any shape
+				'm', cx, cy - ry,
+				arc, cx, cy - ry, cx, cy + ry, arc, cx, cy + ry, cx, cy - ry,
+				arc, cx, cy - ry, cx, cy + ry, arc, cx, cy + ry, cx, cy - ry,
+
+				// Don't stroke the path with the extra ellipse, redraw the stroked path separately
+				'ns e', vml, 'nf'
+			
+			].join(' ');
+		}
+
+		this.element.path = vml + 'e';
+	},
+
+	fill: function(){
+		this._redraw();
+		return this.parent.apply(this, arguments);
+	},
+
+	fillLinear: function(){
+		this._redraw();
+		return this.parent.apply(this, arguments);
+	},
+
+	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
+		this.parent.apply(this, arguments);
+
+		if (focusX == null) focusX = .5;
+		if (focusY == null) focusY = .5;
+		if (radius == null) radius = .5;
+		if (centerX == null) centerX = focusX;
+		if (centerY == null) centerY = focusY;
+		
+		centerX += centerX - focusX;
+		centerY += centerY - focusY;
+		
+		focusX = (focusX - centerX) / (radius * 4) + .5;
+		focusY = (focusY - centerY) / (radius * 4) + .5;
+
+		this.fillElement.focus = '50%';
+		this.fillElement.focusposition = focusX + ',' + focusY;
+		this._redraw({ x: centerX, y: centerY, r: radius * 2 });
+
+		return this;
 	}
 
 });
