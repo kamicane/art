@@ -89,12 +89,16 @@ var measureAndTransform = function(parts, precision){
 	
 	var X = 0, Y = 0, px = 0, py = 0, r;
 	
-	var path = '';
+	var path = '', inX, inY;
 	
 	for (i = 0; i < parts.length; i++){
 		var v = Array.slice(parts[i]), f = v.shift(), l = f.toLowerCase();
 		var refX = l == f ? X : 0, refY = l == f ? Y : 0;
 		
+		if (l != 'm' && inX == null){
+			inX = X; inY = Y;
+		}
+
 		switch (l){
 			
 			case 'm':
@@ -154,6 +158,10 @@ var measureAndTransform = function(parts, precision){
 			
 			case 'z':
 				path += 'x';
+				if (inX != null){
+					path += 'm' + ux(X = inX) + ',' + uy(Y = inY);
+					inX = null;
+				}
 			break;
 			
 		}
