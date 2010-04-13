@@ -223,7 +223,7 @@ ART.Path = new Class({
 		return path;
 	},
 	
-	toVML: function(precision){;
+	toVML: function(precision){
 		var data = measureAndTransform(this.path, precision);
 		this.boundingBox = data[1];
 		return data[0];

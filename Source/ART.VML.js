@@ -284,7 +284,8 @@ ART.VML.Base = new Class({
 
 		var addColor = function(offset, color){
 			color = Color.detach(color);
-			if (color1 == null) color1 = color; else color2 = color;
+			if (color1 == null) color1 = color;
+			else color2 = color;
 			colors.push(offset + ' ' + color[0]);
 		};
 
@@ -294,11 +295,12 @@ ART.VML.Base = new Class({
 		
 		fill.color = color1[0];
 		fill.color2 = color2[0];
-
+		
 		if (fill.colors) fill.colors.value = colors;
 		else fill.colors = colors;
-
+		
 		// Opacity order gets flipped when color stops are specified
+		
 		fill.opacity = color2[1];
 		fill['ao:opacity2'] = color1[1];
 
@@ -337,7 +339,7 @@ ART.VML.Base = new Class({
 		fill.focus = 50;
 		fill.focussize = '0 0';
 		fill.focusposition = (focusX == null ? 0.5 : focusX) + ',' + (focusY == null ? 0.5 : focusY);
-		fill.focus = radius == null || radius > 0.5 ? '100%' : Math.round(radius * 200) + '%';
+		fill.focus = (radius == null || radius > 0.5) ? '100%' : (Math.round(radius * 200) + '%');
 		return this;
 	},
 
@@ -466,7 +468,7 @@ ART.VML.Shape = new Class({
 
 		this.fillElement.focus = '50%';
 		this.fillElement.focusposition = focusX + ',' + focusY;
-		this._redraw({ x: centerX, y: centerY, r: radius * 2 });
+		this._redraw({x: centerX, y: centerY, r: radius * 2});
 
 		return this;
 	}
