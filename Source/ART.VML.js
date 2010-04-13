@@ -326,7 +326,7 @@ ART.VML.Base = new Class({
 			fill.type = 'solid';
 			fill.color2 = '';
 			fill['ao:opacity2'] = '';
-			fill.colors = '';
+			if (fill.colors) fill.colors.value = '';
 			this._setColor('fill', color);
 		}
 		return this;
