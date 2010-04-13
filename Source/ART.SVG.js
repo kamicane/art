@@ -247,10 +247,10 @@ ART.SVG.Base = new Class({
 
 		x *= l; y *= l;
 
-		gradient.setAttribute('x1', .5 - x);
-		gradient.setAttribute('x2', .5 + x);
-		gradient.setAttribute('y1', .5 - y);
-		gradient.setAttribute('y2', .5 + y);
+		gradient.setAttribute('x1', 0.5 - x);
+		gradient.setAttribute('x2', 0.5 + x);
+		gradient.setAttribute('y1', 0.5 - y);
+		gradient.setAttribute('y2', 0.5 + y);
 
 		return this;
 	},

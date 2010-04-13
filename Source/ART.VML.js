@@ -336,15 +336,15 @@ ART.VML.Base = new Class({
 		var fill = this._createGradient('gradientradial', stops);
 		fill.focus = 50;
 		fill.focussize = '0 0';
-		fill.focusposition = (focusX == null ? .5 : focusX) + ',' + (focusY == null ? .5 : focusY);
-		fill.focus = radius == null || radius > .5 ? '100%' : Math.round(radius * 200) + '%';
+		fill.focusposition = (focusX == null ? 0.5 : focusX) + ',' + (focusY == null ? 0.5 : focusY);
+		fill.focus = radius == null || radius > 0.5 ? '100%' : Math.round(radius * 200) + '%';
 		return this;
 	},
 
 	fillLinear: function(stops, angle){
 		var fill = this._createGradient('gradient', stops);
 		fill.focus = '100%';
-		fill.angle = angle == null ? 0 : (90 + angle) % 360;
+		fill.angle = (angle == null) ? 0 : (90 + angle) % 360;
 		return this;
 	},
 
@@ -383,7 +383,7 @@ ART.VML.Shape = new Class({
 	draw: function(path){
 		
 		path = this.currentPath = new ART.Path(path);
-		this.currentVML = path.toVML(precision)
+		this.currentVML = path.toVML(precision);
 		var size = path.measure();
 		
 		this.right = size.right;
@@ -452,17 +452,17 @@ ART.VML.Shape = new Class({
 	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
 		this.parent.apply(this, arguments);
 
-		if (focusX == null) focusX = .5;
-		if (focusY == null) focusY = .5;
-		if (radius == null) radius = .5;
+		if (focusX == null) focusX = 0.5;
+		if (focusY == null) focusY = 0.5;
+		if (radius == null) radius = 0.5;
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
 		
 		centerX += centerX - focusX;
 		centerY += centerY - focusY;
 		
-		focusX = (focusX - centerX) / (radius * 4) + .5;
-		focusY = (focusY - centerY) / (radius * 4) + .5;
+		focusX = (focusX - centerX) / (radius * 4) + 0.5;
+		focusY = (focusY - centerY) / (radius * 4) + 0.5;
 
 		this.fillElement.focus = '50%';
 		this.fillElement.focusposition = focusX + ',' + focusY;
