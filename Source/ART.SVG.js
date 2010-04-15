@@ -200,8 +200,8 @@ ART.SVG.Base = new Class({
 	},
 	
 	_setColor: function(type, color){
-		this[type + 'Gradient'] = null;
 		this._ejectGradient(type);
+		this[type + 'Gradient'] = null;
 		var element = this.element;
 		if (color == null){
 			element.setAttribute(type, 'none');

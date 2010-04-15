@@ -274,6 +274,9 @@ ART.VML.Base = new Class({
 	_createGradient: function(style, stops){
 		var fill = this.fillElement;
 
+		// Temporarily eject the fill from the DOM
+		this.element.removeChild(fill);
+
 		fill.type = style;
 		fill.method = 'none';
 		fill.rotate = true;
@@ -294,15 +297,15 @@ ART.VML.Base = new Class({
 		fill.color = color1[0];
 		fill.color2 = color2[0];
 		
-		if (fill.colors) fill.colors.value = colors;
-		else fill.colors = colors;
-		
+		//if (fill.colors) fill.colors.value = colors; else
+		fill.colors = colors;
+
 		// Opacity order gets flipped when color stops are specified
-		
 		fill.opacity = color2[1];
 		fill['ao:opacity2'] = color1[1];
 
 		fill.on = true;
+		this.element.appendChild(fill);
 		return fill;
 	},
 	
@@ -461,11 +464,13 @@ ART.VML.Shape = new Class({
 		centerX += centerX - focusX;
 		centerY += centerY - focusY;
 		
-		focusX = (focusX - centerX) / (radius * 4) + 0.5;
-		focusY = (focusY - centerY) / (radius * 4) + 0.5;
+		// Compensation not needed when focusposition is applied out of document
+		//focusX = (focusX - centerX) / (radius * 4) + 0.5;
+		//focusY = (focusY - centerY) / (radius * 4) + 0.5;
 
 		this.fillElement.focus = '50%';
-		this.fillElement.focusposition = focusX + ',' + focusY;
+		//this.fillElement.focusposition = focusX + ',' + focusY;
+
 		this._redraw({x: centerX, y: centerY, r: radius * 2});
 
 		return this;
