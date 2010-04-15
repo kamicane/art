@@ -42,8 +42,10 @@ ART.VML = new Class({
 		style = this.element.style;
 		style.width = width;
 		style.height = height;
-
-		this.element.coordorigin = '0,0';
+		
+		var halfPixel = (0.5 * precision);
+		
+		this.element.coordorigin = halfPixel + ',' + halfPixel;
 		this.element.coordsize = (width * precision) + ',' + (height * precision);
 
 		this.children.each(function(child){
@@ -151,10 +153,6 @@ ART.VML.Element = new Class({
 				
 		pl -= cos * -(dx + l) + sin * (dy + t) + dx;
 		pt -= cos * -(dy + t) - sin * (dx + l) + dy;
-		
-		// halfpixel
-		cl += 0.5;
-		ct += 0.5;
  
 		// scale
 		cw /= ts[0];
