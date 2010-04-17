@@ -76,17 +76,8 @@ ART.Element = new Class({
 
 ART.Container = new Class({
 
-	push: function(){
+	grab: function(){
 		for (var i = 0; i < arguments.length; i++) arguments[i].inject(this);
-		return this;
-	},
-	
-	pull: function(){
-		var element = this.element;
-		for (var i = 0; i < arguments.length; i++){
-			var child = arguments[i], parent = child.parentNode;
-			if (child.parentNode && child.parentNode === element) child.eject();
-		}
 		return this;
 	}
 
