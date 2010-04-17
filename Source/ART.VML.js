@@ -63,7 +63,7 @@ ART.VML = new Class({
 
 // VML Initialization
 
-var VMLCSS = 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;';
+var VMLCSS = 'behavior:url(#default#VML);display:inline-block;position:absolute;left:0px;top:0px;';
 
 var styleSheet, styledTags = {}, styleTag = function(tag){
 	if (styleSheet) styledTags[tag] = styleSheet.addRule('av\\:' + tag, VMLCSS);
