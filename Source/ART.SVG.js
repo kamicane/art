@@ -49,7 +49,7 @@ ART.SVG.Element = new Class({
 	Extends: ART.Element,
 
 	initialize: function(tag){
-		this.uid = (UID++).toString(16);
+		this.uid = ART.uniqueID();
 		var element = this.element = createElement(tag);
 		element.setAttribute('id', 'e' + this.uid);
 		this.transform = {translate: [0, 0], rotate: [0, 0, 0], scale: [1, 1]};
@@ -116,6 +116,13 @@ ART.SVG.Group = new Class({
 		this.parent('g');
 		this.defs = createElement('defs');
 		this.element.appendChild(this.defs);
+		this.children = [];
+	},
+	
+	measure: function(){
+		return ART.Path.measure(this.children.map(function(child){
+			return child.currentPath;
+		}));
 	}
 	
 });
@@ -137,6 +144,7 @@ ART.SVG.Base = new Class({
 	
 	inject: function(container){
 		this.eject();
+		if (container instanceof ART.SVG.Group) container.children.push(this);
 		this.container = container;
 		this._injectGradient('fill');
 		this._injectGradient('stroke');
@@ -146,6 +154,7 @@ ART.SVG.Base = new Class({
 	
 	eject: function(){
 		if (this.container){
+			if (this.container instanceof ART.SVG.Group) this.container.children.erase(this);
 			this.parent();
 			this._ejectGradient('fill');
 			this._ejectGradient('stroke');
@@ -189,13 +198,13 @@ ART.SVG.Base = new Class({
 		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
 		else for (var offset in stops) addColor(offset, stops[offset]);
 
-		var id = type + '-gradient-e' + this.uid;
+		var id = 'g' + ART.uniqueID();
 		gradient.setAttribute('id', id);
 
 		this._injectGradient(type);
 
 		this.element.setAttribute(type, 'url(#' + id + ')');
-
+		this.element.removeAttribute('fill-opacity');
 		return gradient;
 	},
 	
@@ -205,6 +214,7 @@ ART.SVG.Base = new Class({
 		var element = this.element;
 		if (color == null){
 			element.setAttribute(type, 'none');
+			element.removeAttribute(type + '-opacity');
 		} else {
 			color = Color.detach(color);
 			element.setAttribute(type, color[0]);
@@ -233,7 +243,7 @@ ART.SVG.Base = new Class({
 		if (centerY != null) gradient.setAttribute('cy', centerY);
 
 		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
-
+		
 		return this;
 	},
 

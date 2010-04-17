@@ -7,7 +7,9 @@ provides: [ART, ART.Element, ART.Container]
 ...
 */
 
-var ART = new Class;
+(function(){
+
+this.ART = new Class;
 
 ART.Element = new Class({
 	
@@ -83,7 +85,16 @@ ART.Container = new Class({
 
 });
 
+var UID = 0;
+
+ART.uniqueID = function(){
+	return (new Date().getTime() + (UID++)).toString(36);
+};
+
 Color.detach = function(color){
 	color = new Color(color);
 	return [Color.rgb(color.red, color.green, color.blue).toString(), color.alpha];
 };
+
+})();
+
