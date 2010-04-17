@@ -203,8 +203,9 @@ ART.SVG.Base = new Class({
 
 		this._injectGradient(type);
 
-		this.element.setAttribute(type, 'url(#' + id + ')');
 		this.element.removeAttribute('fill-opacity');
+		this.element.setAttribute(type, 'url(#' + id + ')');
+		
 		return gradient;
 	},
 	
