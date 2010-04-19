@@ -289,14 +289,18 @@ ART.SVG.Shape = new Class({
 		if (path != null) this.draw(path);
 	},
 	
+	getPath: function(){
+		return this.currentPath || new ART.Path;
+	},
+	
 	draw: function(path){
-		this.currentPath = path.toString();
-		this.element.setAttribute('d', this.currentPath);
+		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
+		this.element.setAttribute('d', this.currentPath.toSVG());
 		return this;
 	},
 	
 	measure: function(){
-		return new ART.Path(this.currentPath).measure();
+		return this.getPath().measure();
 	}
 
 });
