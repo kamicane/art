@@ -1,7 +1,7 @@
 /*
 ---
 name: ART.Base
-description: implements ART, ART.Shape and ART.Group based on the current browser.
+description: "Implements ART, ART.Shape and ART.Group based on the current browser."
 provides: [ART.Base, ART.Group, ART.Shape]
 requires: [ART.VML, ART.SVG]
 ...

@@ -1,7 +1,7 @@
 /*
 ---
 name: ART
-description: The heart of ART.
+description: "The heart of ART."
 requires: [Core/Class, Color/Color, Table/Table]
 provides: [ART, ART.Element, ART.Container]
 ...
