@@ -71,16 +71,12 @@ var extrapolate = function(parts, precision){
 		boundsX.push(x); return Math.round(x * precision);
 	} : function(x){
 		boundsX.push(x); return x;
-	};
-	
-	var uy = (precision != null) ? function(y){
+	}, uy = (precision != null) ? function(y){
 		boundsY.push(y); return Math.round(y * precision);
 	} : function(y){
 		boundsY.push(y); return y;
-	};
-	
-	var np = (precision != null) ? function(v){
-		Math.round(v * precision);
+	}, np = (precision != null) ? function(v){
+		return Math.round(v * precision);
 	} : function(v){
 		return v;
 	};
