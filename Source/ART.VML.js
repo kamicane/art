@@ -150,7 +150,7 @@ ART.VML.Element = new Class({
 		
 		var dx = w / 2 - rx,
 		    dy = h / 2 - ry;
-				
+		
 		pl -= cos * -(dx + l) + sin * (dy + t) + dx;
 		pt -= cos * -(dy + t) - sin * (dx + l) + dy;
  
@@ -351,11 +351,39 @@ ART.VML.Base = new Class({
 		return this;
 	},
 
+	fillImage: function(url, width, height, color1, color2){
+		var fill = this.fillElement;
+		if (color1 != null)
+		{
+			color1 = Color.detach(color1);
+			if (color2 != null) color2 = Color.detach(color2);
+			fill.type = 'pattern';
+			fill.color = color1[0];
+			fill.color2 = color2 == null ? color1[0] : color2[0];
+			fill.opacity = color2 == null ? 0 : color2[1];
+			fill['ao:opacity2'] = color1[1];
+		} else {
+			fill.type = 'tile';
+			fill.color = '';
+			fill.color2 = '';
+			fill.opacity = 1;
+			fill['ao:opacity2'] = 1;
+		}
+		if (fill.colors) fill.colors.value = '';
+		fill.rotate = true;
+		fill.src = url;
+		fill.size = width / this.width + ',' + height / this.height;
+		fill.position = 0.5 / this.width + ',' + 0.5 / this.height;
+		fill.origin = '0,0';
+		fill.aspect = 'ignore'; // ignore, atleast, atmost
+		fill.on = true;
+	},
+
 	/* stroke */
 	
 	stroke: function(color, width, cap, join){
 		var stroke = this.strokeElement;
-		stroke.weight = (width != null) ? (width / 2) + 'pt' : 1;
+		stroke.weight = (width != null) ? (width / 2) : 1;
 		stroke.endcap = (cap != null) ? ((cap == 'butt') ? 'flat' : cap) : 'round';
 		stroke.joinstyle = (join != null) ? join : 'round';
 
@@ -448,6 +476,11 @@ ART.VML.Shape = new Class({
 	},
 
 	fillLinear: function(){
+		this._redraw();
+		return this.parent.apply(this, arguments);
+	},
+
+	fillImage: function(){
 		this._redraw();
 		return this.parent.apply(this, arguments);
 	},

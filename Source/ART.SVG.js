@@ -138,8 +138,8 @@ ART.SVG.Base = new Class({
 	inject: function(container){
 		this.eject();
 		this.container = container;
-		this._injectGradient('fill');
-		this._injectGradient('stroke');
+		this._injectBrush('fill');
+		this._injectBrush('stroke');
 		this.parent(container);
 		return this;
 	},
@@ -147,33 +147,45 @@ ART.SVG.Base = new Class({
 	eject: function(){
 		if (this.container){
 			this.parent();
-			this._ejectGradient('fill');
-			this._ejectGradient('stroke');
+			this._ejectBrush('fill');
+			this._ejectBrush('stroke');
 			this.container = null;
 		}
 		return this;
 	},
 	
-	_injectGradient: function(type){
+	_injectBrush: function(type){
 		if (!this.container) return;
-		var gradient = this[type + 'Gradient'];
-		if (gradient) this.container.defs.appendChild(gradient);
+		var brush = this[type + 'Brush'];
+		if (brush) this.container.defs.appendChild(brush);
 	},
 	
-	_ejectGradient: function(type){
+	_ejectBrush: function(type){
 		if (!this.container) return;
-		var gradient = this[type + 'Gradient'];
-		if (gradient) this.container.defs.removeChild(gradient);
+		var brush = this[type + 'Brush'];
+		if (brush) this.container.defs.removeChild(brush);
 	},
 	
 	/* styles */
 	
+	_createBrush: function(type, tag){
+		this._ejectBrush(type);
+
+		var brush = createElement(tag);
+		this[type + 'Brush'] = brush;
+
+		var id = type + '-brush-e' + this.uid;
+		brush.setAttribute('id', id);
+
+		this._injectBrush(type);
+
+		this.element.setAttribute(type, 'url(#' + id + ')');
+
+		return brush;
+	},
+
 	_createGradient: function(type, style, stops){
-		this._ejectGradient(type);
-
-		var gradient = createElement(style + 'Gradient');
-
-		this[type + 'Gradient'] = gradient;
+		var gradient = this._createBrush(type, style);
 
 		var addColor = function(offset, color){
 			color = Color.detach(color);
@@ -189,19 +201,12 @@ ART.SVG.Base = new Class({
 		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
 		else for (var offset in stops) addColor(offset, stops[offset]);
 
-		var id = type + '-gradient-e' + this.uid;
-		gradient.setAttribute('id', id);
-
-		this._injectGradient(type);
-
-		this.element.setAttribute(type, 'url(#' + id + ')');
-
 		return gradient;
 	},
 	
 	_setColor: function(type, color){
-		this._ejectGradient(type);
-		this[type + 'Gradient'] = null;
+		this._ejectBrush(type);
+		this[type + 'Brush'] = null;
 		var element = this.element;
 		if (color == null){
 			element.setAttribute(type, 'none');
@@ -219,7 +224,7 @@ ART.SVG.Base = new Class({
 	},
 
 	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
-		var gradient = this._createGradient('fill', 'radial', stops);
+		var gradient = this._createGradient('fill', 'radialGradient', stops);
 
 		if (focusX != null) gradient.setAttribute('fx', focusX);
 		if (focusY != null) gradient.setAttribute('fy', focusY);
@@ -238,7 +243,7 @@ ART.SVG.Base = new Class({
 	},
 
 	fillLinear: function(stops, angle){
-		var gradient = this._createGradient('fill', 'linear', stops);
+		var gradient = this._createGradient('fill', 'linearGradient', stops);
 
 		angle = ((angle == null) ? 270 : angle) * Math.PI / 180;
 
@@ -251,6 +256,69 @@ ART.SVG.Base = new Class({
 		gradient.setAttribute('x2', 0.5 + x);
 		gradient.setAttribute('y1', 0.5 - y);
 		gradient.setAttribute('y2', 0.5 + y);
+
+		return this;
+	},
+
+	fillImage: function(url, width, height, color1, color2){
+		var pattern = this._createBrush('fill', 'pattern');
+
+		var image = createElement('image');
+		image.setAttributeNS(XLINK, 'href', url);
+		image.setAttribute('width', width);
+		image.setAttribute('height', height);
+		image.setAttribute('preserveAspectRatio', 'none'); // none, xMidYMid slice, xMidYMid meet
+
+		if (color1 != null){
+			color1 = new Color(color1);
+			if (color2 == null){
+				color2 = new Color(color1);
+				color2.alpha = 0;
+			} else {
+				color2 = new Color(color2);
+			}
+
+			var r = (color1.red - color2.red) / (255 * 3),
+				g = (color1.green - color2.green) / (255 * 3),
+				b = (color1.blue - color2.blue) / (255 * 3),
+				a = (color1.alpha - color2.alpha) / 3;
+			
+			var matrix = [
+				r, r, r, 0, color2.red / 255,
+				g, g, g, 0, color2.green / 255,
+				b, b, b, 0, color2.blue / 255,
+				a, a, a, 0, color2.alpha
+			];
+
+			var filter = createElement('filter');
+			filter.setAttribute('id', 'testfilter' + this.uid);
+
+			var cm = createElement('feColorMatrix');
+			cm.setAttribute('type', 'matrix');
+			cm.setAttribute('values', matrix.join(' '));
+
+			image.setAttribute('fill', '#000');
+			image.setAttribute('filter', 'url(#testfilter' + this.uid + ')');
+
+			filter.appendChild(cm);
+			pattern.appendChild(filter);
+		}
+
+		pattern.appendChild(image);
+		
+		//pattern.setAttribute('patternUnits', 'objectBoundingBox'); // userSpaceOnUse
+		//pattern.setAttribute('patternContentUnits', 'objectBoundingBox'); // objectBoundingBox
+		pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+		pattern.setAttribute('patternContentsUnits', 'userSpaceOnUse');
+		
+		pattern.setAttribute('x', 0);
+		pattern.setAttribute('y', 0);
+		
+		pattern.setAttribute('width', width);
+		pattern.setAttribute('height', height);
+
+		//pattern.setAttribute('viewBox', '0 0 75 50');
+		//pattern.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 
 		return this;
 	},
