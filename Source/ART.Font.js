@@ -63,7 +63,9 @@ ART.Font = new Class({
 			width += w;
 		}
 		
-		this.fontSize = {width: width, height: size * (font.face.ascent - font.face.descent)};
+		height -= size * font.face.descent;
+		
+		this.fontSize = {left: 0, top: 0, right: width, bottom: height, width: width, height: height};
 		
 		return this.parent(path);
 	},
