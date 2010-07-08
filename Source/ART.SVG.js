@@ -135,7 +135,6 @@ ART.SVG.Base = new Class({
 
 	initialize: function(tag){
 		this.parent(tag);
-		this.element.setAttribute('fill-rule', 'evenodd');
 		this.fill();
 		this.stroke();
 	},
@@ -286,6 +285,7 @@ ART.SVG.Shape = new Class({
 	
 	initialize: function(path){
 		this.parent('path');
+		this.element.setAttribute('fill-rule', 'evenodd');
 		if (path != null) this.draw(path);
 	},
 	
