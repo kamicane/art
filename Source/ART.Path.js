@@ -176,6 +176,28 @@ var extrapolate = function(parts, precision){
 
 };
 
+/* Utility command factories */
+
+var point = function(c){
+	return function(x, y){
+		return this.push(c, x, y);
+	};
+};
+
+var arc = function(c, cc){
+	return function(x, y, rx, ry, outer){
+		return this.push(c, Math.abs(rx || x), Math.abs(ry || rx || y), 0, outer ? 1 : 0, cc, x, y);
+	};
+};
+
+var curve = function(t, q, c){
+	return function(c1x, c1y, c2x, c2y, ex, ey){
+		var args = Array.slice(arguments), l = args.length;
+		args.unshift(l < 4 ? t : l < 6 ? q : c);
+		return this.push.apply(this, args);
+	};
+};
+
 /* Path Class */
 
 ART.Path = new Class({
@@ -214,28 +236,23 @@ ART.Path = new Class({
 	
 	/*utility*/
 	
-	move: function(x, y){
-		return this.push('m', x, y);
-	},
+	move: point('m'),
+	moveTo: point('M'),
 	
-	line: function(x, y){
-		return this.push('l', x, y);
-	},
+	line: point('l'),
+	lineTo: point('L'),
+	
+	curve: curve('t', 'q', 'c'),
+	curveTo: curve('T', 'Q', 'C'),
+	
+	arc: arc('a', 1),
+	arcTo: arc('A', 1),
+	
+	counterArc: arc('a', 0),
+	counterArcTo: arc('A', 0),
 	
 	close: function(){
 		return this.push('z');
-	},
-	
-	bezier: function(c1x, c1y, c2x, c2y, ex, ey){
-		return this.push('c', c1x, c1y, c2x, c2y, ex, ey);
-	},
-	
-	arc: function(x, y, rx, ry, large){
-		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 1, x, y);
-	},
-	
-	counterArc: function(x, y, rx, ry, large){
-		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 0, x, y);
 	},
 	
 	/* transformation, measurement */
