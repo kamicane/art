@@ -53,6 +53,8 @@ ART.Rectangle = new Class({
 			if (bl > 0) path.arc(-bl, -bl);
 			path.line(0, - Math.abs(height) + (bl + tl));
 		}
+		
+		this.setViewport(width, height);
 
 		return this.parent(path);
 	}
@@ -64,6 +66,7 @@ ART.Pill = new Class({
 	Extends: ART.Rectangle,
 	
 	draw: function(width, height){
+		this.setViewport(width, height);
 		return this.parent(width, height, ((width < height) ? width : height) / 2);
 	}
 	
@@ -82,6 +85,7 @@ ART.Ellipse = new Class({
 		var path = new ART.Path;
 		var rx = width / 2, ry = height / 2;
 		path.move(0, ry).arc(width, 0, rx, ry).arc(-width, 0, rx, ry);
+		this.setViewport(width, height);
 		return this.parent(path);
 	}
 
@@ -125,6 +129,8 @@ ART.Wedge = new Class({
 		}
 
 		path.close();
+		
+		this.setViewport(or * 2, or * 2);
 		return this.parent(path);
 	}
 

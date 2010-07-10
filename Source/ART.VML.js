@@ -103,7 +103,13 @@ ART.VML.Element = new Class({
 		
 		this.transform = {translate: [0, 0], scale: [1, 1], rotate: [0, 0, 0]};
 	},
+
+	/* viewport */
 	
+	setViewport: function(width, height){
+		this.viewport = [width || 0, height || 0];
+	},
+
 	/* dom */
 	
 	inject: function(container){
@@ -182,6 +188,15 @@ ART.VML.Element = new Class({
 	},
 	
 	// transformations
+
+	resize: function(width, height){
+		var v = this.viewport;
+		if (!v[0] || !v[1]) return;
+		var scale = this.transform.scale;
+		scale[0] *= width / v[0];
+		scale[1] *= height / v[1];
+		this._transform();
+	},
 	
 	translate: function(x, y){
 		this.transform.translate = [x, y];
@@ -198,8 +213,8 @@ ART.VML.Element = new Class({
 	
 	rotate: function(deg, x, y){
 		if (x == null || y == null){
-			var box = this.measure(precision);
-			x = box.left + box.width / 2; y = box.top + box.height / 2;
+			var v = this.viewport;
+			x = v[0] / 2; y = v[1] / 2;
 		}
 		this.transform.rotate = [deg, x, y];
 		this._transform();
@@ -227,8 +242,9 @@ ART.VML.Group = new Class({
 	Extends: ART.VML.Element,
 	Implements: ART.Container,
 	
-	initialize: function(){
+	initialize: function(width, height){
 		this.parent('group');
+		this.setViewport(width, height);
 		this.children = [];
 	},
 	
@@ -236,15 +252,12 @@ ART.VML.Group = new Class({
 	
 	inject: function(container){
 		this.parent(container);
-		this.width = container.width;
-		this.height = container.height;
 		this._transform();
 		return this;
 	},
 	
 	eject: function(){
 		this.parent();
-		this.width = this.height = null;
 		return this;
 	}
 
@@ -256,8 +269,9 @@ ART.VML.Base = new Class({
 
 	Extends: ART.VML.Element,
 	
-	initialize: function(tag){
+	initialize: function(tag, width, height){
 		this.parent(tag);
+		this.setViewport(width, height);
 		var element = this.element;
 
 		var fill = this.fillElement = document.createElement('av:fill');
@@ -371,8 +385,8 @@ ART.VML.Shape = new Class({
 
 	Extends: ART.VML.Base,
 	
-	initialize: function(path){
-		this.parent('shape');
+	initialize: function(path, width, height){
+		this.parent('shape', width, height);
 
 		var p = this.pathElement = document.createElement('av:path');
 		p.gradientshapeok = true;
@@ -404,10 +418,6 @@ ART.VML.Shape = new Class({
 		this._redraw(this._radial);
 		
 		return this;
-	},
-	
-	measure: function(){
-		return this.getPath().measure();
 	},
 	
 	// radial gradient workaround

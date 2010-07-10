@@ -53,6 +53,13 @@ ART.SVG.Element = new Class({
 		var element = this.element = createElement(tag);
 		element.setAttribute('id', 'e' + this.uid);
 		this.transform = {translate: [0, 0], rotate: [0, 0, 0], scale: [1, 1]};
+		this.viewport = [0, 0];
+	},
+	
+	/* viewport */
+	
+	setViewport: function(width, height){
+		this.viewport = [width || 0, height || 0];
 	},
 	
 	/* transforms */
@@ -63,10 +70,19 @@ ART.SVG.Element = new Class({
 		this.element.setAttribute('transform', transforms.join(' '));
 	},
 	
+	resize: function(width, height){
+		var v = this.viewport;
+		if (!v[0] || !v[1]) return;
+		var scale = this.transform.scale;
+		scale[0] *= width / v[0];
+		scale[1] *= height / v[1];
+		this._writeTransform();
+	},
+	
 	rotate: function(deg, x, y){
 		if (x == null || y == null){
-			var box = this.measure();
-			x = box.left + box.width / 2; y = box.top + box.height / 2;
+			var v = this.viewport;
+			x = v[0] / 2; y = v[1] / 2;
 		}
 		this.transform.rotate = [deg, x, y];
 		this._writeTransform();
@@ -112,17 +128,12 @@ ART.SVG.Group = new Class({
 	Extends: ART.SVG.Element,
 	Implements: ART.Container,
 	
-	initialize: function(){
+	initialize: function(width, height){
 		this.parent('g');
+		this.setViewport(width, height);
 		this.defs = createElement('defs');
 		this.element.appendChild(this.defs);
 		this.children = [];
-	},
-	
-	measure: function(){
-		return ART.Path.measure(this.children.map(function(child){
-			return child.currentPath;
-		}));
 	}
 	
 });
@@ -133,8 +144,9 @@ ART.SVG.Base = new Class({
 	
 	Extends: ART.SVG.Element,
 
-	initialize: function(tag){
+	initialize: function(tag, width, height){
 		this.parent(tag);
+		this.setViewport(width, height);
 		this.fill();
 		this.stroke();
 	},
@@ -283,8 +295,8 @@ ART.SVG.Shape = new Class({
 	
 	Extends: ART.SVG.Base,
 	
-	initialize: function(path){
-		this.parent('path');
+	initialize: function(path, width, height){
+		this.parent('path', width, height);
 		this.element.setAttribute('fill-rule', 'evenodd');
 		if (path != null) this.draw(path);
 	},
@@ -297,10 +309,6 @@ ART.SVG.Shape = new Class({
 		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
 		this.element.setAttribute('d', this.currentPath.toSVG());
 		return this;
-	},
-	
-	measure: function(){
-		return this.getPath().measure();
 	}
 
 });
@@ -310,7 +318,7 @@ ART.SVG.Image = new Class({
 	Extends: ART.SVG.Base,
 	
 	initialize: function(src, width, height){
-		this.parent('image');
+		this.parent('image', width, height);
 		if (arguments.length == 3) this.draw.apply(this, arguments);
 	},
 	
