@@ -27,6 +27,7 @@ if (!MODE) return;
 
 ART.Shape = new Class({Extends: ART[MODE].Shape});
 ART.Group = new Class({Extends: ART[MODE].Group});
+ART.Text = new Class({Extends: ART[MODE].Text});
 ART.implement({Extends: ART[MODE]});
 
 })();
