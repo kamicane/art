@@ -533,7 +533,7 @@ ART.VML.Text = new Class({
 			this.currentPath = path = new ART.Path(path);
 			this.element.path = path.toVML(precision);
 		} else if (!this.currentPath){
-			var i = -1, offsetRows = '';
+			var i = -1, offsetRows = '\n';
 			while ((i = text.indexOf('\n', i + 1)) > -1) offsetRows += '\n';
 			textPath.string = offsetRows + textPath.string;
 			this.element.path = 'm0,0l1,0';

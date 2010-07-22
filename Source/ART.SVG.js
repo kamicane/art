@@ -333,7 +333,6 @@ ART.SVG.Text = new Class({
 
 	initialize: function(text, font, alignment, path){
 		this.parent('text');
-		this.element.setAttribute('dominant-baseline', 'middle'); // Only middle baseline is supported in VML
 		this.draw.apply(this, arguments);
 	},
 	
@@ -374,8 +373,13 @@ ART.SVG.Text = new Class({
 		
 		// Note: Gecko will (incorrectly) align gradients for each row, while others applies one for the entire element
 		
-		var lines = String(text).split(/\r?\n/), l = lines.length;
+		var lines = String(text).split(/\r?\n/), l = lines.length,
+		    baseline = paths ? 'middle' : 'text-before-edge';
+		
 		if (paths && l > paths.length) l = paths.length;
+		
+		element.setAttribute('dominant-baseline', baseline);
+		
 		for (var i = 0; i < l; i++){
 			var line = lines[i], row;
 			if (paths){
@@ -387,7 +391,7 @@ ART.SVG.Text = new Class({
 				row.setAttribute('x', 0);
 				row.setAttribute('dy', i == 0 ? '0' : '1em');
 			}
-			row.setAttribute('dominant-baseline', 'middle');
+			row.setAttribute('dominant-baseline', baseline);
 			row.appendChild(document.createTextNode(line));
 			element.appendChild(row);
 		}
