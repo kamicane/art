@@ -391,6 +391,7 @@ ART.SVG.Text = new Class({
 				row.setAttribute('x', 0);
 				row.setAttribute('dy', i == 0 ? '0' : '1em');
 			}
+			row.setAttribute('baseline-shift', paths ? '-0.5ex' : '-2ex'); // Opera
 			row.setAttribute('dominant-baseline', baseline);
 			row.appendChild(document.createTextNode(line));
 			element.appendChild(row);
