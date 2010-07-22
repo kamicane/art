@@ -498,6 +498,7 @@ ART.VML.Text = new Class({
 		
 		p = this.textPathElement = document.createElement("av:textpath");
 		p.on = true;
+		p.style['v-text-align'] = 'left';
 		this.element.appendChild(p);
 		
 		this.draw.apply(this, arguments);
