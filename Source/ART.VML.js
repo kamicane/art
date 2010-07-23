@@ -1,7 +1,7 @@
 /*
 ---
 name: ART.VML
-description: VML implementation for ART
+description: "VML implementation for ART"
 authors: ["[Simo Kinnunen](http://twitter.com/sorccu)", "[Valerio Proietti](http://mad4milk.net)", "[Sebastian Markbåge](http://calyptus.eu/)"]
 provides: [ART.VML, ART.VML.Group, ART.VML.Shape]
 requires: [ART, ART.Element, ART.Container, ART.Path]
@@ -63,7 +63,7 @@ ART.VML = new Class({
 
 // VML Initialization
 
-var VMLCSS = 'behavior:url(#default#VML);display:inline-block;position:absolute;width:100%;height:100%;left:0px;top:0px;';
+var VMLCSS = 'behavior:url(#default#VML);display:inline-block;position:absolute;left:0px;top:0px;';
 
 var styleSheet, styledTags = {}, styleTag = function(tag){
 	if (styleSheet) styledTags[tag] = styleSheet.addRule('av\\:' + tag, VMLCSS);
@@ -82,6 +82,7 @@ ART.VML.init = function(document){
 	styleTag('fill');
 	styleTag('stroke');
 	styleTag('path');
+	styleTag('textpath');
 	styleTag('group');
 
 	return true;
@@ -95,7 +96,7 @@ ART.VML.Element = new Class({
 	Extends: ART.Element,
 	
 	initialize: function(tag){
-		this.uid = (UID++).toString(16);
+		this.uid = ART.uniqueID();
 		if (!(tag in styledTags)) styleTag(tag);
 
 		var element = this.element = document.createElement('av:' + tag);
@@ -198,7 +199,7 @@ ART.VML.Element = new Class({
 	
 	rotate: function(deg, x, y){
 		if (x == null || y == null){
-			var box = this.measure();
+			var box = this.measure(precision);
 			x = box.left + box.width / 2; y = box.top + box.height / 2;
 		}
 		this.transform.rotate = [deg, x, y];
@@ -409,13 +410,17 @@ ART.VML.Shape = new Class({
 		if (path != null) this.draw(path);
 	},
 	
+	getPath: function(){
+		return this.currentPath;
+	},
+	
 	// SVG to VML
 	
 	draw: function(path){
 		
-		path = this.currentPath = new ART.Path(path);
-		this.currentVML = path.toVML(precision);
-		var size = path.measure();
+		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
+		this.currentVML = this.currentPath.toVML(precision);
+		var size = this.currentPath.measure(precision);
 		
 		this.right = size.right;
 		this.bottom = size.bottom;
@@ -431,7 +436,7 @@ ART.VML.Shape = new Class({
 	},
 	
 	measure: function(){
-		return new ART.Path(this.currentPath).measure();
+		return this.getPath().measure();
 	},
 	
 	// radial gradient workaround
@@ -510,5 +515,107 @@ ART.VML.Shape = new Class({
 	}
 
 });
+
+var fontAnchors = { start: 'left', middle: 'center', end: 'right' };
+
+ART.VML.Text = new Class({
+
+	Extends: ART.VML.Base,
+
+	initialize: function(text, font, alignment, path){
+		this.parent('shape');
+		
+		var p = this.pathElement = document.createElement('av:path');
+		p.textpathok = true;
+		this.element.appendChild(p);
+		
+		p = this.textPathElement = document.createElement("av:textpath");
+		p.on = true;
+		p.style['v-text-align'] = 'left';
+		this.element.appendChild(p);
+		
+		this.draw.apply(this, arguments);
+	},
 	
+	draw: function(text, font, alignment, path){
+		var element = this.element,
+		    textPath = this.textPathElement,
+		    style = textPath.style;
+		
+		textPath.string = text;
+		
+		if (font){
+			if (typeof font == 'string'){
+				style.font = font;
+			} else {
+				for (var key in font){
+					var ckey = key.camelCase ? key.camelCase() : key;
+					if (ckey == 'fontFamily') style[ckey] = "'" + font[key] + "'";
+					// NOT UNIVERSALLY SUPPORTED OPTIONS
+					// else if (ckey == 'kerning') style['v-text-kern'] = !!font[key];
+					// else if (ckey == 'rotateGlyphs') style['v-rotate-letters'] = !!font[key];
+					// else if (ckey == 'letterSpacing') style['v-text-spacing'] = Number(font[key]) + '';
+					else style[ckey] = font[key];
+				}
+			}
+		}
+		
+		if (alignment) style['v-text-align'] = fontAnchors[alignment] || alignment;
+		
+		if (path){
+			this.currentPath = path = new ART.Path(path);
+			this.element.path = path.toVML(precision);
+		} else if (!this.currentPath){
+			var i = -1, offsetRows = '\n';
+			while ((i = text.indexOf('\n', i + 1)) > -1) offsetRows += '\n';
+			textPath.string = offsetRows + textPath.string;
+			this.element.path = 'm0,0l1,0';
+		}
+		
+		// Measuring the bounding box is currently necessary for gradients etc.
+		
+		// Clone element because the element is dead once it has been in the DOM
+		element = element.cloneNode(true);
+		style = element.style;
+		
+		// Reset coordinates while measuring
+		element.coordorigin = '0,0';
+		element.coordsize = '10000,10000';
+		style.left = '0px';
+		style.top = '0px';
+		style.width = '10000px';
+		style.height = '10000px';
+		style.rotation = 0;
+		
+		// Inject the clone into the document
+		
+		var canvas = new ART.VML(1, 1),
+		    group = new ART.VML.Group(), // Wrapping it in a group seems to alleviate some client rect weirdness
+		    body = element.ownerDocument.body;
+		
+		canvas.inject(body);
+		group.element.appendChild(element);
+		group.inject(canvas);
+		
+		var ebb = element.getBoundingClientRect(),
+		    cbb = canvas.toElement().getBoundingClientRect();
+		
+		canvas.eject();
+		
+		this.left = ebb.left - cbb.left;
+		this.top = ebb.top - cbb.top;
+		this.width = ebb.right - ebb.left;
+		this.height = ebb.bottom - ebb.top;
+		this.right = ebb.right - cbb.left;
+		this.bottom = ebb.bottom - cbb.top;
+		
+		this._transform();
+	},
+	
+	measure: function(){
+		return { left: this.left, top: this.top, width: this.width, height: this.height, right: this.right, bottom: this.bottom };
+	}
+	
+});
+
 })();

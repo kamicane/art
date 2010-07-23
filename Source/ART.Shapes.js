@@ -1,7 +1,7 @@
 /*
 ---
 name: ART.Shapes
-description: Shapes for ART
+description: "Shapes for ART"
 authors: ["[Valerio Proietti](http://mad4milk.net)", "[Sebastian Markbåge](http://calyptus.eu/)"]
 provides: [ART.Shapes, ART.Rectangle, ART.Pill, ART.Ellipse, ART.Wedge]
 requires: [ART.Path, ART.Shape]

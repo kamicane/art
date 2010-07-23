@@ -1,5 +1,7 @@
 name: "ART"
 
+version: "0.87"
+
 web: "[mootools.net](http://mootools.net)"
 
 description: "The graphics framework."

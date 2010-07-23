@@ -1,7 +1,7 @@
 /*
 ---
 name: ART.Font
-description: Fonts for ART, implements code from [Cufón](http://cufon.shoqolate.com/)
+description: "Fonts for ART, implements code from [Cufón](http://cufon.shoqolate.com/)"
 authors: ["[Simo Kinnunen](http://twitter.com/sorccu)", "[Valerio Proietti](http://mad4milk.net/)"]
 provides: ART.Font
 requires: ART.Shape
@@ -45,16 +45,13 @@ ART.Font = new Class({
 	Extends: ART.Shape,
 	
 	initialize: function(font, variant, text, size){
-		if (typeof font == 'string') font = fonts[font][(variant || 'normal').camelCase()];
-		if (!font) throw new Error('The specified font has not been found.');
-		this.font = font;
-		
 		this.parent();
-		if (text != null && size != null) this.draw(text, size);
+		if (font != null && text != null && size != null) this.draw(font, variant, text, size);
 	},
 	
-	draw: function(text, size){
-		var font = this.font;
+	draw: function(font, variant, text, size){
+		if (typeof font == 'string') font = fonts[font][(variant || 'normal').camelCase()];
+		if (!font) throw new Error('The specified font has not been found.');
 		size = size / font.face['units-per-em'];
 		
 		var width = 0, height = size * font.face.ascent, path = '';
@@ -66,7 +63,15 @@ ART.Font = new Class({
 			width += w;
 		}
 		
+		height -= size * font.face.descent;
+		
+		this.fontSize = {left: 0, top: 0, right: width, bottom: height, width: width, height: height};
+		
 		return this.parent(path);
+	},
+	
+	measure: function(){
+		return this.fontSize || this.parent();
 	}
 
 });

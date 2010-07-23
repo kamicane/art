@@ -1,7 +1,7 @@
 /*
 ---
 name: ART.Path
-description: Class to generate a valid SVG path using method calls.
+description: "Class to generate a valid SVG path using method calls."
 authors: ["[Valerio Proietti](http://mad4milk.net)", "[Sebastian Markbåge](http://calyptus.eu/)"]
 provides: ART.Path
 requires: ART
@@ -63,18 +63,22 @@ var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
 	};
 };
 
-var measureAndTransform = function(parts, precision){
+var extrapolate = function(parts, precision){
 	
 	var boundsX = [], boundsY = [];
 	
-	var ux = function(x){
-		boundsX.push(x);
-		return (precision) ? Math.round(x * precision) : x;
-	}, uy = function(y){
-		boundsY.push(y);
-		return (precision) ? Math.round(y * precision) : y;
-	}, np = function(v){
-		return (precision) ? Math.round(v * precision) : v;
+	var ux = (precision != null) ? function(x){
+		boundsX.push(x); return Math.round(x * precision);
+	} : function(x){
+		boundsX.push(x); return x;
+	}, uy = (precision != null) ? function(y){
+		boundsY.push(y); return Math.round(y * precision);
+	} : function(y){
+		boundsY.push(y); return y;
+	}, np = (precision != null) ? function(v){
+		return Math.round(v * precision);
+	} : function(v){
+		return v;
 	};
 
 	var reflect = function(sx, sy, ex, ey){
@@ -172,67 +176,157 @@ var measureAndTransform = function(parts, precision){
 
 };
 
+/* Utility command factories */
+
+var point = function(c){
+	return function(x, y){
+		return this.push(c, x, y);
+	};
+};
+
+var arc = function(c, cc){
+	return function(x, y, rx, ry, outer){
+		return this.push(c, Math.abs(rx || x), Math.abs(ry || rx || y), 0, outer ? 1 : 0, cc, x, y);
+	};
+};
+
+var curve = function(t, q, c){
+	return function(c1x, c1y, c2x, c2y, ex, ey){
+		var args = Array.slice(arguments), l = args.length;
+		args.unshift(l < 4 ? t : l < 6 ? q : c);
+		return this.push.apply(this, args);
+	};
+};
+
 /* Path Class */
 
 ART.Path = new Class({
 	
 	initialize: function(path){
-		this.boundingBox = null;
-		if (path == null) this.path = [];  //no path
-		else if (path.path) this.path = Array.slice(path.path); //already a path
-		else this.path = parse(path); //string path
+		if (path instanceof ART.Path){ //already a path, copying
+			this.path = Array.slice(path.path);
+			this.box = path.box;
+			this.vml = path.vml;
+			this.svg = path.svg;
+		} else {
+			this.path = (path == null) ? [] : parse(path);
+			this.box = null;
+			this.vml = null;
+			this.svg = null;
+		}
+
+		return this;
 	},
 	
-	push: function(){
-		this.boundingBox = null;
+	push: function(){ //modifying the current path resets the memoized values.
+		this.box = null;
+		this.vml = null;
+		this.svg = null;
 		this.path.push(Array.slice(arguments));
+		return this;
+	},
+	
+	reset: function(){
+		this.box = null;
+		this.vml = null;
+		this.svg = null;
+		this.path = [];
 		return this;
 	},
 	
 	/*utility*/
 	
-	move: function(x, y){
-		return this.push('m', x, y);
-	},
+	move: point('m'),
+	moveTo: point('M'),
 	
-	line: function(x, y){
-		return this.push('l', x, y);
-	},
+	line: point('l'),
+	lineTo: point('L'),
+	
+	curve: curve('t', 'q', 'c'),
+	curveTo: curve('T', 'Q', 'C'),
+	
+	arc: arc('a', 1),
+	arcTo: arc('A', 1),
+	
+	counterArc: arc('a', 0),
+	counterArcTo: arc('A', 0),
 	
 	close: function(){
 		return this.push('z');
 	},
 	
-	bezier: function(c1x, c1y, c2x, c2y, ex, ey){
-		return this.push('c', c1x, c1y, c2x, c2y, ex, ey);
-	},
+	/* split each continuous line into individual paths */
 	
-	arc: function(x, y, rx, ry, large){
-		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 1, x, y);
-	},
-	
-	counterArc: function(x, y, rx, ry, large){
-		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 0, x, y);
+	splitContinuous: function(){
+		var parts = this.path, newPaths = [], path = new ART.Path();
+		
+		var X = 0, Y = 0, inX, inY;
+		for (i = 0; i < parts.length; i++){
+			var v = parts[i], f = v[0], l = f.toLowerCase();
+			
+			if (l != 'm' && inX == null){ inX = X; inY = Y; }
+			
+			if (l != f){ X = 0; Y = 0; }
+			
+			if (l == 'm' || l == 'l' || l == 't'){ X += v[1]; Y += v[2]; }
+			else if (l == 'c'){ X += v[5]; Y += v[6]; }
+			else if (l == 's' || l == 'q'){ X += v[3]; Y += v[4]; }
+			else if (l == 'a'){ X += v[6]; Y += v[7]; }
+			else if (l == 'h'){ X += v[1]; }
+			else if (l == 'v'){ Y += v[1]; }
+			else if (l == 'z' && inX != null){
+				X = inX; Y = inY;
+				inX = null;
+			}
+
+			if (path.path.length > 0 && (l == 'm' || l == 'z')){
+				newPaths.push(path);
+				path = new ART.Path().push('M', X, Y);
+			} else {
+				path.path.push(v);
+			}
+		}
+
+		newPaths.push(path);
+		return newPaths;
 	},
 	
 	/* transformation, measurement */
 	
 	toSVG: function(){
-		var path = '';
-		for (var i = 0, l = this.path.length; i < l; i++) path += this.path[i].join(' ');
-		return path;
+		if (this.svg == null){
+			var path = '';
+			for (var i = 0, l = this.path.length; i < l; i++) path += this.path[i].join(' ');
+			this.svg = path;
+		}
+		return this.svg;
 	},
 	
 	toVML: function(precision){
-		var data = measureAndTransform(this.path, precision);
-		this.boundingBox = data[1];
-		return data[0];
+		if (this.vml == null){
+			var data = extrapolate(this.path, precision);
+			this.box = data[1];
+			this.vml = data[0];
+		}
+		return this.vml;
 	},
 	
-	measure: function(){
-		if (this.boundingBox) return this.boundingBox;
-		if (this.path.length) return this.boundingBox = measureAndTransform(this.path)[1];
-		else return {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
+	measure: function(precision){
+		if (this.box == null){
+					
+			if (this.path.length){
+				var data = extrapolate(this.path, precision);
+				this.box = data[1];
+				this.vml = data[2];
+			} else {
+				this.box = {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
+				this.vml = '';
+				this.svg = '';
+			}
+		
+		}
+		
+		return this.box;
 	}
 	
 });

@@ -1,13 +1,18 @@
 /*
 ---
 name: ART
-description: The heart of ART.
+description: "The heart of ART."
 requires: [Core/Class, Color/Color, Table/Table]
 provides: [ART, ART.Element, ART.Container]
 ...
 */
 
-var ART = new Class;
+(function(){
+
+this.ART = new Class;
+
+ART.version = 'dev';
+ART.build = '%build%';
 
 ART.Element = new Class({
 	
@@ -76,23 +81,23 @@ ART.Element = new Class({
 
 ART.Container = new Class({
 
-	push: function(){
+	grab: function(){
 		for (var i = 0; i < arguments.length; i++) arguments[i].inject(this);
-		return this;
-	},
-	
-	pull: function(){
-		var element = this.element;
-		for (var i = 0; i < arguments.length; i++){
-			var child = arguments[i], parent = child.parentNode;
-			if (child.parentNode && child.parentNode === element) child.eject();
-		}
 		return this;
 	}
 
 });
 
+var UID = 0;
+
+ART.uniqueID = function(){
+	return (new Date().getTime() + (UID++)).toString(36);
+};
+
 Color.detach = function(color){
 	color = new Color(color);
 	return [Color.rgb(color.red, color.green, color.blue).toString(), color.alpha];
 };
+
+})();
+
