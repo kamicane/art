@@ -79,6 +79,7 @@ ART.VML.init = function(document){
 
 	styleSheet = document.createStyleSheet();
 	styleSheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
+	styleSheet.addRule('ao\\:skew', VMLCSS);
 	styleTag('fill');
 	styleTag('stroke');
 	styleTag('path');
@@ -205,6 +206,16 @@ ART.VML.Element = new Class({
 		this.transform.rotate = [deg, x, y];
 		this._transform();
 		return this;
+	},
+	
+	skew: function(sxx, sxy, syx, syy, ox, oy){
+		if (!this.skewElement){
+			var skew = this.skewElement = document.createElement('ao:skew');
+			skew.on = true;
+			this.element.appendChild(skew);
+		}
+		skew.matrix = [sxx, sxy, syx, syy, 0, 0].join(',');
+		skew.offset = [ox || 0, oy || 0].join(',');
 	},
 	
 	// visibility
