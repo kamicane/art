@@ -79,7 +79,7 @@ ART.VML.init = function(document){
 
 	styleSheet = document.createStyleSheet();
 	styleSheet.addRule('vml', 'display:inline-block;position:relative;overflow:hidden;');
-	styleSheet.addRule('ao\\:skew', VMLCSS);
+	styleTag('skew');
 	styleTag('fill');
 	styleTag('stroke');
 	styleTag('path');
@@ -157,10 +157,10 @@ ART.VML.Element = new Class({
 		pt -= cos * -(dy + t) - sin * (dx + l) + dy;
  
 		// scale
-		cw /= ts[0];
-		ch /= ts[1];
-		cl /= ts[0];
-		ct /= ts[1];
+		cw *= ts[0];
+		ch *= ts[1];
+		//cl /= ts[0];
+		//ct /= ts[1];
  
 		// transform into multiplied precision space		
 		cw *= precision;
@@ -176,11 +176,18 @@ ART.VML.Element = new Class({
 		var element = this.element;
 		element.coordorigin = cl + ',' + ct;
 		element.coordsize = cw + ',' + ch;
-		element.style.left = pl;
-		element.style.top = pt;
-		element.style.width = w;
-		element.style.height = h;
+		element.style.left = pl * ts[0];
+		element.style.top = pt * ts[1];
+		element.style.width = w * ts[0];
+		element.style.height = h * ts[1];
 		element.style.rotation = rotation;
+		
+		var skew = this.skewElement;
+		if (!skew) return;
+		skew.on = true;
+		skew.matrix = [ts[0], 0, 0, ts[1], 0, 0].join(',');
+		skew.offset = [0 + 'px', 0 + 'px'].join(',');
+		skew.origin = [-0.5, -0.5].join(',');
 	},
 	
 	// transformations
@@ -206,16 +213,6 @@ ART.VML.Element = new Class({
 		this.transform.rotate = [deg, x, y];
 		this._transform();
 		return this;
-	},
-	
-	skew: function(sxx, sxy, syx, syy, ox, oy){
-		if (!this.skewElement){
-			var skew = this.skewElement = document.createElement('ao:skew');
-			skew.on = true;
-			this.element.appendChild(skew);
-		}
-		skew.matrix = [sxx, sxy, syx, syy, 0, 0].join(',');
-		skew.offset = [ox || 0, oy || 0].join(',');
 	},
 	
 	// visibility
@@ -271,6 +268,10 @@ ART.VML.Base = new Class({
 	initialize: function(tag){
 		this.parent(tag);
 		var element = this.element;
+		
+		var skew = this.skewElement = document.createElement('av:skew');
+		skew.on = true;
+		element.appendChild(skew);
 
 		var fill = this.fillElement = document.createElement('av:fill');
 		fill.on = false;
@@ -395,7 +396,8 @@ ART.VML.Base = new Class({
 	
 	stroke: function(color, width, cap, join){
 		var stroke = this.strokeElement;
-		stroke.weight = (width != null) ? (width / 2) : 1;
+		//this.strokeWidth = (width != null) ? width : 1;
+		stroke.weight = (width != null) ? width + 'pt' : 1;
 		stroke.endcap = (cap != null) ? ((cap == 'butt') ? 'flat' : cap) : 'round';
 		stroke.joinstyle = (join != null) ? join : 'round';
 
