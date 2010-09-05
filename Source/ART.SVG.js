@@ -2,7 +2,7 @@
 ---
 name: ART.SVG
 description: "SVG implementation for ART"
-provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image]
+provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image, ART.SVG.Text]
 requires: [ART, ART.Element, ART.Container, ART.Path]
 ...
 */
