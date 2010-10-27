@@ -2,7 +2,7 @@
 ---
 name: ART.Base
 description: "Implements ART, ART.Shape and ART.Group based on the current browser."
-provides: [ART.Base, ART.Group, ART.Shape]
+provides: [ART.Base, ART.Group, ART.Shape, ART.Text]
 requires: [ART.VML, ART.SVG]
 ...
 */
@@ -27,6 +27,7 @@ if (!MODE) return;
 
 ART.Shape = new Class({Extends: ART[MODE].Shape});
 ART.Group = new Class({Extends: ART[MODE].Group});
+ART.Text = new Class({Extends: ART[MODE].Text});
 ART.implement({Extends: ART[MODE]});
 
 })();

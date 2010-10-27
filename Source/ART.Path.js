@@ -176,6 +176,28 @@ var extrapolate = function(parts, precision){
 
 };
 
+/* Utility command factories */
+
+var point = function(c){
+	return function(x, y){
+		return this.push(c, x, y);
+	};
+};
+
+var arc = function(c, cc){
+	return function(x, y, rx, ry, outer){
+		return this.push(c, Math.abs(rx || x), Math.abs(ry || rx || y), 0, outer ? 1 : 0, cc, x, y);
+	};
+};
+
+var curve = function(t, q, c){
+	return function(c1x, c1y, c2x, c2y, ex, ey){
+		var args = Array.slice(arguments), l = args.length;
+		args.unshift(l < 4 ? t : l < 6 ? q : c);
+		return this.push.apply(this, args);
+	};
+};
+
 /* Path Class */
 
 ART.Path = new Class({
@@ -214,28 +236,59 @@ ART.Path = new Class({
 	
 	/*utility*/
 	
-	move: function(x, y){
-		return this.push('m', x, y);
-	},
+	move: point('m'),
+	moveTo: point('M'),
 	
-	line: function(x, y){
-		return this.push('l', x, y);
-	},
+	line: point('l'),
+	lineTo: point('L'),
+	
+	curve: curve('t', 'q', 'c'),
+	curveTo: curve('T', 'Q', 'C'),
+	
+	arc: arc('a', 1),
+	arcTo: arc('A', 1),
+	
+	counterArc: arc('a', 0),
+	counterArcTo: arc('A', 0),
 	
 	close: function(){
 		return this.push('z');
 	},
 	
-	bezier: function(c1x, c1y, c2x, c2y, ex, ey){
-		return this.push('c', c1x, c1y, c2x, c2y, ex, ey);
-	},
+	/* split each continuous line into individual paths */
 	
-	arc: function(x, y, rx, ry, large){
-		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 1, x, y);
-	},
-	
-	counterArc: function(x, y, rx, ry, large){
-		return this.push('a', Math.abs(rx || x), Math.abs(ry || rx || y), 0, large ? 1 : 0, 0, x, y);
+	splitContinuous: function(){
+		var parts = this.path, newPaths = [], path = new ART.Path();
+		
+		var X = 0, Y = 0, inX, inY;
+		for (i = 0; i < parts.length; i++){
+			var v = parts[i], f = v[0], l = f.toLowerCase();
+			
+			if (l != 'm' && inX == null){ inX = X; inY = Y; }
+			
+			if (l != f){ X = 0; Y = 0; }
+			
+			if (l == 'm' || l == 'l' || l == 't'){ X += v[1]; Y += v[2]; }
+			else if (l == 'c'){ X += v[5]; Y += v[6]; }
+			else if (l == 's' || l == 'q'){ X += v[3]; Y += v[4]; }
+			else if (l == 'a'){ X += v[6]; Y += v[7]; }
+			else if (l == 'h'){ X += v[1]; }
+			else if (l == 'v'){ Y += v[1]; }
+			else if (l == 'z' && inX != null){
+				X = inX; Y = inY;
+				inX = null;
+			}
+
+			if (path.path.length > 0 && (l == 'm' || l == 'z')){
+				newPaths.push(path);
+				path = new ART.Path().push('M', X, Y);
+			} else {
+				path.path.push(v);
+			}
+		}
+
+		newPaths.push(path);
+		return newPaths;
 	},
 	
 	/* transformation, measurement */

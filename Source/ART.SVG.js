@@ -2,7 +2,7 @@
 ---
 name: ART.SVG
 description: "SVG implementation for ART"
-provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image]
+provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image, ART.SVG.Text]
 requires: [ART, ART.Element, ART.Container, ART.Path]
 ...
 */
@@ -135,7 +135,6 @@ ART.SVG.Base = new Class({
 
 	initialize: function(tag){
 		this.parent(tag);
-		this.element.setAttribute('fill-rule', 'evenodd');
 		this.fill();
 		this.stroke();
 	},
@@ -286,6 +285,7 @@ ART.SVG.Shape = new Class({
 	
 	initialize: function(path){
 		this.parent('path');
+		this.element.setAttribute('fill-rule', 'evenodd');
 		if (path != null) this.draw(path);
 	},
 	
@@ -322,6 +322,155 @@ ART.SVG.Image = new Class({
 		return this;
 	}
 	
+});
+
+var fontAnchors = { left: 'start', center: 'middle', right: 'end' },
+    fontAnchorOffsets = { middle: '50%', end: '100%' };
+
+ART.SVG.Text = new Class({
+
+	Extends: ART.SVG.Base,
+
+	initialize: function(text, font, alignment, path){
+		this.parent('text');
+		this.draw.apply(this, arguments);
+	},
+	
+	draw: function(text, font, alignment, path){
+		var element = this.element;
+	
+		if (font){
+			if (typeof font == 'string'){
+				element.style.font = font;
+			} else {
+				for (var key in font){
+					var ckey = key.camelCase ? key.camelCase() : key;
+					// NOT UNIVERSALLY SUPPORTED OPTIONS
+					// if (ckey == 'kerning') element.setAttribute('kerning', font[key] ? 'auto' : '0');
+					// else if (ckey == 'letterSpacing') element.setAttribute('letter-spacing', Number(font[key]) + 'ex');
+					// else if (ckey == 'rotateGlyphs') element.setAttribute('glyph-orientation-horizontal', font[key] ? '270deg' : '');
+					// else
+					element.style[ckey] = font[key];
+				}
+				element.style.lineHeight = '0.5em';
+			}
+		}
+		
+		if (alignment) element.setAttribute('text-anchor', this.textAnchor = (fontAnchors[alignment] || alignment));
+
+		if (path && typeof path != 'number'){
+			this._createPaths(new ART.Path(path));
+		} else if (path === false){
+			this._ejectPaths();
+			this.pathElements = null;
+		}
+		
+		var paths = this.pathElements, child;
+		
+		while (child = element.firstChild){
+			element.removeChild(child);
+		}
+		
+		// Note: Gecko will (incorrectly) align gradients for each row, while others applies one for the entire element
+		
+		var lines = String(text).split(/\r?\n/), l = lines.length,
+		    baseline = paths ? 'middle' : 'text-before-edge';
+		
+		if (paths && l > paths.length) l = paths.length;
+		
+		element.setAttribute('dominant-baseline', baseline);
+		
+		for (var i = 0; i < l; i++){
+			var line = lines[i], row;
+			if (paths){
+				row = createElement('textPath');
+				row.setAttributeNS(XLINK, 'href', '#' + paths[i].getAttribute('id'));
+				row.setAttribute('startOffset', fontAnchorOffsets[this.textAnchor] || 0);
+			} else {
+				row = createElement('tspan');
+				row.setAttribute('x', 0);
+				row.setAttribute('dy', i == 0 ? '0' : '1em');
+			}
+			row.setAttribute('baseline-shift', paths ? '-0.5ex' : '-2ex'); // Opera
+			row.setAttribute('dominant-baseline', baseline);
+			row.appendChild(document.createTextNode(line));
+			element.appendChild(row);
+		}
+	},
+	
+	// TODO: Unify path injection with gradients and imagefills
+
+	inject: function(container){
+		this.parent(container);
+		this._injectPaths();
+		return this;
+	},
+	
+	eject: function(){
+		if (this.container){
+			this._ejectPaths();
+			this.parent();
+			this.container = null;
+		}
+		return this;
+	},
+	
+	_injectPaths: function(){
+		var paths = this.pathElements;
+		if (!this.container || !paths) return;
+		var defs = this.container.defs;
+		for (var i = 0, l = paths.length; i < l; i++)
+			defs.appendChild(paths[i]);
+	},
+	
+	_ejectPaths: function(){
+		var paths = this.pathElements;
+		if (!this.container || !paths) return;
+		var defs = this.container.defs;
+		for (var i = 0, l = paths; i < l; i++)
+			defs.removeChild(paths[i]);
+	},
+	
+	_createPaths: function(path){
+		this._ejectPaths();
+		var id = 'p' + ART.uniqueID() + '-';
+		var paths = path.splitContinuous();
+		var result = [];
+		for (var i = 0, l = paths.length; i < l; i++){
+			var p = createElement('path');
+			p.setAttribute('d', paths[i].toSVG());
+			p.setAttribute('id', id + i);
+			result.push(p);
+		}
+		this.pathElements = result;
+		this._injectPaths();
+	},
+	
+	_whileInDocument: function(fn, bind){
+		// Temporarily inject into the document
+		var element = this.element,
+		    container = this.container,
+			parent = element.parentNode,
+			sibling = element.nextSibling,
+			body = element.ownerDocument.body,
+			canvas = new ART.SVG(1, 1).inject(body);
+		this.inject(canvas);
+		var result = fn.call(bind);
+		canvas.eject();
+		if (container) this.inject(container);
+		if (parent) parent.insertBefore(element, sibling);
+		return result;
+	},
+	
+	measure: function(){
+		var element = this.element, bb;
+
+		try { bb = element.getBBox(); } catch (x){ }
+		if (!bb || !bb.width) bb = this._whileInDocument(element.getBBox, element);
+		
+		return { left: bb.x, top: bb.y, width: bb.width, height: bb.height, right: bb.x + bb.width, bottom: bb.y + bb.height };
+	}
+
 });
 
 })();

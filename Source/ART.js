@@ -11,8 +11,8 @@ provides: [ART, ART.Element, ART.Container]
 
 this.ART = new Class;
 
-ART.version = '0.8.7';
-ART.build = '37db3609c6e0df4c215737df9c3c5851d1e9c30c';
+ART.version = '09.dev';
+ART.build = 'DEV';
 
 ART.Element = new Class({
 	
