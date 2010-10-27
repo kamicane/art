@@ -96,7 +96,7 @@ ART.VML.Element = new Class({
 	Extends: ART.Element,
 	
 	initialize: function(tag){
-		this.uid = ART.uniqueID();
+		this.uid = String.uniqueID();
 		if (!(tag in styledTags)) styleTag(tag);
 
 		var element = this.element = document.createElement('av:' + tag);

@@ -49,7 +49,7 @@ ART.SVG.Element = new Class({
 	Extends: ART.Element,
 
 	initialize: function(tag){
-		this.uid = ART.uniqueID();
+		this.uid = String.uniqueID();
 		var element = this.element = createElement(tag);
 		element.setAttribute('id', 'e' + this.uid);
 		this.transform = {translate: [0, 0], rotate: [0, 0, 0], scale: [1, 1]};
@@ -197,7 +197,7 @@ ART.SVG.Base = new Class({
 		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
 		else for (var offset in stops) addColor(offset, stops[offset]);
 
-		var id = 'g' + ART.uniqueID();
+		var id = 'g' + String.uniqueID();
 		gradient.setAttribute('id', id);
 
 		this._injectGradient(type);
@@ -367,7 +367,7 @@ ART.SVG.Text = new Class({
 		
 		var paths = this.pathElements, child;
 		
-		while (child = element.firstChild){
+		while ((child = element.firstChild)){
 			element.removeChild(child);
 		}
 		
@@ -433,7 +433,7 @@ ART.SVG.Text = new Class({
 	
 	_createPaths: function(path){
 		this._ejectPaths();
-		var id = 'p' + ART.uniqueID() + '-';
+		var id = 'p' + String.uniqueID() + '-';
 		var paths = path.splitContinuous();
 		var result = [];
 		for (var i = 0, l = paths.length; i < l; i++){
