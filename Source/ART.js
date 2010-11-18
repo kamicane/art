@@ -2,7 +2,7 @@
 ---
 name: ART
 description: "The heart of ART."
-requires: [Core/Class, Color/Color, Table/Table]
+requires: [Core/Class, Color/Color]
 provides: [ART, ART.Element, ART.Container]
 ...
 */
@@ -32,49 +32,32 @@ ART.Element = new Class({
 	
 	/* events */
 	
-	listen: function(type, fn){
-		if (!this._events) this._events = {};
-		
+	listen: function(type, fn, bind){
 		if (typeof type != 'string'){ // listen type / fn with object
-			for (var t in type) this.listen(t, type[t]);
+			var subscriptions = [];
+			for (var t in type) subscriptions.push(this.listen(t, type[t]));
+			return function(){ // unsubscribe
+				for (var i = 0, l = subscriptions.length; i < l; i++)
+					subscriptions[i]();
+				return this;
+			};
 		} else { // listen to one
-			if (!this._events[type]) this._events[type] = new Table;
-			var events = this._events[type];
-			if (events.get(fn)) return this;
-			var bound = fn.bind(this);
-			events.set(fn, bound);
+			var bound = fn.bind(bind || this);
 			var element = this.element;
-			if (element.addEventListener) element.addEventListener(type, bound, false);
-			else element.attachEvent('on' + type, bound);
+			if (element.addEventListener){
+				element.addEventListener(type, bound, false);
+				return function(){ // unsubscribe
+					element.removeEventListener(type, bound, false);
+					return this;
+				};
+			} else {
+				element.attachEvent('on' + type, bound);
+				return function(){ // unsubscribe
+					element.detachEvent('on' + type, bound);
+					return this;
+				};
+			}
 		}
-
-		return this;
-	},
-	
-	ignore: function(type, fn){
-		if (!this._events) return this;
-		
-		if (typeof type != 'string'){ // ignore type / fn with object
-			for (var t in type) this.ignore(t, type[t]);
-			return this;
-		}
-		
-		var events = this._events[type];
-		if (!events) return this;
-		
-		if (fn == null){ // ignore every of type
-			events.each(function(fn, bound){
-				this.ignore(type, fn);
-			}, this);
-		} else { // ignore one
-			var bound = events.get(fn);
-			if (!bound) return this;
-			var element = this.element;
-			if (element.removeEventListener) element.removeEventListener(type, bound, false);
-			else element.detachEvent('on' + type, bound);
-		}
-
-		return this;
 	}
 
 });
