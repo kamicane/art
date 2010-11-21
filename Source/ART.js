@@ -32,7 +32,7 @@ ART.Element = new Class({
 	
 	/* events */
 	
-	listen: function(type, fn, bind){
+	subscribe: function(type, fn, bind){
 		if (typeof type != 'string'){ // listen type / fn with object
 			var subscriptions = [];
 			for (var t in type) subscriptions.push(this.listen(t, type[t]));
