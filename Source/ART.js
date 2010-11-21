@@ -35,7 +35,7 @@ ART.Element = new Class({
 	subscribe: function(type, fn, bind){
 		if (typeof type != 'string'){ // listen type / fn with object
 			var subscriptions = [];
-			for (var t in type) subscriptions.push(this.listen(t, type[t]));
+			for (var t in type) subscriptions.push(this.subscribe(t, type[t]));
 			return function(){ // unsubscribe
 				for (var i = 0, l = subscriptions.length; i < l; i++)
 					subscriptions[i]();
