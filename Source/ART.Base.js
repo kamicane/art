@@ -12,7 +12,7 @@ requires: [ART.VML, ART.SVG]
 var SVG = function(){
 
 	var implementation = document.implementation;
-	return window.SVGPathElement || (implementation && implementation.hasFeature && implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1"));
+	return (implementation && implementation.hasFeature && implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1"));
 
 };
 
