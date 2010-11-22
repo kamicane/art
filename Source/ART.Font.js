@@ -13,14 +13,11 @@ requires: ART.Shape
 var fonts = {};
 
 ART.registerFont = function(font){
-	var face = font.face, name = face['font-family'];
-	if (!fonts[name]) fonts[name] = {};
-	var currentFont = fonts[name];
-	var isBold = (face['font-weight'] > 400), isItalic = (face['font-stretch'] == 'oblique');
-	if (isBold && isItalic) currentFont.boldItalic = font;
-	else if (isBold) currentFont.bold = font;
-	else if (isItalic) currentFont.italic = font;
-	else currentFont.normal = font;
+	var face = font.face,
+	    family = face['font-family'],
+	    weight = (face['font-weight'] > 400 ? 'bold' : 'normal'),
+	    style = (face['font-stretch'] == 'oblique' ? 'italic' : 'normal');
+	fonts[weight + style + name] = font;
 	return this;
 };
 
@@ -40,17 +37,36 @@ var VMLToSVG = function(path, s, x, y){
 	return end;
 };
 
+var parseFontString = function(font){
+	var regexp = /^\s*((?:(?:normal|bold|italic)\s+)*)(?:(\d+(?:\.\d+)?)[ptexm\%]*(?:\s*\/.*?)?\s+)?\s*\"?([^\"]*)/i,
+	    match = regexp.exec(font);
+	return {
+		fontFamily: match[3],
+		fontSize: match[2],
+		fontStyle: (/italic/.exec(match[1]) || ''),
+		fontWeight: (/bold/.exec(match[1]) || '')
+	};
+};
+
 ART.Font = new Class({
 	
 	Extends: ART.Shape,
 	
-	initialize: function(font, variant, text, size){
+	initialize: function(text, font){
 		this.parent();
-		if (font != null && text != null && size != null) this.draw(font, variant, text, size);
+		if (text != null && font != null) this.draw(text, font);
 	},
 	
-	draw: function(font, variant, text, size){
-		if (typeof font == 'string') font = fonts[font][(variant || 'normal').camelCase()];
+	draw: function(text, font){
+		if (typeof font == 'string') font = parseFontString(font);
+		
+		var family = font.fontFamily || font['font-family'],
+			weight = font.fontWeight || font['font-weight'] || 'normal',
+			style = font.fontStyle || font['font-style'] || 'normal',
+			size = parseFloat(font.fontSize || font['font-size'] || font.size);
+		
+		font = font.glyphs ? font : fonts[weight + style + name];
+		
 		if (!font) throw new Error('The specified font has not been found.');
 		size = size / font.face['units-per-em'];
 		
