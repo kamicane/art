@@ -3,7 +3,7 @@
 name: ART.SVG
 description: "SVG implementation for ART"
 provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image]
-requires: [ART, ART.Element, ART.Container, ART.Path]
+requires: [ART, ART.Element, ART.Container, ART.Transform, ART.Path]
 ...
 */
 
@@ -47,43 +47,20 @@ ART.SVG = new Class({
 ART.SVG.Element = new Class({
 	
 	Extends: ART.Element,
+	
+	Implements: ART.Transform,
 
 	initialize: function(tag){
 		this.uid = ART.uniqueID();
 		var element = this.element = createElement(tag);
 		element.setAttribute('id', 'e' + this.uid);
-		this.transform = {translate: [0, 0], rotate: [0, 0, 0], scale: [1, 1]};
 	},
 	
 	/* transforms */
 	
-	_writeTransform: function(){
-		var transforms = [];
-		for (var transform in this.transform) transforms.push(transform + '(' + this.transform[transform].join(',') + ')');
-		this.element.setAttribute('transform', transforms.join(' '));
-	},
-	
-	rotate: function(deg, x, y){
-		if (x == null || y == null){
-			var box = this.measure();
-			x = box.left + box.width / 2; y = box.top + box.height / 2;
-		}
-		this.transform.rotate = [deg, x, y];
-		this._writeTransform();
-		return this;
-	},
-
-	scale: function(x, y){
-		if (y == null) y = x;
-		this.transform.scale = [x, y];
-		this._writeTransform();
-		return this;
-	},
-
-	translate: function(x, y){
-		this.transform.translate = [x, y];
-		this._writeTransform();
-		return this;
+	onTransform: function(){
+		var m = this;
+		this.element.setAttribute('transform', 'matrix(' + [m.xx, m.yx, m.xy, m.yy, m.tx, m.ty] + ')');
 	},
 	
 	setOpacity: function(opacity){
@@ -233,19 +210,31 @@ ART.SVG.Base = new Class({
 		return this;
 	},
 
-	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
+	fillRadial: function(stops, focusX, focusY, radiusX, radiusY, centerX, centerY){
 		var gradient = this._createGradient('fill', 'radialGradient', stops);
 
-		if (focusX != null) gradient.setAttribute('fx', focusX);
-		if (focusY != null) gradient.setAttribute('fy', focusY);
-
-		if (radius) gradient.setAttribute('r', radius);
-
+		gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+		
+		if (focusX == null || focusY == null || radiusX == null || radiusY == null){
+			var size = this.measure();
+			if (focusX == null) focusX = size.left + size.width * 0.5;
+			if (focusY == null) focusY = size.top + size.height * 0.5;
+			if (radiusY == null) radiusY = radiusX || (size.height * 0.5);
+			if (radiusX == null) radiusX = size.width * 0.5;
+		}
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
+		
+		var ys = radiusY / radiusX;
 
-		if (centerX != null) gradient.setAttribute('cx', centerX);
-		if (centerY != null) gradient.setAttribute('cy', centerY);
+		gradient.setAttribute('fx', focusX);
+		gradient.setAttribute('fy', focusY / ys);
+
+		gradient.setAttribute('r', radiusX);
+		if (ys != 1) gradient.setAttribute('gradientTransform', 'scale(1,' + ys + ')');
+
+		gradient.setAttribute('cx', centerX);
+		gradient.setAttribute('cy', centerY / ys);
 
 		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
 		
@@ -270,7 +259,7 @@ ART.SVG.Base = new Class({
 		return this;
 	},
 
-	fillImage: function(url, width, height, color1, color2){
+	fillImage: function(url, width, height, left, top, color1, color2){
 		var pattern = this._createBrush('fill', 'pattern');
 
 		var image = createElement('image');
@@ -316,13 +305,11 @@ ART.SVG.Base = new Class({
 
 		pattern.appendChild(image);
 		
-		//pattern.setAttribute('patternUnits', 'objectBoundingBox'); // userSpaceOnUse
-		//pattern.setAttribute('patternContentUnits', 'objectBoundingBox'); // objectBoundingBox
 		pattern.setAttribute('patternUnits', 'userSpaceOnUse');
 		pattern.setAttribute('patternContentsUnits', 'userSpaceOnUse');
 		
-		pattern.setAttribute('x', 0);
-		pattern.setAttribute('y', 0);
+		pattern.setAttribute('x', left || 0);
+		pattern.setAttribute('y', top || 0);
 		
 		pattern.setAttribute('width', width);
 		pattern.setAttribute('height', height);

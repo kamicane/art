@@ -4,13 +4,15 @@ name: ART.VML
 description: "VML implementation for ART"
 authors: ["[Simo Kinnunen](http://twitter.com/sorccu)", "[Valerio Proietti](http://mad4milk.net)", "[Sebastian Markbåge](http://calyptus.eu/)"]
 provides: [ART.VML, ART.VML.Group, ART.VML.Shape]
-requires: [ART, ART.Element, ART.Container, ART.Path]
+requires: [ART, ART.Element, ART.Container, ART.Transform, ART.Path]
 ...
 */
 
 (function(){
 
 var precision = 100, UID = 0;
+
+var viewportSize = 3000;
 
 // VML Base Class
 
@@ -48,10 +50,6 @@ ART.VML = new Class({
 		this.element.coordorigin = halfPixel + ',' + halfPixel;
 		this.element.coordsize = (width * precision) + ',' + (height * precision);
 
-		this.children.each(function(child){
-			child._transform();
-		});
-		
 		return this;
 	},
 	
@@ -96,14 +94,14 @@ ART.VML.Element = new Class({
 	
 	Extends: ART.Element,
 	
+	Implements: ART.Transform,
+	
 	initialize: function(tag){
 		this.uid = ART.uniqueID();
 		if (!(tag in styledTags)) styleTag(tag);
 
 		var element = this.element = document.createElement('av:' + tag);
 		element.setAttribute('id', 'e' + this.uid);
-		
-		this.transform = {translate: [0, 0], scale: [1, 1], rotate: [0, 0, 0]};
 	},
 	
 	/* dom */
@@ -112,7 +110,7 @@ ART.VML.Element = new Class({
 		this.eject();
 		this.container = container;
 		container.children.include(this);
-		this._transform();
+		this.onTransform();
 		this.parent(container);
 		
 		return this;
@@ -127,94 +125,6 @@ ART.VML.Element = new Class({
 		return this;
 	},
 
-	/* transform */
-
-	_transform: function(){
-		var l = this.left || 0, t = this.top || 0,
-		    w = this.width, h = this.height;
-		
-		if (w == null || h == null) return;
-		
-		var tn = this.transform,
-			tt = tn.translate,
-			ts = tn.scale,
-			tr = tn.rotate;
-
-		var cw = w, ch = h,
-		    cl = l, ct = t,
-		    pl = tt[0], pt = tt[1],
-		    rotation = tr[0],
-		    rx = tr[1], ry = tr[2];
-		
-		// rotation offset
-		var theta = rotation / 180 * Math.PI,
-		    sin = Math.sin(theta), cos = Math.cos(theta);
-		
-		var dx = w / 2 - rx,
-		    dy = h / 2 - ry;
-		
-		pl -= cos * -(dx + l) + sin * (dy + t) + dx;
-		pt -= cos * -(dy + t) - sin * (dx + l) + dy;
- 
-		// scale
-		cw *= ts[0];
-		ch *= ts[1];
-		//cl /= ts[0];
-		//ct /= ts[1];
- 
-		// transform into multiplied precision space		
-		cw *= precision;
-		ch *= precision;
-		cl *= precision;
-		ct *= precision;
-
-		pl *= precision;
-		pt *= precision;
-		w *= precision;
-		h *= precision;
-		
-		var element = this.element;
-		element.coordorigin = cl + ',' + ct;
-		element.coordsize = cw + ',' + ch;
-		element.style.left = pl * ts[0];
-		element.style.top = pt * ts[1];
-		element.style.width = w * ts[0];
-		element.style.height = h * ts[1];
-		element.style.rotation = rotation;
-		
-		var skew = this.skewElement;
-		if (!skew) return;
-		skew.on = true;
-		skew.matrix = [ts[0], 0, 0, ts[1], 0, 0].join(',');
-		skew.offset = [0 + 'px', 0 + 'px'].join(',');
-		skew.origin = [-0.5, -0.5].join(',');
-	},
-	
-	// transformations
-	
-	translate: function(x, y){
-		this.transform.translate = [x, y];
-		this._transform();
-		return this;
-	},
-	
-	scale: function(x, y){
-		if (y == null) y = x;
-		this.transform.scale = [x, y];
-		this._transform();
-		return this;
-	},
-	
-	rotate: function(deg, x, y){
-		if (x == null || y == null){
-			var box = this.measure(precision);
-			x = box.left + box.width / 2; y = box.top + box.height / 2;
-		}
-		this.transform.rotate = [deg, x, y];
-		this._transform();
-		return this;
-	},
-	
 	// visibility
 	
 	hide: function(){
@@ -247,7 +157,7 @@ ART.VML.Group = new Class({
 		this.parent(container);
 		this.width = container.width;
 		this.height = container.height;
-		this._transform();
+		this.onTransform();
 		return this;
 	},
 	
@@ -255,6 +165,23 @@ ART.VML.Group = new Class({
 		this.parent();
 		this.width = this.height = null;
 		return this;
+	},
+	
+	onTransform: function(){
+		var element = this.element;
+		element.coordorigin = '0,0';
+		element.coordsize = '1000,1000';
+		element.style.left = 0;
+		element.style.top = 0;
+		element.style.width = 1000;
+		element.style.height = 1000;
+		element.style.rotation = 0;
+		
+		var container = this.container;
+		this._activeTransform = container ? new ART.Transform(container._activeTransform).transform(this) : this;
+		var children = this.children;
+		for (var i = 0, l = children.length; i < l; i++)
+			children[i].onTransform();
 	}
 
 });
@@ -280,6 +207,47 @@ ART.VML.Base = new Class({
 		var stroke = this.strokeElement = document.createElement('av:stroke');
 		stroke.on = false;
 		element.appendChild(stroke);
+	},
+	
+	/* transform */
+	
+	onTransform: function(){
+		var container = this.container;
+		
+		// Active Transformation Matrix
+		var m = container ? new ART.Transform(container._activeTransform).transform(this) : this;
+		
+		// Scale is the hypothenus between the two vectors
+		var vx = m.xx + m.xy, vy = m.yy + m.yx,
+		    scale = Math.sqrt(vx * vx + vy * vy) / Math.sqrt(2);
+		
+		// Box model
+		var box = {
+			x: m.tx,
+			y: m.ty,
+			width: viewportSize,
+			height: viewportSize,
+			rotation: 0
+		};
+
+		// Set bounding box
+		var element = this.element;
+		element.coordorigin = 0 + ',' + 0;
+		element.coordsize = (box.width * precision) + ',' + (box.height * precision);
+		element.style.left = (box.x * precision) + 'px';
+		element.style.top = (box.y * precision) + 'px';
+		element.style.width = box.width * precision;
+		element.style.height = box.height * precision;
+		element.style.rotation = (box.rotation * 180 / Math.PI).toFixed(8);
+		
+		// Set transform
+		var skew = this.skewElement;
+		skew.matrix = [m.xx.toFixed(8), m.xy.toFixed(8), m.yx.toFixed(8), m.yy.toFixed(8), 0, 0].join(',');
+		skew.offset = [0, 'px,', 0, 'px'].join('');
+		skew.origin = '-0.5,-0.5';
+
+		// Scale stroke
+		this.strokeElement.weight = (this.strokeWidth * scale) + 'px';
 	},
 	
 	/* styles */
@@ -352,22 +320,33 @@ ART.VML.Base = new Class({
 		var fill = this._createGradient('gradientradial', stops);
 		fill.focus = 50;
 		fill.focussize = '0 0';
-		fill.focusposition = (focusX == null ? 0.5 : focusX) + ',' + (focusY == null ? 0.5 : focusY);
-		fill.focus = (radius == null || radius > 0.5) ? '100%' : (Math.round(radius * 200) + '%');
+		if (focusX == null) focusX = this.left + this.width * 0.5;
+		if (focusY == null) focusY = this.top + this.height * 0.5;
+		focusX /= viewportSize;
+		focusY /= viewportSize;
+		focusX += 0.5;
+		focusY += 0.5;
+		
+		// TODO: Recalculate focus during skewed transforms		
+		
+		fill.focusposition = focusX + ',' + focusY;
+		fill.focus = (radius == null || radius > 0.5) ? '100%' : (Math.round(radius / ((this.width + this.height) / 2) * 200) + '%');
 		return this;
 	},
 
 	fillLinear: function(stops, angle){
 		var fill = this._createGradient('gradient', stops);
 		fill.focus = '100%';
+		fill.rotate = false;
 		fill.angle = (angle == null) ? 0 : (90 + angle) % 360;
+		this.onTransform();
 		return this;
 	},
 
-	fillImage: function(url, width, height, color1, color2){
+	fillImage: function(url, width, height, left, top, color1, color2){
+		
 		var fill = this.fillElement;
-		if (color1 != null)
-		{
+		if (color1 != null){
 			color1 = Color.detach(color1);
 			if (color2 != null) color2 = Color.detach(color2);
 			fill.type = 'pattern';
@@ -385,8 +364,11 @@ ART.VML.Base = new Class({
 		if (fill.colors) fill.colors.value = '';
 		fill.rotate = true;
 		fill.src = url;
-		fill.size = width / this.width + ',' + height / this.height;
-		fill.position = 0.5 / this.width + ',' + 0.5 / this.height;
+		
+		fill.size = (width / viewportSize) + ',' + (height / viewportSize);
+		if (!left) left = 0;
+		if (!top) top = 0;
+		fill.position = ((left + 0.5) / viewportSize) + ',' + ((top + 0.5) / viewportSize);
 		fill.origin = '0,0';
 		fill.aspect = 'ignore'; // ignore, atleast, atmost
 		fill.on = true;
@@ -396,8 +378,8 @@ ART.VML.Base = new Class({
 	
 	stroke: function(color, width, cap, join){
 		var stroke = this.strokeElement;
-		//this.strokeWidth = (width != null) ? width : 1;
-		stroke.weight = (width != null) ? width + 'pt' : 1;
+		this.strokeWidth = (width != null) ? width : 1;
+		stroke.weight = (width != null) ? width + 'px' : 1;
 		stroke.endcap = (cap != null) ? ((cap == 'butt') ? 'flat' : cap) : 'round';
 		stroke.joinstyle = (join != null) ? join : 'round';
 
@@ -442,7 +424,7 @@ ART.VML.Shape = new Class({
 		this.height = size.height;
 		this.width = size.width;
 		
-		this._transform();
+		this.onTransform();
 		this._redraw(this._radial);
 		
 		return this;
@@ -459,29 +441,10 @@ ART.VML.Shape = new Class({
 
 		this._radial = radial;
 		if (radial){
-			var cx = Math.round((this.left + this.width * radial.x) * precision),
-				cy = Math.round((this.top + this.height * radial.y) * precision),
-
-				rx = Math.round(this.width * radial.r * precision),
-				ry = Math.round(this.height * radial.r * precision),
-
-				arc = ['wa', cx - rx, cy - ry, cx + rx, cy + ry].join(' ');
-
 			vml = [
-				// Resolve rendering bug
-				'm', cx, cy - ry, 'l', cx, cy - ry,
-
-				// Merge existing path
-				vml,
-
-				// Draw an ellipse around the path to force an elliptical gradient on any shape
-				'm', cx, cy - ry,
-				arc, cx, cy - ry, cx, cy + ry, arc, cx, cy + ry, cx, cy - ry,
-				arc, cx, cy - ry, cx, cy + ry, arc, cx, cy + ry, cx, cy - ry,
-
+				radial.prefix, vml, radial.suffix,
 				// Don't stroke the path with the extra ellipse, redraw the stroked path separately
 				'ns e', vml, 'nf'
-			
 			].join(' ');
 		}
 
@@ -503,12 +466,13 @@ ART.VML.Shape = new Class({
 		return this.parent.apply(this, arguments);
 	},
 
-	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
+	fillRadial: function(stops, focusX, focusY, radiusX, radiusY, centerX, centerY){
 		this.parent.apply(this, arguments);
 
-		if (focusX == null) focusX = 0.5;
-		if (focusY == null) focusY = 0.5;
-		if (radius == null) radius = 0.5;
+		if (focusX == null) focusX = this.left + this.width * 0.5;
+		if (focusY == null) focusY = this.top + this.height * 0.5;
+		if (radiusY == null) radiusY = radiusX || (this.height * 0.5);
+		if (radiusX == null) radiusX = this.width * 0.5;
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
 		
@@ -522,7 +486,29 @@ ART.VML.Shape = new Class({
 		this.fillElement.focus = '50%';
 		//this.fillElement.focusposition = focusX + ',' + focusY;
 
-		this._redraw({x: centerX, y: centerY, r: radius * 2});
+		var cx = Math.round(centerX * precision),
+			cy = Math.round(centerY * precision),
+
+			rx = Math.round(radiusX * 2 * precision),
+			ry = Math.round(radiusY * 2 * precision),
+
+			arc = ['wa', cx - rx, cy - ry, cx + rx, cy + ry].join(' ');
+
+		this._redraw({
+			
+			// Resolve rendering bug
+			prefix: [
+				'm', cx, cy - ry, 'l', cx, cy - ry
+			].join(' '),
+			
+			// Draw an ellipse around the path to force an elliptical gradient on any shape
+			suffix: [
+				'm', cx, cy - ry,
+				arc, cx, cy - ry, cx, cy + ry, arc, cx, cy + ry, cx, cy - ry,
+				arc, cx, cy - ry, cx, cy + ry, arc, cx, cy + ry, cx, cy - ry
+			].join(' ')
+			
+		});
 
 		return this;
 	}
@@ -622,7 +608,7 @@ ART.VML.Text = new Class({
 		this.right = ebb.right - cbb.left;
 		this.bottom = ebb.bottom - cbb.top;
 		
-		this._transform();
+		this.onTransform();
 	},
 	
 	measure: function(){
