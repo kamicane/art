@@ -175,17 +175,17 @@ ART.Transform = new Class({
 	
 	scaleTo: function(x, y){
 		// Normalize
-        var m = this;
-        
-        var h = Math.sqrt(m.xx * m.xx + m.yx * m.yx);
-        m.xx /= h; m.yx /= h;
-        
-        h = Math.sqrt(m.yy * m.yy + m.xy * m.xy);
-        m.yy /= h; m.xy /= h;
-        
-        // TODO: Adjust for flip
-        
-        return this.scale(x, y);
+		var m = this;
+
+		var h = Math.sqrt(m.xx * m.xx + m.yx * m.yx);
+		m.xx /= h; m.yx /= h;
+
+		h = Math.sqrt(m.yy * m.yy + m.xy * m.xy);
+		m.yy /= h; m.xy /= h;
+
+		// TODO: Adjust for flip
+
+		return this.scale(x, y);
 	}
 
 });
