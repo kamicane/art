@@ -99,14 +99,14 @@ var transformTo = function(xx, yx, xy, yy, tx, ty){
 	this.yy = yy == null ? 1 : yy;
 	this.tx = (tx == null ? this.tx : tx) || 0;
 	this.ty = (ty == null ? this.ty : ty) || 0;
-	this.onTransform();
+	this._transform();
 	return this;
 };
 
 var translate = function(x, y){
 	this.tx += x || 0;
 	this.ty += y || 0;
-	this.onTransform();
+	this._transform();
 	return this;
 };
 	
@@ -114,7 +114,7 @@ ART.Transform = new Class({
 
 	initialize: transformTo,
 	
-	onTransform: function(){},
+	_transform: function(){},
 	
 	xx: 1, yx: 0, tx: 0,
 	xy: 0, yy: 1, ty: 0,

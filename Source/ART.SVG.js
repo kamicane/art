@@ -58,7 +58,7 @@ ART.SVG.Element = new Class({
 	
 	/* transforms */
 	
-	onTransform: function(){
+	_transform: function(){
 		var m = this;
 		this.element.setAttribute('transform', 'matrix(' + [m.xx, m.yx, m.xy, m.yy, m.tx, m.ty] + ')');
 	},

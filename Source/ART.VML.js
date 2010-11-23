@@ -110,7 +110,7 @@ ART.VML.Element = new Class({
 		this.eject();
 		this.container = container;
 		container.children.include(this);
-		this.onTransform();
+		this._transform();
 		this.parent(container);
 		
 		return this;
@@ -157,7 +157,7 @@ ART.VML.Group = new Class({
 		this.parent(container);
 		this.width = container.width;
 		this.height = container.height;
-		this.onTransform();
+		this._transform();
 		return this;
 	},
 	
@@ -167,7 +167,7 @@ ART.VML.Group = new Class({
 		return this;
 	},
 	
-	onTransform: function(){
+	_transform: function(){
 		var element = this.element;
 		element.coordorigin = '0,0';
 		element.coordsize = '1000,1000';
@@ -181,7 +181,7 @@ ART.VML.Group = new Class({
 		this._activeTransform = container ? new ART.Transform(container._activeTransform).transform(this) : this;
 		var children = this.children;
 		for (var i = 0, l = children.length; i < l; i++)
-			children[i].onTransform();
+			children[i]._transform();
 	}
 
 });
@@ -211,7 +211,7 @@ ART.VML.Base = new Class({
 	
 	/* transform */
 	
-	onTransform: function(){
+	_transform: function(){
 		var container = this.container;
 		
 		// Active Transformation Matrix
@@ -339,7 +339,7 @@ ART.VML.Base = new Class({
 		fill.focus = '100%';
 		fill.rotate = false;
 		fill.angle = (angle == null) ? 0 : (90 + angle) % 360;
-		this.onTransform();
+		this._transform();
 		return this;
 	},
 
@@ -424,7 +424,7 @@ ART.VML.Shape = new Class({
 		this.height = size.height;
 		this.width = size.width;
 		
-		this.onTransform();
+		this._transform();
 		this._redraw(this._radial);
 		
 		return this;
@@ -608,7 +608,7 @@ ART.VML.Text = new Class({
 		this.right = ebb.right - cbb.left;
 		this.bottom = ebb.bottom - cbb.top;
 		
-		this.onTransform();
+		this._transform();
 	},
 	
 	measure: function(){
