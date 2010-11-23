@@ -207,7 +207,7 @@ ART.VML.Element = new Class({
 		return this;
 	},
 	
-	setOpacity: function(opacity){
+	blend: function(opacity){
 		// NOTE: Doesn't work on Groups in IE8 document mode. Use IE7 or IE9 document modes.
 		this.element.style.filter = 'progid:DXImageTransform.Microsoft.Alpha(opacity=' + opacity * 100 + ')';
 		return this;
