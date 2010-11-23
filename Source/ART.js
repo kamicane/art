@@ -146,6 +146,11 @@ ART.Transform = new Class({
 	},
 	
 	rotate: function(deg, x, y){
+		if (x == null || y == null){
+			x = (this.left || 0) + (this.width || 0) / 2;
+			y = (this.top || 0) + (this.height || 0) / 2;
+		}
+		
 		var rad = deg * Math.PI / 180, sin = Math.sin(rad), cos = Math.cos(rad);
 		
 		this.translate(x, y);
@@ -184,6 +189,12 @@ ART.Transform = new Class({
 		// TODO: Adjust for flip
 
 		return this.scale(x, y);
+	},
+	
+	resizeTo: function(width, height){
+		var w = this.width, h = this.height;
+		if (!w || !h) return this;
+		return this.scaleTo(width / w, height / h);
 	}
 
 });

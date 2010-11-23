@@ -33,6 +33,8 @@ ART.SVG = new Class({
 		var element = this.element;
 		element.setAttribute('width', width);
 		element.setAttribute('height', height);
+		this.width = width;
+		this.height = height;
 		return this;
 	},
 	
@@ -89,8 +91,10 @@ ART.SVG.Group = new Class({
 	Extends: ART.SVG.Element,
 	Implements: ART.Container,
 	
-	initialize: function(){
+	initialize: function(width, height){
 		this.parent('g');
+		this.width = width;
+		this.height = height;
 		this.defs = createElement('defs');
 		this.element.appendChild(this.defs);
 		this.children = [];
@@ -209,13 +213,11 @@ ART.SVG.Base = new Class({
 
 		gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
 		
-		if (focusX == null || focusY == null || radiusX == null || radiusY == null){
-			var size = this.measure();
-			if (focusX == null) focusX = size.left + size.width * 0.5;
-			if (focusY == null) focusY = size.top + size.height * 0.5;
-			if (radiusY == null) radiusY = radiusX || (size.height * 0.5);
-			if (radiusX == null) radiusX = size.width * 0.5;
-		}
+
+		if (focusX == null) focusX = (this.left || 0) + (this.width || 0) * 0.5;
+		if (focusY == null) focusY = (this.top || 0) + (this.height || 0) * 0.5;
+		if (radiusY == null) radiusY = radiusX || (this.height * 0.5) || 0;
+		if (radiusX == null) radiusX = (this.width || 0) * 0.5;
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
 		
@@ -332,9 +334,11 @@ ART.SVG.Shape = new Class({
 	
 	Extends: ART.SVG.Base,
 	
-	initialize: function(path){
+	initialize: function(path, width, height){
 		this.parent('path');
 		this.element.setAttribute('fill-rule', 'evenodd');
+		this.width = width;
+		this.height = height;
 		if (path != null) this.draw(path);
 	},
 	
@@ -342,14 +346,12 @@ ART.SVG.Shape = new Class({
 		return this.currentPath || new ART.Path;
 	},
 	
-	draw: function(path){
+	draw: function(path, width, height){
 		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
 		this.element.setAttribute('d', this.currentPath.toSVG());
+		if (width != null) this.width = width;
+		if (height != null) this.height = height;
 		return this;
-	},
-	
-	measure: function(){
-		return this.getPath().measure();
 	}
 
 });
@@ -368,6 +370,8 @@ ART.SVG.Image = new Class({
 		element.setAttributeNS(XLINK, 'href', src);
 		element.setAttribute('width', width);
 		element.setAttribute('height', height);
+		this.width = width;
+		this.height = height;
 		return this;
 	}
 	
@@ -445,6 +449,19 @@ ART.SVG.Text = new Class({
 			row.appendChild(document.createTextNode(line));
 			element.appendChild(row);
 		}
+		
+		// Measure
+		// TODO: Move to lazy ES5 left/top/width/height/bottom/right property getters
+		var bb;
+		try { bb = element.getBBox(); } catch (x){ }
+		if (!bb || !bb.width) bb = this._whileInDocument(element.getBBox, element);
+		
+		this.left = bb.x;
+		this.top = bb.y;
+		this.width = bb.width;
+		this.height = bb.height;
+		this.right = bb.x + bb.width;
+		this.bottom = bb.y + bb.height;
 	},
 	
 	// TODO: Unify path injection with gradients and imagefills
@@ -509,15 +526,6 @@ ART.SVG.Text = new Class({
 		if (container) this.inject(container);
 		if (parent) parent.insertBefore(element, sibling);
 		return result;
-	},
-	
-	measure: function(){
-		var element = this.element, bb;
-
-		try { bb = element.getBBox(); } catch (x){ }
-		if (!bb || !bb.width) bb = this._whileInDocument(element.getBBox, element);
-		
-		return { left: bb.x, top: bb.y, width: bb.width, height: bb.height, right: bb.x + bb.width, bottom: bb.y + bb.height };
 	}
 
 });

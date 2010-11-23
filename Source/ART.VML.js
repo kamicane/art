@@ -37,6 +37,7 @@ ART.VML = new Class({
 	resize: function(width, height){
 		this.width = width;
 		this.height = height;
+		
 		var style = this.vml.style;
 		style.pixelWidth = width;
 		style.pixelHeight = height;
@@ -146,8 +147,10 @@ ART.VML.Group = new Class({
 	Extends: ART.VML.Element,
 	Implements: ART.Container,
 	
-	initialize: function(){
+	initialize: function(width, height){
 		this.parent('group');
+		this.width = width;
+		this.height = height;
 		this.children = [];
 	},
 	
@@ -155,15 +158,12 @@ ART.VML.Group = new Class({
 	
 	inject: function(container){
 		this.parent(container);
-		this.width = container.width;
-		this.height = container.height;
 		this._transform();
 		return this;
 	},
 	
 	eject: function(){
 		this.parent();
-		this.width = this.height = null;
 		return this;
 	},
 	
@@ -395,12 +395,15 @@ ART.VML.Shape = new Class({
 
 	Extends: ART.VML.Base,
 	
-	initialize: function(path){
+	initialize: function(path, width, height){
 		this.parent('shape');
 
 		var p = this.pathElement = document.createElement('av:path');
 		p.gradientshapeok = true;
 		this.element.appendChild(p);
+		
+		this.width = width;
+		this.height = height;
 		
 		if (path != null) this.draw(path);
 	},
@@ -411,27 +414,18 @@ ART.VML.Shape = new Class({
 	
 	// SVG to VML
 	
-	draw: function(path){
+	draw: function(path, width, height){
 		
 		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
 		this.currentVML = this.currentPath.toVML(precision);
-		var size = this.currentPath.measure(precision);
 		
-		this.right = size.right;
-		this.bottom = size.bottom;
-		this.top = size.top;
-		this.left = size.left;
-		this.height = size.height;
-		this.width = size.width;
+		if (width != null) this.width = width;
+		if (height != null) this.height = height;
 		
 		this._transform();
 		this._redraw(this._radial);
 		
 		return this;
-	},
-	
-	measure: function(){
-		return this.getPath().measure();
 	},
 	
 	// radial gradient workaround
@@ -469,10 +463,10 @@ ART.VML.Shape = new Class({
 	fillRadial: function(stops, focusX, focusY, radiusX, radiusY, centerX, centerY){
 		this.parent.apply(this, arguments);
 
-		if (focusX == null) focusX = this.left + this.width * 0.5;
-		if (focusY == null) focusY = this.top + this.height * 0.5;
-		if (radiusY == null) radiusY = radiusX || (this.height * 0.5);
-		if (radiusX == null) radiusX = this.width * 0.5;
+		if (focusX == null) focusX = (this.left || 0) + (this.width || 0) * 0.5;
+		if (focusY == null) focusY = (this.top || 0) + (this.height || 0) * 0.5;
+		if (radiusY == null) radiusY = radiusX || (this.height * 0.5) || 0;
+		if (radiusX == null) radiusX = (this.width || 0) * 0.5;
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
 		
@@ -585,6 +579,7 @@ ART.VML.Text = new Class({
 		style.width = '10000px';
 		style.height = '10000px';
 		style.rotation = 0;
+		element.removeChild(element.firstChild); // Remove skew
 		
 		// Inject the clone into the document
 		
@@ -609,10 +604,6 @@ ART.VML.Text = new Class({
 		this.bottom = ebb.bottom - cbb.top;
 		
 		this._transform();
-	},
-	
-	measure: function(){
-		return { left: this.left, top: this.top, width: this.width, height: this.height, right: this.right, bottom: this.bottom };
 	}
 	
 });
