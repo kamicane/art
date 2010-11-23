@@ -94,12 +94,6 @@ ART.SVG.Group = new Class({
 		this.defs = createElement('defs');
 		this.element.appendChild(this.defs);
 		this.children = [];
-	},
-	
-	measure: function(){
-		return ART.Path.measure(this.children.map(function(child){
-			return child.currentPath;
-		}));
 	}
 	
 });

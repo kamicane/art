@@ -104,8 +104,10 @@ var transformTo = function(xx, yx, xy, yy, tx, ty){
 };
 
 var translate = function(x, y){
-	var m = this;
-	return this.transformTo(m.xx, m.yx, m.xy, m.yy, m.tx + x, m.ty + y);
+	this.tx += x || 0;
+	this.ty += y || 0;
+	this.onTransform();
+	return this;
 };
 	
 ART.Transform = new Class({
@@ -144,10 +146,6 @@ ART.Transform = new Class({
 	},
 	
 	rotate: function(deg, x, y){
-		if (x == null || y == null){
-			var box = this.measure();
-			x = box.left + box.width / 2; y = box.top + box.height / 2;
-		}
 		var rad = deg * Math.PI / 180, sin = Math.sin(rad), cos = Math.cos(rad);
 		
 		this.translate(x, y);
