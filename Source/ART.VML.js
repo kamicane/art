@@ -400,8 +400,6 @@ ART.VML.Base = new Class({
 		if (focusY == null) focusY = this.top + this.height * 0.5;
 		focusX /= viewportSize;
 		focusY /= viewportSize;
-		focusX += 0.5;
-		focusY += 0.5;
 		
 		// TODO: Recalculate focus during skewed transforms		
 		
