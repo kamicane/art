@@ -148,8 +148,9 @@ ART.Transform = new Class({
 	rotate: function(deg, x, y){
 		var rad = deg * Math.PI / 180, sin = Math.sin(rad), cos = Math.cos(rad);
 		
-		this.translate(x, y);
+		this.transform(1, 0, 0, 1, x, y);
 		var m = this;
+
 		return this.transformTo(
 			cos * m.xx - sin * m.yx,
 			sin * m.xx + cos * m.yx,
@@ -157,7 +158,7 @@ ART.Transform = new Class({
 			sin * m.xy + cos * m.yy,
 			m.tx,
 			m.ty
-		).translate(-x, -y);
+		).transform(1, 0, 0, 1, -x, -y);
 	},
 	
 	moveTo: function(x, y){
@@ -184,6 +185,14 @@ ART.Transform = new Class({
 		// TODO: Adjust for flip
 
 		return this.scale(x, y);
+	},
+	
+	point: function(x, y){
+		var m = this;
+		return {
+			x: m.xx * x + m.xy * y + m.tx,
+			y: m.yx * x + m.yy * y + m.ty
+		};
 	}
 
 });

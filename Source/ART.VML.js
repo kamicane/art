@@ -12,7 +12,7 @@ requires: [ART, ART.Element, ART.Container, ART.Transform, ART.Path]
 
 var precision = 100, UID = 0;
 
-var viewportSize = 3000;
+var viewportSize = 200;
 
 // VML Base Class
 
@@ -221,30 +221,106 @@ ART.VML.Base = new Class({
 		var vx = m.xx + m.xy, vy = m.yy + m.yx,
 		    scale = Math.sqrt(vx * vx + vy * vy) / Math.sqrt(2);
 		
-		// Box model
-		var box = {
-			x: m.tx,
-			y: m.ty,
-			width: viewportSize,
-			height: viewportSize,
-			rotation: 0
-		};
-
-		// Set bounding box
-		var element = this.element;
-		element.coordorigin = 0 + ',' + 0;
-		element.coordsize = (box.width * precision) + ',' + (box.height * precision);
-		element.style.left = (box.x * precision) + 'px';
-		element.style.top = (box.y * precision) + 'px';
-		element.style.width = box.width * precision;
-		element.style.height = box.height * precision;
-		element.style.rotation = (box.rotation * 180 / Math.PI).toFixed(8);
+		// Box Model
+		var x = 0,
+			y = 0,
+			width = viewportSize,
+			height = viewportSize;
 		
+		// Determine flip
+		var flip = (m.xx < 0 && m.yy > 0) || (m.xx > 0 && m.yy < 0); // TODO
+		
+		// Rotation is approximated based on the transform
+		var rotation = Math.atan2(m.yx, m.xx) * 180 / Math.PI;
+		
+		// Place origin
+		var tx = m.tx, ty = m.ty;
+		
+		// Scale box after reversing rotation
+		var m2 = new ART.Transform().rotate(-rotation, 0, 0).transform(m);
+		width *= Math.abs(m2.xx);
+		height *= Math.abs(m2.yy);
+		
+		// Compensate for offset by center origin rotation
+		var px = -width / 2, py = -height / 2;
+		var rotationTransform = new ART.Transform().rotate(rotation, 0, 0);
+		var point = rotationTransform.point(px, py);
+		tx -= point.x - px;
+		ty -= point.y - py;
+
+		// Adjust box position based on offset
+		var rsm = new ART.Transform(m).moveTo(0,0);		
+		point = rsm.point(x, y);
+		tx += point.x;
+		ty += point.y;
+
+		// Reverse the rotation
+		var rad = rotation * Math.PI / 180, sin = Math.sin(-rad), cos = Math.cos(-rad);		
+		m = {
+			xx: m.xx * cos + m.xy * sin,
+			yx: m.xx * -sin + m.xy * cos,
+			xy: m.yx * cos + m.yy * sin,
+			yy: m.yx * -sin + m.yy * cos
+		};
+						
+		// Place transformation origin
+		var point0 = rsm.point(-x, -y);
+		var point1 = rotationTransform.point(width, height);
+		var point2 = rotationTransform.point(width, 0);
+		var point3 = rotationTransform.point(0, height);
+		
+		var minX = Math.min(0, point1.x, point2.x, point3.x),
+		    maxX = Math.max(0, point1.x, point2.x, point3.x),
+		    minY = Math.min(0, point1.y, point2.y, point3.y),
+		    maxY = Math.max(0, point1.y, point2.y, point3.y);
+		
+		var originX = (point0.x - point1.x / 2) / (maxX - minX),
+		    originY = (point0.y - point1.y / 2) / (maxY - minY);
+
+		// Adjust the origin
+		point = new ART.Transform(m2).moveTo(0,0).point(x, y);
+		x = point.x;
+		y = point.y;
+				
+		// convert to multiplied precision space
+		x *= precision;
+		y *= precision;
+		tx *= precision;
+		ty *= precision;
+		width *= precision;
+		height *= precision;
+
+		// Set box
+		var element = this.element;
+		element.coordorigin = x + ',' + y;
+		element.coordsize = width + ',' + height;
+		element.style.left = tx + 'px';
+		element.style.top = ty + 'px';
+		element.style.width = width;
+		element.style.height = height;
+		element.style.rotation = rotation.toFixed(8);
+		element.style.flip = flip ? 'x' : '';
+		
+		// TEMP
+		var bb = window.boundingBox;
+		if (bb == this) return;
+		if (bb)
+		{
+			bb.draw(width / precision, height / precision);
+			bb.element.coordorigin = 0 + ',' + 0;
+			bb.element.coordsize = width + ',' + height;
+			bb.element.style.left = tx + 'px';
+			bb.element.style.top = ty + 'px';
+			bb.element.style.width = width;
+			bb.element.style.height = height;
+			bb.element.style.rotation = rotation.toFixed(8);
+			bb.element.style.flip = flip ? 'x' : '';
+		}
+
 		// Set transform
 		var skew = this.skewElement;
-		skew.matrix = [m.xx.toFixed(8), m.xy.toFixed(8), m.yx.toFixed(8), m.yy.toFixed(8), 0, 0].join(',');
-		skew.offset = [0, 'px,', 0, 'px'].join('');
-		skew.origin = '-0.5,-0.5';
+		skew.matrix = [m.xx.toFixed(8), m.yx.toFixed(8), m.xy.toFixed(8), m.yy.toFixed(8), 0, 0];
+		skew.origin = originX + ',' + originY;
 
 		// Scale stroke
 		this.strokeElement.weight = (this.strokeWidth * scale) + 'px';
