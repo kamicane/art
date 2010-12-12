@@ -394,15 +394,14 @@ ART.VML.Base = new Class({
 
 	fillRadial: function(stops, focusX, focusY, radius){
 		var fill = this._createGradient('gradientradial', stops);
-		fill.focus = 50;
-		fill.focussize = '0 0';
 		if (focusX == null) focusX = this.left + this.width * 0.5;
 		if (focusY == null) focusY = this.top + this.height * 0.5;
 		focusX /= viewportSize;
 		focusY /= viewportSize;
 		
 		// TODO: Recalculate focus during skewed transforms		
-		
+
+		fill.focussize = '0 0';
 		fill.focusposition = focusX + ',' + focusY;
 		fill.focus = (radius == null || radius > 0.5) ? '100%' : (Math.round(radius / ((this.width + this.height) / 2) * 200) + '%');
 		return this;
@@ -541,15 +540,15 @@ ART.VML.Shape = new Class({
 	},
 
 	fillRadial: function(stops, focusX, focusY, radiusX, radiusY, centerX, centerY){
-		this.parent.apply(this, arguments);
-
 		if (focusX == null) focusX = this.left + this.width * 0.5;
 		if (focusY == null) focusY = this.top + this.height * 0.5;
 		if (radiusY == null) radiusY = radiusX || (this.height * 0.5);
 		if (radiusX == null) radiusX = this.width * 0.5;
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
-		
+
+		this.parent(stops, focusX, focusY);
+
 		centerX += centerX - focusX;
 		centerY += centerY - focusY;
 		
