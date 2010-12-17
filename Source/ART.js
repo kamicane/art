@@ -125,6 +125,8 @@ ART.Transform = new Class({
 			yx = xx.yx; yy = xx.yy; ty = xx.ty;
 			xy = xx.xy; tx = xx.tx; xx = xx.xx;
 		}
+		if (!tx) tx = 0;
+		if (!ty) ty = 0;
 		return this.transformTo(
 			m.xx * xx + m.xy * yx,
 			m.yx * xx + m.yy * yx,
