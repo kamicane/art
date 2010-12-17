@@ -180,6 +180,8 @@ ART.SVG.Base = new Class({
 		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
 		else for (var offset in stops) addColor(offset, stops[offset]);
 
+		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
+
 		this.element.removeAttribute('fill-opacity');
 		return gradient;
 	},
@@ -229,26 +231,33 @@ ART.SVG.Base = new Class({
 
 		gradient.setAttribute('cx', centerX);
 		gradient.setAttribute('cy', centerY / ys);
-
-		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
 		
 		return this;
 	},
 
-	fillLinear: function(stops, angle){
+	fillLinear: function(stops, x1, y1, x2, y2){
 		var gradient = this._createGradient('fill', 'linearGradient', stops);
+		
+		if (arguments.length == 5){
+			gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+		} else {
+			var angle = ((x1 == null) ? 270 : x1) * Math.PI / 180;
 
-		angle = ((angle == null) ? 270 : angle) * Math.PI / 180;
+			var x = Math.cos(angle), y = -Math.sin(angle),
+				l = (Math.abs(x) + Math.abs(y)) / 2;
 
-		var x = Math.cos(angle), y = -Math.sin(angle),
-			l = (Math.abs(x) + Math.abs(y)) / 2;
+			x *= l; y *= l;
 
-		x *= l; y *= l;
+			x1 = 0.5 - x;
+			x2 = 0.5 + x;
+			y1 = 0.5 - y;
+			y2 = 0.5 + y;
+		}
 
-		gradient.setAttribute('x1', 0.5 - x);
-		gradient.setAttribute('x2', 0.5 + x);
-		gradient.setAttribute('y1', 0.5 - y);
-		gradient.setAttribute('y2', 0.5 + y);
+		gradient.setAttribute('x1', x1);
+		gradient.setAttribute('y1', y1);
+		gradient.setAttribute('x2', x2);
+		gradient.setAttribute('y2', y2);
 
 		return this;
 	},
