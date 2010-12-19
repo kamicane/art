@@ -170,8 +170,9 @@ ART.Transform = new Class({
 	
 	rotateTo: function(deg, x, y){
 		var m = this;
-		// TODO: Adjust for flip
-		return this.rotate(deg - Math.atan2(m.yx, m.xx) * 180 / Math.PI, x, y)
+	    var flip = m.yx / m.xx > m.yy / m.xy ? -1 : 1;
+		if (m.xx < 0 ? m.xy >= 0 : m.xy < 0) flip = -flip;
+		return this.rotate(deg - Math.atan2(flip * m.yx, flip * m.xx) * 180 / Math.PI, x, y);
 	},
 	
 	scaleTo: function(x, y){
@@ -183,8 +184,6 @@ ART.Transform = new Class({
 
 		h = Math.sqrt(m.yy * m.yy + m.xy * m.xy);
 		m.yy /= h; m.xy /= h;
-
-		// TODO: Adjust for flip
 
 		return this.scale(x, y);
 	},
