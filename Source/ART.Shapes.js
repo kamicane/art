@@ -54,7 +54,7 @@ ART.Rectangle = new Class({
 			path.line(0, - Math.abs(height) + (bl + tl));
 		}
 
-		return this.parent(path);
+		return this.parent(path, width, height);
 	}
 
 });
@@ -82,7 +82,7 @@ ART.Ellipse = new Class({
 		var path = new ART.Path;
 		var rx = width / 2, ry = height / 2;
 		path.move(0, ry).arc(width, 0, rx, ry).arc(-width, 0, rx, ry);
-		return this.parent(path);
+		return this.parent(path, width, height);
 	}
 
 });
@@ -125,7 +125,7 @@ ART.Wedge = new Class({
 		}
 
 		path.close();
-		return this.parent(path);
+		return this.parent(path, or * 2, or * 2);
 	}
 
 });
