@@ -3,7 +3,7 @@
 name: ART.SVG
 description: "SVG implementation for ART"
 provides: [ART.SVG, ART.SVG.Group, ART.SVG.Shape, ART.SVG.Image, ART.SVG.Text]
-requires: [ART, ART.Element, ART.Container, ART.Path]
+requires: [ART, ART.Element, ART.Container, ART.Transform, ART.Path]
 ...
 */
 
@@ -47,43 +47,20 @@ ART.SVG = new Class({
 ART.SVG.Element = new Class({
 	
 	Extends: ART.Element,
+	
+	Implements: ART.Transform,
 
 	initialize: function(tag){
 		this.uid = String.uniqueID();
 		var element = this.element = createElement(tag);
 		element.setAttribute('id', 'e' + this.uid);
-		this.transform = {translate: [0, 0], rotate: [0, 0, 0], scale: [1, 1]};
 	},
 	
 	/* transforms */
 	
-	_writeTransform: function(){
-		var transforms = [];
-		for (var transform in this.transform) transforms.push(transform + '(' + this.transform[transform].join(',') + ')');
-		this.element.setAttribute('transform', transforms.join(' '));
-	},
-	
-	rotate: function(deg, x, y){
-		if (x == null || y == null){
-			var box = this.measure();
-			x = box.left + box.width / 2; y = box.top + box.height / 2;
-		}
-		this.transform.rotate = [deg, x, y];
-		this._writeTransform();
-		return this;
-	},
-
-	scale: function(x, y){
-		if (y == null) y = x;
-		this.transform.scale = [x, y];
-		this._writeTransform();
-		return this;
-	},
-
-	translate: function(x, y){
-		this.transform.translate = [x, y];
-		this._writeTransform();
-		return this;
+	_transform: function(){
+		var m = this;
+		this.element.setAttribute('transform', 'matrix(' + [m.xx, m.yx, m.xy, m.yy, m.tx, m.ty] + ')');
 	},
 	
 	blend: function(opacity){
@@ -117,12 +94,6 @@ ART.SVG.Group = new Class({
 		this.defs = createElement('defs');
 		this.element.appendChild(this.defs);
 		this.children = [];
-	},
-	
-	measure: function(){
-		return ART.Path.measure(this.children.map(function(child){
-			return child.currentPath;
-		}));
 	}
 	
 });
@@ -145,8 +116,8 @@ ART.SVG.Base = new Class({
 		this.eject();
 		if (container instanceof ART.SVG.Group) container.children.push(this);
 		this.container = container;
-		this._injectGradient('fill');
-		this._injectGradient('stroke');
+		this._injectBrush('fill');
+		this._injectBrush('stroke');
 		this.parent(container);
 		return this;
 	},
@@ -155,33 +126,45 @@ ART.SVG.Base = new Class({
 		if (this.container){
 			if (this.container instanceof ART.SVG.Group) this.container.children.erase(this);
 			this.parent();
-			this._ejectGradient('fill');
-			this._ejectGradient('stroke');
+			this._ejectBrush('fill');
+			this._ejectBrush('stroke');
 			this.container = null;
 		}
 		return this;
 	},
 	
-	_injectGradient: function(type){
+	_injectBrush: function(type){
 		if (!this.container) return;
-		var gradient = this[type + 'Gradient'];
-		if (gradient) this.container.defs.appendChild(gradient);
+		var brush = this[type + 'Brush'];
+		if (brush) this.container.defs.appendChild(brush);
 	},
 	
-	_ejectGradient: function(type){
+	_ejectBrush: function(type){
 		if (!this.container) return;
-		var gradient = this[type + 'Gradient'];
-		if (gradient) this.container.defs.removeChild(gradient);
+		var brush = this[type + 'Brush'];
+		if (brush) this.container.defs.removeChild(brush);
 	},
 	
 	/* styles */
 	
+	_createBrush: function(type, tag){
+		this._ejectBrush(type);
+
+		var brush = createElement(tag);
+		this[type + 'Brush'] = brush;
+
+		var id = type + '-brush-e' + this.uid;
+		brush.setAttribute('id', id);
+
+		this._injectBrush(type);
+
+		this.element.setAttribute(type, 'url(#' + id + ')');
+
+		return brush;
+	},
+
 	_createGradient: function(type, style, stops){
-		this._ejectGradient(type);
-
-		var gradient = createElement(style + 'Gradient');
-
-		this[type + 'Gradient'] = gradient;
+		var gradient = this._createBrush(type, style);
 
 		var addColor = function(offset, color){
 			color = Color.detach(color);
@@ -197,20 +180,16 @@ ART.SVG.Base = new Class({
 		if ('length' in stops) for (var i = 0, l = stops.length - 1; i <= l; i++) addColor(i / l, stops[i]);
 		else for (var offset in stops) addColor(offset, stops[offset]);
 
-		var id = 'g' + String.uniqueID();
-		gradient.setAttribute('id', id);
+		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
 
-		this._injectGradient(type);
 
 		this.element.removeAttribute('fill-opacity');
-		this.element.setAttribute(type, 'url(#' + id + ')');
-		
 		return gradient;
 	},
 	
 	_setColor: function(type, color){
-		this._ejectGradient(type);
-		this[type + 'Gradient'] = null;
+		this._ejectBrush(type);
+		this[type + 'Brush'] = null;
 		var element = this.element;
 		if (color == null){
 			element.setAttribute(type, 'none');
@@ -228,39 +207,119 @@ ART.SVG.Base = new Class({
 		return this;
 	},
 
-	fillRadial: function(stops, focusX, focusY, radius, centerX, centerY){
-		var gradient = this._createGradient('fill', 'radial', stops);
+	fillRadial: function(stops, focusX, focusY, radiusX, radiusY, centerX, centerY){
+		var gradient = this._createGradient('fill', 'radialGradient', stops);
 
-		if (focusX != null) gradient.setAttribute('fx', focusX);
-		if (focusY != null) gradient.setAttribute('fy', focusY);
-
-		if (radius) gradient.setAttribute('r', radius);
-
+		gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+		
+		if (focusX == null || focusY == null || radiusX == null || radiusY == null){
+			var size = this.measure();
+			if (focusX == null) focusX = size.left + size.width * 0.5;
+			if (focusY == null) focusY = size.top + size.height * 0.5;
+			if (radiusY == null) radiusY = radiusX || (size.height * 0.5);
+			if (radiusX == null) radiusX = size.width * 0.5;
+		}
 		if (centerX == null) centerX = focusX;
 		if (centerY == null) centerY = focusY;
+		
+		var ys = radiusY / radiusX;
 
-		if (centerX != null) gradient.setAttribute('cx', centerX);
-		if (centerY != null) gradient.setAttribute('cy', centerY);
+		gradient.setAttribute('fx', focusX);
+		gradient.setAttribute('fy', focusY / ys);
 
-		gradient.setAttribute('spreadMethod', 'reflect'); // Closer to the VML gradient
+		gradient.setAttribute('r', radiusX);
+		if (ys != 1) gradient.setAttribute('gradientTransform', 'scale(1,' + ys + ')');
+
+		gradient.setAttribute('cx', centerX);
+		gradient.setAttribute('cy', centerY / ys);
 		
 		return this;
 	},
 
-	fillLinear: function(stops, angle){
-		var gradient = this._createGradient('fill', 'linear', stops);
+	fillLinear: function(stops, x1, y1, x2, y2){
+		var gradient = this._createGradient('fill', 'linearGradient', stops);
+		
+		if (arguments.length == 5){
+			gradient.setAttribute('gradientUnits', 'userSpaceOnUse');
+		} else {
+			var angle = ((x1 == null) ? 270 : x1) * Math.PI / 180;
 
-		angle = ((angle == null) ? 270 : angle) * Math.PI / 180;
+			var x = Math.cos(angle), y = -Math.sin(angle),
+				l = (Math.abs(x) + Math.abs(y)) / 2;
 
-		var x = Math.cos(angle), y = -Math.sin(angle),
-			l = (Math.abs(x) + Math.abs(y)) / 2;
+			x *= l; y *= l;
 
-		x *= l; y *= l;
+			x1 = 0.5 - x;
+			x2 = 0.5 + x;
+			y1 = 0.5 - y;
+			y2 = 0.5 + y;
+		}
 
-		gradient.setAttribute('x1', 0.5 - x);
-		gradient.setAttribute('x2', 0.5 + x);
-		gradient.setAttribute('y1', 0.5 - y);
-		gradient.setAttribute('y2', 0.5 + y);
+		gradient.setAttribute('x1', x1);
+		gradient.setAttribute('y1', y1);
+		gradient.setAttribute('x2', x2);
+		gradient.setAttribute('y2', y2);
+
+		return this;
+	},
+
+	fillImage: function(url, width, height, left, top, color1, color2){
+		var pattern = this._createBrush('fill', 'pattern');
+
+		var image = createElement('image');
+		image.setAttributeNS(XLINK, 'href', url);
+		image.setAttribute('width', width);
+		image.setAttribute('height', height);
+		image.setAttribute('preserveAspectRatio', 'none'); // none, xMidYMid slice, xMidYMid meet
+
+		if (color1 != null){
+			color1 = new Color(color1);
+			if (color2 == null){
+				color2 = new Color(color1);
+				color2.alpha = 0;
+			} else {
+				color2 = new Color(color2);
+			}
+
+			var r = (color1.red - color2.red) / (255 * 3),
+				g = (color1.green - color2.green) / (255 * 3),
+				b = (color1.blue - color2.blue) / (255 * 3),
+				a = (color1.alpha - color2.alpha) / 3;
+			
+			var matrix = [
+				r, r, r, 0, color2.red / 255,
+				g, g, g, 0, color2.green / 255,
+				b, b, b, 0, color2.blue / 255,
+				a, a, a, 0, color2.alpha
+			];
+
+			var filter = createElement('filter');
+			filter.setAttribute('id', 'testfilter' + this.uid);
+
+			var cm = createElement('feColorMatrix');
+			cm.setAttribute('type', 'matrix');
+			cm.setAttribute('values', matrix.join(' '));
+
+			image.setAttribute('fill', '#000');
+			image.setAttribute('filter', 'url(#testfilter' + this.uid + ')');
+
+			filter.appendChild(cm);
+			pattern.appendChild(filter);
+		}
+
+		pattern.appendChild(image);
+		
+		pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+		pattern.setAttribute('patternContentsUnits', 'userSpaceOnUse');
+		
+		pattern.setAttribute('x', left || 0);
+		pattern.setAttribute('y', top || 0);
+		
+		pattern.setAttribute('width', width);
+		pattern.setAttribute('height', height);
+
+		//pattern.setAttribute('viewBox', '0 0 75 50');
+		//pattern.setAttribute('preserveAspectRatio', 'xMidYMid slice');
 
 		return this;
 	},
