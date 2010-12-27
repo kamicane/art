@@ -86,7 +86,7 @@ ART.SVG.Element = new Class({
 		return this;
 	},
 	
-	setOpacity: function(opacity){
+	blend: function(opacity){
 		this.element.setAttribute('opacity', opacity);
 		return this;
 	},
