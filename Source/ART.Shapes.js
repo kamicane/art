@@ -53,6 +53,8 @@ ART.Rectangle = new Class({
 			if (bl > 0) path.arc(-bl, -bl);
 			path.line(0, - Math.abs(height) + (bl + tl));
 		}
+		
+		path.close();
 
 		return this.parent(path, width, height);
 	}
@@ -82,6 +84,9 @@ ART.Ellipse = new Class({
 		var path = new ART.Path;
 		var rx = width / 2, ry = height / 2;
 		path.move(0, ry).arc(width, 0, rx, ry).arc(-width, 0, rx, ry);
+		
+		path.close();
+		
 		return this.parent(path, width, height);
 	}
 
