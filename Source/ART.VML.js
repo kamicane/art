@@ -344,7 +344,7 @@ ART.VML.Base = new Class({
 
 		var addColor = function(offset, color){
 			color = Color.detach(color);
-			if (color1 == null) color1 = color;
+			if (color1 == null) color1 = color2 = color;
 			else color2 = color;
 			colors.push(offset + ' ' + color[0]);
 		};
@@ -478,6 +478,7 @@ ART.VML.Base = new Class({
 		if (!top) top = 0;
 		this._boxCoords = width ? { left: left + 0.5, top: top + 0.5, width: width, height: height } : null;
 		this._transform();
+		return this;
 	},
 
 	/* stroke */
