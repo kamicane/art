@@ -97,7 +97,6 @@ ART.SVG.Group = new Class({
 		this.height = height;
 		this.defs = createElement('defs');
 		this.element.appendChild(this.defs);
-		this.children = [];
 	}
 	
 });
@@ -118,7 +117,6 @@ ART.SVG.Base = new Class({
 	
 	inject: function(container){
 		this.eject();
-		if (container instanceof ART.SVG.Group) container.children.push(this);
 		this.container = container;
 		this._injectBrush('fill');
 		this._injectBrush('stroke');
@@ -128,7 +126,6 @@ ART.SVG.Base = new Class({
 	
 	eject: function(){
 		if (this.container){
-			if (this.container instanceof ART.SVG.Group) this.container.children.erase(this);
 			this.parent();
 			this._ejectBrush('fill');
 			this._ejectBrush('stroke');
