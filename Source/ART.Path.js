@@ -119,14 +119,14 @@ var extrapolate = function(parts, precision){
 			break;
 			
 			case 'q':
-				px = refX + v[0]; py = refY + v[1];
-				path += 'c' + ux(refX + v[0]) + ',' + uy(refY + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[2]) + ',' + uy(Y = refY + v[3]);
+				px = (refX + v[0]); py = (refY + v[1]);
+				path += 'c' + ux((X + px * 2) / 3) + ',' + uy((Y + py * 2) / 3) + ',' + ux(((X = refX + v[2]) + px * 2) / 3) + ',' + uy(((Y = refY + v[3]) + py * 2) / 3) + ',' + ux(X) + ',' + uy(Y);
 			break;
 			
 			case 't':
 				r = reflect(px, py, X, Y);
-				px = refX + r[0]; py = refY + r[1];
-				path += 'c' + ux(px) + ',' + uy(py) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[0]) + ',' + uy(Y = refY + v[1]);
+				px = r[0]; py = r[1];
+				path += 'c' + ux((X + px * 2) / 3) + ',' + uy((Y + py * 2) / 3) + ',' + ux(((X = refX + v[0]) + px * 2) / 3) + ',' + uy(((Y = refY + v[1]) + py * 2) / 3) + ',' + ux(X) + ',' + uy(Y);
 			break;
 
 			case 'a':
