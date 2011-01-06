@@ -12,15 +12,32 @@ requires: ART
 
 /* private functions */
 
+var parameterCount = {
+	l: 2, z: 0,
+	h: 1, v: 1,
+	c: 6, s: 4,
+	q: 4, t: 2,
+	a: 7
+};
+
 var parse = function(path){
 
 	var parts = [], index = -1,
-	    bits = path.match(/[a-df-z]|[\-+]?(?:[\d\.]e[\-+]?|[^\s\-+,a-z])+/ig);
+	    bits = path.match(/[a-df-z]|[\-+]?(?:[\d\.]e[\-+]?|[^\s\-+,a-z])+/ig),
+	    command, part, paramCount = 0;
 
 	for (var i = 0, l = bits.length; i < l; i++){
 		var bit = bits[i];
-		if (bit.match(/^[a-z]/i)) parts[++index] = [bit];
-		else parts[index].push(Number(bit));
+		if (bit.match(/^[a-z]/i)){
+			command = bit;
+			parts[++index] = part = [command];
+			if (command == 'm') command = 'l';
+			else if (command == 'M') command = 'L';
+			paramCount = parameterCount[command.toLowerCase()];
+		} else {
+			if (part.length > paramCount) parts[++index] = part = [command];
+			part.push(Number(bit));
+		}
 	}
 	
 	return parts;
