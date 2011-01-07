@@ -85,8 +85,25 @@ ART.SVG.Element = new Class({
 	show: function(){
 		this.element.setAttribute('display', '');
 		return this;
-	}
+	},
 	
+	// interaction
+	
+	indicate: function(cursor, tooltip){
+		var element = this.element;
+		if (cursor) this.element.style.cursor = cursor;
+		if (tooltip){
+			var title = this.titleElement; 
+			if (title){
+				title.firstChild.nodeValue = tooltip;
+			} else {
+				this.titleElement = title = createElement('title');
+				title.appendChild(document.createTextNode(tooltip));
+				element.insertBefore(title, element.firstChild);
+			}
+		}
+	}
+
 });
 
 // SVG Group Class

@@ -137,8 +137,15 @@ ART.VML.Element = new Class({
 	show: function(){
 		this.element.style.display = '';
 		return this;
-	}
+	},
 	
+	// interaction
+	
+	indicate: function(cursor, tooltip){
+		if (cursor) this.element.style.cursor = cursor;
+		if (tooltip) this.element.title = tooltip;
+	}
+
 });
 
 // VML Group Class
