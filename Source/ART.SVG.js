@@ -9,9 +9,11 @@ requires: [ART, ART.Element, ART.Container, ART.Transform, ART.Path]
 
 (function(){
 	
-var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', UID = 0, createElement = function(tag){
-	return document.createElementNS(NS, tag);
-};
+var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', XML = 'http://www.w3.org/XML/1998/namespace',
+    UID = 0,
+    createElement = function(tag){
+        return document.createElementNS(NS, tag);
+    };
 
 // SVG Base Class
 
@@ -434,11 +436,13 @@ ART.SVG.Text = new Class({
 		// Note: Gecko will (incorrectly) align gradients for each row, while others applies one for the entire element
 		
 		var lines = String(text).split(/\r?\n/), l = lines.length,
-		    baseline = paths ? 'middle' : 'text-before-edge';
+		    baseline = 'central';
 		
 		if (paths && l > paths.length) l = paths.length;
 		
 		element.setAttribute('dominant-baseline', baseline);
+
+		element.setAttributeNS(XML, 'space', 'preserve');
 		
 		for (var i = 0; i < l; i++){
 			var line = lines[i], row;
@@ -449,10 +453,15 @@ ART.SVG.Text = new Class({
 			} else {
 				row = createElement('tspan');
 				row.setAttribute('x', 0);
-				row.setAttribute('dy', i == 0 ? '0' : '1em');
+				row.setAttribute('y', (i * 1.1 + 0.5) + 'em');
 			}
-			row.setAttribute('baseline-shift', paths ? '-0.5ex' : '-2ex'); // Opera
-			row.setAttribute('dominant-baseline', baseline);
+			if ((/opera/i).test(navigator.userAgent)){ // Feature detection would be welcome
+				row.setAttribute('baseline-shift', '-0.7ex');
+				row.setAttribute('dominant-baseline', 'auto');
+			} else {
+				row.setAttribute('dominant-baseline', baseline);
+			}
+			row.setAttributeNS(XML, 'space', 'preserve');
 			row.appendChild(document.createTextNode(line));
 			element.appendChild(row);
 		}
