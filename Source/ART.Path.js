@@ -22,6 +22,8 @@ var parameterCount = {
 
 var parse = function(path){
 
+	if (!path) return [];
+
 	var parts = [], index = -1,
 	    bits = path.match(/[a-df-z]|[\-+]?(?:[\d\.]e[\-+]?|[^\s\-+,a-z])+/ig),
 	    command, part, paramCount = 0;
