@@ -15,6 +15,9 @@ var NS = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink', X
         return document.createElementNS(NS, tag);
     };
 
+var ua = navigator && navigator.userAgent,
+    hasBaseline = !(/opera|safari|ie/i).test(ua) || (/chrome/i).test(ua);
+
 // SVG Base Class
 
 ART.SVG = new Class({
@@ -440,12 +443,12 @@ ART.SVG.Text = new Class({
 		
 		if (paths && l > paths.length) l = paths.length;
 		
-		element.setAttribute('dominant-baseline', baseline);
+		if (hasBaseline) element.setAttribute('dominant-baseline', baseline);
 
 		element.setAttributeNS(XML, 'space', 'preserve');
 		
 		for (var i = 0; i < l; i++){
-			var line = lines[i], row;
+			var line = lines[i], row, content;
 			if (paths){
 				row = createElement('textPath');
 				row.setAttributeNS(XLINK, 'href', '#' + paths[i].getAttribute('id'));
@@ -455,14 +458,19 @@ ART.SVG.Text = new Class({
 				row.setAttribute('x', 0);
 				row.setAttribute('y', (i * 1.1 + 0.5) + 'em');
 			}
-			if ((/opera/i).test(navigator.userAgent)){ // Feature detection would be welcome
-				row.setAttribute('baseline-shift', '-0.7ex');
-				row.setAttribute('dominant-baseline', 'auto');
-			} else {
+			if (hasBaseline){
 				row.setAttribute('dominant-baseline', baseline);
+				content = row;
+			} else if (paths){
+				content = createElement('tspan');
+				content.setAttribute('dy', '0.35em');
+				row.appendChild(content);
+			} else {
+				content = row;
+				row.setAttribute('y', (i * 1.1 + 0.85) + 'em');
 			}
-			row.setAttributeNS(XML, 'space', 'preserve');
-			row.appendChild(document.createTextNode(line));
+			content.setAttributeNS(XML, 'space', 'preserve');
+			content.appendChild(document.createTextNode(line));
 			element.appendChild(row);
 		}
 		
