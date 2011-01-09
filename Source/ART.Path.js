@@ -116,7 +116,7 @@ var extrapolate = function(parts, precision){
 		var v = Array.slice(parts[i]), f = v.shift(), l = f.toLowerCase();
 		var refX = l == f ? X : 0, refY = l == f ? Y : 0;
 		
-		if (l != 'm' && inX == null){
+		if (l != 'm' && l != 'z' && inX == null){
 			inX = X; inY = Y;
 		}
 
@@ -177,9 +177,8 @@ var extrapolate = function(parts, precision){
 			break;
 			
 			case 'z':
-				path += 'x';
 				if (inX != null){
-					path += 'm' + ux(X = inX) + ',' + uy(Y = inY);
+					path += 'xm' + ux(X = inX) + ',' + uy(Y = inY);
 					inX = null;
 				}
 			break;
