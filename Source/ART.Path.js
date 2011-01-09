@@ -49,8 +49,12 @@ var parse = function(path){
 var circle = Math.PI * 2, north = circle / 2, west = north / 2, east = -west, south = 0;
 
 var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
+	x -= tX; y -= tY;
+	
 	var cx = x / 2, cy = y / 2,
-		rxry = rx * rx * ry * ry, rycx = ry * ry * cx * cx, rxcy = rx * rx * cy * cy,
+		rxry = rx * rx * ry * ry,
+		rycx = ry * ry * cx * cx,
+		rxcy = rx * rx * cy * cy,
 		a = rxry - rxcy - rycx;
 
 	if (a < 0){
@@ -156,8 +160,7 @@ var extrapolate = function(parts, precision){
 					break;
 				}
 				
-				v[7] = X; v[8] = Y;
-				r = calculateArc.apply(null, v);
+				r = calculateArc(v[0], v[1], v[2], v[3], v[4], px, py, X, Y);
 
 				boundsX.push.apply(boundsX, r.boundsX);
 				boundsY.push.apply(boundsY, r.boundsY);
@@ -181,6 +184,9 @@ var extrapolate = function(parts, precision){
 				}
 			break;
 			
+		}
+		if (l != 's' && l != 'c' && l != 't' && l != 'q'){
+			px = X; py = Y;
 		}
 	}
 	
@@ -280,7 +286,7 @@ ART.Path = new Class({
 		var parts = this.path, newPaths = [], path = new ART.Path();
 		
 		var X = 0, Y = 0, inX, inY;
-		for (i = 0; i < parts.length; i++){
+		for (var i = 0, k = parts.length; i < k; i++){
 			var v = parts[i], f = v[0], l = f.toLowerCase();
 			
 			if (l != 'm' && inX == null){ inX = X; inY = Y; }
