@@ -15,7 +15,7 @@ ART.version = '09.dev';
 ART.build = 'DEV';
 
 ART.Element = new Class({
-	
+
 	/* dom */
 
 	inject: function(element){
@@ -23,15 +23,15 @@ ART.Element = new Class({
 		element.appendChild(this.element);
 		return this;
 	},
-	
+
 	eject: function(){
 		var element = this.element, parent = element.parentNode;
 		if (parent) parent.removeChild(element);
 		return this;
 	},
-	
+
 	/* events */
-	
+
 	subscribe: function(type, fn, bind){
 		if (typeof type != 'string'){ // listen type / fn with object
 			var subscriptions = [];
@@ -92,16 +92,16 @@ var translate = function(x, y){
 	this._transform();
 	return this;
 };
-	
+
 ART.Transform = new Class({
 
 	initialize: transformTo,
-	
+
 	_transform: function(){},
-	
+
 	xx: 1, yx: 0, tx: 0,
 	xy: 0, yy: 1, ty: 0,
-	
+
 	transform: function(xx, yx, xy, yy, tx, ty){
 		var m = this;
 		if (xx && typeof xx == 'object'){
@@ -119,25 +119,25 @@ ART.Transform = new Class({
 			m.yx * tx + m.yy * ty + m.ty
 		);
 	},
-	
+
 	transformTo: transformTo,
-	
+
 	translate: translate,
 	move: translate,
-	
+
 	scale: function(x, y){
 		if (y == null) y = x;
 		return this.transform(x, 0, 0, y, 0, 0);
 	},
-	
+
 	rotate: function(deg, x, y){
 		if (x == null || y == null){
 			x = (this.left || 0) + (this.width || 0) / 2;
 			y = (this.top || 0) + (this.height || 0) / 2;
 		}
-		
+
 		var rad = deg * Math.PI / 180, sin = Math.sin(rad), cos = Math.cos(rad);
-		
+
 		this.transform(1, 0, 0, 1, x, y);
 		var m = this;
 
@@ -150,19 +150,19 @@ ART.Transform = new Class({
 			m.ty
 		).transform(1, 0, 0, 1, -x, -y);
 	},
-	
+
 	moveTo: function(x, y){
 		var m = this;
 		return this.transformTo(m.xx, m.yx, m.xy, m.yy, x, y);
 	},
-	
+
 	rotateTo: function(deg, x, y){
 		var m = this;
-	    var flip = m.yx / m.xx > m.yy / m.xy ? -1 : 1;
+		var flip = m.yx / m.xx > m.yy / m.xy ? -1 : 1;
 		if (m.xx < 0 ? m.xy >= 0 : m.xy < 0) flip = -flip;
 		return this.rotate(deg - Math.atan2(flip * m.yx, flip * m.xx) * 180 / Math.PI, x, y);
 	},
-	
+
 	scaleTo: function(x, y){
 		// Normalize
 		var m = this;
@@ -175,13 +175,13 @@ ART.Transform = new Class({
 
 		return this.scale(x, y);
 	},
-	
+
 	resizeTo: function(width, height){
 		var w = this.width, h = this.height;
 		if (!w || !h) return this;
 		return this.scaleTo(width / w, height / h);
 	},
-	
+
 	point: function(x, y){
 		var m = this;
 		return {
