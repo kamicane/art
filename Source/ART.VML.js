@@ -228,7 +228,7 @@ ART.VML.Base = new Class({
 		
 		// Box in shape user space
 		
-		var box = this._boxCoords || this.measure() || defaultBox;
+		var box = this._boxCoords || this._size || defaultBox;
 		
 		var originX = box.left || 0,
 			originY = box.top || 0,
@@ -523,16 +523,13 @@ ART.VML.Shape = new Class({
 		if (path != null) this.draw(path);
 	},
 	
-	getPath: function(){
-		return this.currentPath;
-	},
-	
 	// SVG to VML
 	
 	draw: function(path, width, height){
 		
-		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
-		this.currentVML = this.currentPath.toVML(precision);
+		if (!(path instanceof ART.Path)) path = new ART.Path(path);
+		this._vml = path.toVML(precision);
+		this._size = path.measure();
 		
 		if (width != null) this.width = width;
 		if (height != null) this.height = height;
@@ -543,16 +540,10 @@ ART.VML.Shape = new Class({
 		return this;
 	},
 	
-	measure: function(){
-		var path = this.getPath();
-		if (!path) return null;
-		return path.measure();
-	},
-	
 	// radial gradient workaround
 
 	_redraw: function(prefix, suffix){
-		var vml = this.currentVML || '';
+		var vml = this._vml || '';
 
 		this._prefix = prefix;
 		this._suffix = suffix
@@ -721,14 +712,11 @@ ART.VML.Text = new Class({
 		this.bottom = ebb.bottom - cbb.top;
 		
 		this._transform();
-		
+
+		this._size = { left: this.left, top: this.top, width: this.width, height: this.height};
 		return this;
-	},
-	
-	measure: function(){
-		return { left: this.left, top: this.top, width: this.width, height: this.height, right: this.right, bottom: this.bottom };
 	}
-	
+
 });
 
 })();

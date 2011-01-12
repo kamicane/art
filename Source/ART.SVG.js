@@ -372,13 +372,9 @@ ART.SVG.Shape = new Class({
 		if (path != null) this.draw(path);
 	},
 	
-	getPath: function(){
-		return this.currentPath || new ART.Path;
-	},
-	
 	draw: function(path, width, height){
-		this.currentPath = (path instanceof ART.Path) ? path : new ART.Path(path);
-		this.element.setAttribute('d', this.currentPath.toSVG());
+		if (!(path instanceof ART.Path)) path = new ART.Path(path);
+		this.element.setAttribute('d', path.toSVG());
 		if (width != null) this.width = width;
 		if (height != null) this.height = height;
 		return this;
