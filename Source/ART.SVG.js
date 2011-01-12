@@ -503,6 +503,7 @@ ART.SVG.Text = new Class({
 		this.height = bb.height;
 		this.right = bb.x + bb.width;
 		this.bottom = bb.y + bb.height;
+		return this;
 	},
 	
 	// TODO: Unify path injection with gradients and imagefills
