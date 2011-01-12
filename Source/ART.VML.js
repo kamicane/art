@@ -144,6 +144,7 @@ ART.VML.Element = new Class({
 	indicate: function(cursor, tooltip){
 		if (cursor) this.element.style.cursor = cursor;
 		if (tooltip) this.element.title = tooltip;
+		return this;
 	}
 
 });

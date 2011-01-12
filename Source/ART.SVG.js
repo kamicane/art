@@ -102,6 +102,7 @@ ART.SVG.Element = new Class({
 				element.insertBefore(title, element.firstChild);
 			}
 		}
+		return this;
 	}
 
 });
