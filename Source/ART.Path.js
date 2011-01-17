@@ -46,12 +46,15 @@ var parse = function(path){
 
 };
 
-var circle = Math.PI * 2, north = circle / 2, west = north / 2, east = -west, south = 0;
+var circle = Math.PI * 2, west = circle / 2, south = west / 2, north = -south, east = 0;
 
-var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
+var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, addCurve, addArc){
+	var rad = rotation * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
 	x -= tX; y -= tY;
 	
-	var cx = x / 2, cy = y / 2,
+	// Ellipse Center
+	var cx = cos * x / 2 + sin * y / 2,
+		cy = -sin * x / 2 + cos * y / 2,
 		rxry = rx * rx * ry * ry,
 		rycx = ry * ry * cx * cx,
 		rxcy = rx * rx * cy * cy,
@@ -60,30 +63,71 @@ var calculateArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY){
 	if (a < 0){
 		a = Math.sqrt(1 - a / rxry);
 		rx *= a; ry *= a;
+		cx = x / 2; cy = y / 2;
 	} else {
 		a = Math.sqrt(a / (rxcy + rycx));
 		if (large == clockwise) a = -a;
-		cx += -a * y / 2 * rx / ry;
-		cy +=  a * x / 2 * ry / rx;
+		var cxd = -a * cy * rx / ry,
+		    cyd =  a * cx * ry / rx;
+		cx = cos * cxd - sin * cyd + x / 2;
+		cy = sin * cxd + cos * cyd + y / 2;
 	}
 
-	var sa = Math.atan2(cx, -cy), ea = Math.atan2(-x + cx, y - cy);
-	if (!+clockwise){ var t = sa; sa = ea; ea = t; }
-	if (ea < sa) ea += circle;
+	// Rotation + Scale Transform
+	var xx =  cos / rx, yx = sin / rx,
+	    xy = -sin / ry, yy = cos / ry;
+
+	// Start and End Angle
+	var sa = Math.atan2(xy * -cx + yy * -cy, xx * -cx + yx * -cy),
+	    ea = Math.atan2(xy * (x - cx) + yy * (y - cy), xx * (x - cx) + yx * (y - cy));
 
 	cx += tX; cy += tY;
 
-	return {
-		circle: [cx - rx, cy - ry, cx + rx, cy + ry],
-		boundsX: [
-			ea > circle + west || (sa < west && ea > west) ? cx - rx : tX,
-			ea > circle + east || (sa < east && ea > east) ? cx + rx : tX
-		],
-		boundsY: [
-			ea > north ? cy - ry : tY,
-			ea > circle + south || (sa < south && ea > south) ? cy + ry : tY
-		]
-	};
+	// Circular Arc
+	if (rx == ry && addArc){
+		var bbsa = clockwise ? sa : ea, bbea = clockwise ? ea : sa;
+		if (bbea < bbsa) bbea += circle;
+		addArc(
+			cx, cy, rx, sa, ea, !clockwise,
+			// Bounds
+			(bbea > west) ? (cx - rx) : (tX + x),
+			(bbea > circle + east || (bbsa < east && bbea > east)) ? (cx + rx) : (tX + x),
+			(bbea > circle + north || (bbsa < north && bbea > north)) ? (cy - ry) : (tY + y),
+			(bbea > circle + south || (bbsa < south && bbea > south)) ? (cy + ry) : (tY + y)
+		);
+		return;
+	}
+
+	// Inverse Rotation + Scale Transform
+	xx = cos * rx; yx = -sin * ry;
+	xy = sin * rx; yy =  cos * ry;
+
+	// Bezier Curve Approximation
+	var arc = ea - sa;
+	if (arc < 0 && clockwise) arc += circle;
+	else if (arc > 0 && !clockwise) arc -= circle;
+
+	var n = Math.ceil(Math.abs(arc / (circle / 4))),
+	    step = arc / n,
+	    k = (4 / 3) * Math.tan(step / 4),
+	    a = sa;
+
+	x = Math.cos(a); y = Math.sin(a);
+
+	for (var i = 0; i < n; i++){
+		var cp1x = x - k * y, cp1y = y + k * x;
+
+		a += step;
+		x = Math.cos(a); y = Math.sin(a);
+
+		var cp2x = x + k * y, cp2y = y - k * x;
+
+		addCurve(
+			cx + xx * cp1x + yx * cp1y, cy + xy * cp1x + yy * cp1y,
+			cx + xx * cp2x + yx * cp2y, cy + xy * cp2x + yy * cp2y,
+			cx + xx * x + yx * y, cy + xy * x + yy * y
+		);
+	}
 };
 
 var extrapolate = function(parts, precision){
@@ -155,17 +199,21 @@ var extrapolate = function(parts, precision){
 			case 'a':
 				px = refX + v[5]; py = refY + v[6];
 
-				if (!+v[0] || !+v[1] || (px == X && py == Y)){
+				if (!v[0] || !v[1] || (px == X && py == Y)){
 					path += 'l' + ux(X = px) + ',' + uy(Y = py);
 					break;
 				}
 				
-				r = calculateArc(v[0], v[1], v[2], v[3], v[4], px, py, X, Y);
-
-				boundsX.push.apply(boundsX, r.boundsX);
-				boundsY.push.apply(boundsY, r.boundsY);
-
-				path += (v[4] == 1 ? 'wa' : 'at') + r.circle.map(np) + ',' + ux(X) + ',' + uy(Y) + ',' + ux(X = px) + ',' + uy(Y = py);
+				visitArc(
+					v[0], v[1], v[2], v[3], v[4], px, py, X, Y,
+					function(p1x, p1y, p2x, p2y, tx, ty){
+						path += 'c' + ux(p1x) + ',' + uy(p1y) + ',' + ux(px = p2x) + ',' + uy(py = p2y) + ',' + ux(X = tx) + ',' + uy(Y = ty);
+					},
+					function(cx, cy, r, sa, ea, ccw, bbl, bbr, bbt, bbb){
+						ux(bbl); ux(bbr); uy(bbt); uy(bbb);
+						path += (ccw ? 'at' : 'wa') + np(cx - r) + ',' + np(cy - r) + ',' + np(cx + r) + ',' + np(cy + r) + ',' + np(X) + ',' + np(Y) + ',' + np(X = px) + ',' + np(Y = py);
+					}
+				);
 			break;
 
 			case 'h':
