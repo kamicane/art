@@ -46,9 +46,9 @@ var parse = function(path){
 
 };
 
-var circle = Math.PI * 2, west = circle / 2, south = west / 2, north = -south, east = 0;
+var circle = Math.PI * 2;
 
-var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, addCurve, addArc){
+var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, curveTo, arcTo){
 	var rad = rotation * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
 	x -= tX; y -= tY;
 	
@@ -82,18 +82,13 @@ var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, addCur
 	    ea = Math.atan2(xy * (x - cx) + yy * (y - cy), xx * (x - cx) + yx * (y - cy));
 
 	cx += tX; cy += tY;
+	x += tX; y += tY;
 
 	// Circular Arc
-	if (rx == ry && addArc){
-		var bbsa = clockwise ? sa : ea, bbea = clockwise ? ea : sa;
-		if (bbea < bbsa) bbea += circle;
-		addArc(
-			cx, cy, rx, sa, ea, !clockwise,
-			// Bounds
-			(bbea > west) ? (cx - rx) : (tX + x),
-			(bbea > circle + east || (bbsa < east && bbea > east)) ? (cx + rx) : (tX + x),
-			(bbea > circle + north || (bbsa < north && bbea > north)) ? (cy - ry) : (tY + y),
-			(bbea > circle + south || (bbsa < south && bbea > south)) ? (cy + ry) : (tY + y)
+	if (rx == ry && arcTo){
+		arcTo(
+			tX, tY, x, y,
+			cx, cy, rx, sa, ea, !clockwise
 		);
 		return;
 	}
@@ -122,132 +117,49 @@ var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, addCur
 
 		var cp2x = x + k * y, cp2y = y - k * x;
 
-		addCurve(
+		curveTo(
+			tX, tY,
 			cx + xx * cp1x + yx * cp1y, cy + xy * cp1x + yy * cp1y,
 			cx + xx * cp2x + yx * cp2y, cy + xy * cp2x + yy * cp2y,
-			cx + xx * x + yx * y, cy + xy * x + yy * y
+			(tX = (cx + xx * x + yx * y)), (tY = (cy + xy * x + yy * y))
 		);
 	}
 };
 
-var extrapolate = function(parts, precision){
-	
-	var boundsX = [], boundsY = [];
-	
-	var ux = (precision != null) ? function(x){
-		boundsX.push(x); return Math.round(x * precision);
-	} : function(x){
-		boundsX.push(x); return x;
-	}, uy = (precision != null) ? function(y){
-		boundsY.push(y); return Math.round(y * precision);
-	} : function(y){
-		boundsY.push(y); return y;
-	}, np = (precision != null) ? function(v){
-		return Math.round(v * precision);
-	} : function(v){
-		return v;
-	};
+/* Measure Bounds */
 
-	var reflect = function(sx, sy, ex, ey){
-		return [ex * 2 - sx, ey * 2 - sy];
-	};
-	
-	var X = 0, Y = 0, px = 0, py = 0, r;
-	
-	var path = '', inX, inY;
-	
-	for (i = 0; i < parts.length; i++){
-		var v = Array.slice(parts[i]), f = v.shift(), l = f.toLowerCase();
-		var refX = l == f ? X : 0, refY = l == f ? Y : 0;
-		
-		if (l != 'm' && l != 'z' && inX == null){
-			inX = X; inY = Y;
-		}
+var left, right, top, bottom;
 
-		switch (l){
-			
-			case 'm':
-				path += 'm' + ux(X = refX + v[0]) + ',' + uy(Y = refY + v[1]);
-			break;
-			
-			case 'l':
-				path += 'l' + ux(X = refX + v[0]) + ',' + uy(Y = refY + v[1]);
-			break;
-			
-			case 'c':
-				px = refX + v[2]; py = refY + v[3];
-				path += 'c' + ux(refX + v[0]) + ',' + uy(refY + v[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[4]) + ',' + uy(Y = refY + v[5]);
-			break;
+function lineBounds(sx, sy, x, y){
+	left   = Math.min(left,   sx, x);
+	right  = Math.max(right,  sx, x);
+	top    = Math.min(top,    sy, y);
+	bottom = Math.max(bottom, sy, y);
+};
 
-			case 's':
-				r = reflect(px, py, X, Y);
-				px = refX + v[0]; py = refY + v[1];
-				path += 'c' + ux(r[0]) + ',' + uy(r[1]) + ',' + ux(px) + ',' + uy(py) + ',' + ux(X = refX + v[2]) + ',' + uy(Y = refY + v[3]);
-			break;
-			
-			case 'q':
-				px = (refX + v[0]); py = (refY + v[1]);
-				path += 'c' + ux((X + px * 2) / 3) + ',' + uy((Y + py * 2) / 3) + ',' + ux(((X = refX + v[2]) + px * 2) / 3) + ',' + uy(((Y = refY + v[3]) + py * 2) / 3) + ',' + ux(X) + ',' + uy(Y);
-			break;
-			
-			case 't':
-				r = reflect(px, py, X, Y);
-				px = r[0]; py = r[1];
-				path += 'c' + ux((X + px * 2) / 3) + ',' + uy((Y + py * 2) / 3) + ',' + ux(((X = refX + v[0]) + px * 2) / 3) + ',' + uy(((Y = refY + v[1]) + py * 2) / 3) + ',' + ux(X) + ',' + uy(Y);
-			break;
+function curveBounds(sx, sy, p1x, p1y, p2x, p2y, x, y){
+	left   = Math.min(left,   sx, p1x, p2x, x);
+	right  = Math.max(right,  sx, p1x, p2x, x);
+	top    = Math.min(top,    sy, p1y, p2y, y);
+	bottom = Math.max(bottom, sy, p1y, p2y, y);
+};
 
-			case 'a':
-				px = refX + v[5]; py = refY + v[6];
+var west = circle / 2, south = west / 2, north = -south, east = 0;
 
-				if (!v[0] || !v[1] || (px == X && py == Y)){
-					path += 'l' + ux(X = px) + ',' + uy(Y = py);
-					break;
-				}
-				
-				visitArc(
-					v[0], v[1], v[2], v[3], v[4], px, py, X, Y,
-					function(p1x, p1y, p2x, p2y, tx, ty){
-						path += 'c' + ux(p1x) + ',' + uy(p1y) + ',' + ux(px = p2x) + ',' + uy(py = p2y) + ',' + ux(X = tx) + ',' + uy(Y = ty);
-					},
-					function(cx, cy, r, sa, ea, ccw, bbl, bbr, bbt, bbb){
-						ux(bbl); ux(bbr); uy(bbt); uy(bbb);
-						path += (ccw ? 'at' : 'wa') + np(cx - r) + ',' + np(cy - r) + ',' + np(cx + r) + ',' + np(cy + r) + ',' + np(X) + ',' + np(Y) + ',' + np(X = px) + ',' + np(Y = py);
-					}
-				);
-			break;
+function arcBounds(sx, sy, ex, ey, cx, cy, r, sa, ea, ccw){
+	var bbsa = ccw ? ea : sa, bbea = ccw ? sa : ea;
+	if (bbea < bbsa) bbea += circle;
 
-			case 'h':
-				path += 'l' + ux(X = refX + v[0]) + ',' + uy(Y);
-			break;
-			
-			case 'v':
-				path += 'l' + ux(X) + ',' + uy(Y = refY + v[0]);
-			break;
-			
-			case 'z':
-				if (inX != null){
-					path += 'xm' + ux(X = inX) + ',' + uy(Y = inY);
-					inX = null;
-				}
-			break;
-			
-		}
-		if (l != 's' && l != 'c' && l != 't' && l != 'q'){
-			px = X; py = Y;
-		}
-	}
-	
-	if (!boundsX.length) return [path, {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0}];
-	
-	var right = Math.max.apply(Math, boundsX),
-		bottom = Math.max.apply(Math, boundsY),
-		left = Math.min.apply(Math, boundsX),
-		top = Math.min.apply(Math, boundsY),
-		height = bottom - top,
-		width = right - left;
-	
-	return [path, {left: left, top: top, right: right, bottom: bottom, width: width, height: height}];
+	// Bounds
+	var bbl = (bbea > west) ? (cx - r) : (ex),
+	    bbr = (bbea > circle + east || (bbsa < east && bbea > east)) ? (cx + r) : (ex),
+	    bbt = (bbea > circle + north || (bbsa < north && bbea > north)) ? (cy - r) : (ey),
+	    bbb = (bbea > circle + south || (bbsa < south && bbea > south)) ? (cy + r) : (ey);
 
+	left   = Math.min(left,   sx, bbl, bbr);
+	right  = Math.max(right,  sx, bbl, bbr);
+	top    = Math.min(top,    sy, bbt, bbb);
+	bottom = Math.max(bottom, sy, bbt, bbb);
 };
 
 /* Utility command factories */
@@ -279,31 +191,21 @@ ART.Path = new Class({
 	initialize: function(path){
 		if (path instanceof ART.Path){ //already a path, copying
 			this.path = Array.slice(path.path);
-			this.box = path.box;
-			this.vml = path.vml;
-			this.svg = path.svg;
+			this.cache = path.cache;
 		} else {
 			this.path = (path == null) ? [] : parse(path);
-			this.box = null;
-			this.vml = null;
-			this.svg = null;
+			this.cache = {};
 		}
-
-		return this;
 	},
 	
 	push: function(){ //modifying the current path resets the memoized values.
-		this.box = null;
-		this.vml = null;
-		this.svg = null;
+		this.cache = {};
 		this.path.push(Array.slice(arguments));
 		return this;
 	},
 	
 	reset: function(){
-		this.box = null;
-		this.vml = null;
-		this.svg = null;
+		this.cache = {};
 		this.path = [];
 		return this;
 	},
@@ -365,42 +267,113 @@ ART.Path = new Class({
 		return newPaths;
 	},
 	
+	visit: function(lineTo, curveTo, arcTo, moveTo, close){
+		var reflect = function(sx, sy, ex, ey){
+			return [ex * 2 - sx, ey * 2 - sy];
+		};
+		
+		var X = 0, Y = 0, px = 0, py = 0, r, inX, inY;
+		
+		var parts = this.path;
+		
+		for (i = 0; i < parts.length; i++){
+			var v = Array.slice(parts[i]), f = v.shift(), l = f.toLowerCase();
+			var refX = l == f ? X : 0, refY = l == f ? Y : 0;
+			
+			if (l != 'm' && l != 'z' && inX == null){
+				inX = X; inY = Y;
+			}
+
+			switch (l){
+				
+				case 'm':
+					if (moveTo) moveTo(X, Y, X = refX + v[0], Y = refY + v[1]);
+					else { X = refX + v[0]; Y = refY + v[1]; }
+				break;
+				
+				case 'l':
+					lineTo(X, Y, X = refX + v[0], Y = refY + v[1]);
+				break;
+				
+				case 'c':
+					px = refX + v[2]; py = refY + v[3];
+					curveTo(X, Y, refX + v[0], refY + v[1], px, py, X = refX + v[4], Y = refY + v[5]);
+				break;
+
+				case 's':
+					r = reflect(px, py, X, Y);
+					px = refX + v[0]; py = refY + v[1];
+					curveTo(X, Y, r[0], r[1], px, py, X = refX + v[2], Y = refY + v[3]);
+				break;
+				
+				case 'q':
+					px = (refX + v[0]); py = (refY + v[1]);
+					curveTo(X, Y, (X + px * 2) / 3, (Y + py * 2) / 3, ((X = refX + v[2]) + px * 2) / 3, ((Y = refY + v[3]) + py * 2) / 3, X, Y);
+				break;
+				
+				case 't':
+					r = reflect(px, py, X, Y);
+					px = r[0]; py = r[1];
+					curveTo(X, Y, (X + px * 2) / 3, (Y + py * 2) / 3, ((X = refX + v[0]) + px * 2) / 3, ((Y = refY + v[1]) + py * 2) / 3, X, Y);
+				break;
+
+				case 'a':
+					px = refX + v[5]; py = refY + v[6];
+					if (!v[0] || !v[1] || (px == X && py == Y)) lineTo(X, Y, px, py);
+					else visitArc(v[0], v[1], v[2], v[3], v[4], px, py, X, Y, curveTo, arcTo);
+					X = px; Y = py;
+				break;
+
+				case 'h':
+					lineTo(X, Y, X = refX + v[0], Y);
+				break;
+				
+				case 'v':
+					lineTo(X, Y, X, Y = refY + v[0]);
+				break;
+				
+				case 'z':
+					if (inX != null){
+						if (close){
+							close();
+							if (moveTo) moveTo(X, Y, X = inX, Y = inY);
+							else { X = inX; Y = inY; }
+						} else {
+							lineTo(X, Y, X = inX, Y = inY);
+						}
+						inX = null;
+					}
+				break;
+				
+			}
+			if (l != 's' && l != 'c' && l != 't' && l != 'q'){
+				px = X; py = Y;
+			}
+		}
+	},
+	
 	/* transformation, measurement */
 	
 	toSVG: function(){
-		if (this.svg == null){
+		if (this.cache.svg == null){
 			var path = '';
 			for (var i = 0, l = this.path.length; i < l; i++) path += this.path[i].join(' ');
-			this.svg = path;
+			this.cache.svg = path;
 		}
-		return this.svg;
+		return this.cache.svg;
 	},
 	
-	toVML: function(precision){
-		if (this.vml == null){
-			var data = extrapolate(this.path, precision);
-			this.box = data[1];
-			this.vml = data[0];
+	measure: function(){
+		if (this.cache.box == null){
+			left = top = Infinity;
+			right = bottom = -Infinity;
+			this.visit(lineBounds, curveBounds, arcBounds);
+			if (left == Infinity)
+				this.cache.box = {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
+			else
+				this.cache.box = {left: left, top: top, right: right, bottom: bottom, width: right - left, height: bottom - top };
 		}
-		return this.vml;
-	},
-	
-	measure: function(precision){
-		if (this.box == null){
-					
-			if (this.path.length){
-				var data = extrapolate(this.path, precision);
-				this.box = data[1];
-				this.vml = data[2];
-			} else {
-				this.box = {left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0};
-				this.vml = '';
-				this.svg = '';
-			}
-		
-		}
-		
-		return this.box;
+		return this.cache.box;
 	}
 	
 });
