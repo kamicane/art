@@ -264,7 +264,7 @@ ART.VML.Base = new Class({
 		height *= Math.abs(shapeToBox.yy);
 		
 		// Place box
-		var left = m.tx, top = m.ty;
+		var left = m.x, top = m.y;
 		
 		// Compensate for offset by center origin rotation
 		var vx = -width / 2, vy = -height / 2;

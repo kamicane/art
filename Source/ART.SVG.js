@@ -67,7 +67,7 @@ ART.SVG.Element = new Class({
 	
 	_transform: function(){
 		var m = this;
-		this.element.setAttribute('transform', 'matrix(' + [m.xx, m.yx, m.xy, m.yy, m.tx, m.ty] + ')');
+		this.element.setAttribute('transform', 'matrix(' + [m.xx, m.yx, m.xy, m.yy, m.x, m.y] + ')');
 	},
 	
 	blend: function(opacity){
