@@ -3,8 +3,8 @@
 name: ART.Path
 description: "Class to generate a valid SVG path using method calls."
 authors: ["[Valerio Proietti](http://mad4milk.net)", "[Sebastian Markbåge](http://calyptus.eu/)"]
-provides: ART.Path
-requires: ART
+provides: [ART.Path]
+requires: [ART, ART.Transform]
 ...
 */
 
@@ -20,7 +20,7 @@ var parameterCount = {
 	a: 7
 };
 
-var parse = function(path){
+function parse(path){
 
 	if (!path) return [];
 
@@ -46,9 +46,39 @@ var parse = function(path){
 
 };
 
+function visitCurve(sx, sy, c1x, c1y, c2x, c2y, ex, ey, lineTo){
+	var ax = sx - c1x,    ay = sy - c1y,
+		bx = c1x - c2x,   by = c1y - c2y,
+		cx = c2x - ex,    cy = c2y - ey,
+		dx = ex - sx,     dy = ey - sy;
+
+	// TODO: Faster algorithm without sqrts
+	var err = Math.sqrt(ax * ax + ay * ay) +
+	          Math.sqrt(bx * bx + by * by) +
+	          Math.sqrt(cx * cx + cy * cy) -
+	          Math.sqrt(dx * dx + dy * dy);
+
+	if (err <= 0.0001){
+		lineTo(sx, sy, ex, ey);
+		return;
+	}
+
+	// Split curve
+	var s1x =   (c1x + c2x) / 2,   s1y = (c1y + c2y) / 2,
+	    l1x =   (c1x + sx) / 2,    l1y = (c1y + sy) / 2,
+	    l2x =   (l1x + s1x) / 2,   l2y = (l1y + s1y) / 2,
+	    r2x =   (ex + c2x) / 2,    r2y = (ey + c2y) / 2,
+	    r1x =   (r2x + s1x) / 2,   r1y = (r2y + s1y) / 2,
+	    l2r1x = (l2x + r1x) / 2,   l2r1y = (l2y + r1y) / 2;
+
+	// TODO: Manual stack if necessary. Currently recursive without tail optimization.
+	visitCurve(sx, sy, l1x, l1y, l2x, l2y, l2r1x, l2r1y, lineTo);
+	visitCurve(l2r1x, l2r1y, r1x, r1y, r2x, r2y, ex, ey, lineTo);
+};
+
 var circle = Math.PI * 2;
 
-var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, curveTo, arcTo){
+function visitArc(rx, ry, rotation, large, clockwise, x, y, tX, tY, curveTo, arcTo){
 	var rad = rotation * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
 	x -= tX; y -= tY;
 	
@@ -126,7 +156,7 @@ var visitArc = function(rx, ry, rotation, large, clockwise, x, y, tX, tY, curveT
 	}
 };
 
-/* Measure Bounds */
+/* Measure bounds */
 
 var left, right, top, bottom;
 
@@ -162,6 +192,30 @@ function arcBounds(sx, sy, ex, ey, cx, cy, r, sa, ea, ccw){
 	bottom = Math.max(bottom, sy, bbt, bbb);
 };
 
+/* Measure length */
+
+var length, desiredLength, desiredPoint;
+
+function traverseLine(sx, sy, ex, ey){
+	var x = ex - sx,
+		y = ey - sy,
+		l = Math.sqrt(x * x + y * y);
+	length += l;
+	if (length >= desiredLength){
+		var offset = (length - desiredLength) / l,
+		    cos = x / l,
+		    sin = y / l;
+		ex -= x * offset; ey -= y * offset;
+		desiredPoint = new ART.Transform(cos, sin, -sin, cos, ex, ey);
+		desiredLength = Infinity;
+	}
+};
+
+function measureLine(sx, sy, ex, ey){
+	var x = ex - sx, y = ey - sy;
+	length += Math.sqrt(x * x + y * y);
+};
+
 /* Utility command factories */
 
 var point = function(c){
@@ -194,7 +248,7 @@ ART.Path = new Class({
 			this.cache = path.cache;
 		} else {
 			this.path = (path == null) ? [] : parse(path);
-			this.cache = {};
+			this.cache = { svg: String(path) };
 		}
 	},
 	
@@ -236,6 +290,10 @@ ART.Path = new Class({
 	visit: function(lineTo, curveTo, arcTo, moveTo, close){
 		var reflect = function(sx, sy, ex, ey){
 			return [ex * 2 - sx, ey * 2 - sy];
+		};
+		
+		if (!curveTo) curveTo = function(sx, sy, c1x, c1y, c2x, c2y, ex, ey){
+			visitCurve(sx, sy, c1x, c1y, c2x, c2y, ex, ey, lineTo);
 		};
 		
 		var X = 0, Y = 0, px = 0, py = 0, r, inX, inY;
@@ -340,8 +398,22 @@ ART.Path = new Class({
 				this.cache.box = {left: left, top: top, right: right, bottom: bottom, width: right - left, height: bottom - top };
 		}
 		return this.cache.box;
+	},
+
+	point: function(lengthToPoint){
+		length = 0;
+		desiredLength = lengthToPoint;
+		desiredPoint = null;
+		this.visit(traverseLine);
+		return desiredPoint;
+	},
+
+	measureLength: function(){
+		length = 0;
+		this.visit(measureLine);
+		return length;
 	}
-	
+
 });
 
 ART.Path.prototype.toString = ART.Path.prototype.toSVG;
