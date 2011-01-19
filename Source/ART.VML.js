@@ -724,18 +724,18 @@ ART.VML.Text = new Class({
 var path, p, round = Math.round;
 
 function moveTo(sx, sy, x, y){
-	path.push('m', round(x * p), ',', round(y * p));
+	path.push('m', round(x * p), round(y * p));
 };
 
 function lineTo(sx, sy, x, y){
-	path.push('l', round(x * p), ',', round(y * p));
+	path.push('l', round(x * p), round(y * p));
 };
 
 function curveTo(sx, sy, p1x, p1y, p2x, p2y, x, y){
 	path.push('c',
-		round(p1x * p), ',', round(p1y * p), ',',
-		round(p2x * p), ',', round(p2y * p), ',',
-		round(x * p), ',', round(y * p)
+		round(p1x * p), round(p1y * p),
+		round(p2x * p), round(p2y * p),
+		round(x * p), round(y * p)
 	);
 };
 
@@ -744,10 +744,10 @@ function arcTo(sx, sy, ex, ey, cx, cy, r, sa, ea, ccw){
 	cy *= p;
 	r *= p;
 	path.push(ccw ? 'at' : 'wa',
-		round(cx - r), ',', round(cy - r), ',',
-		round(cx + r), ',', round(cy + r), ',',
-		round(sx * p), ',', round(sy * p), ',',
-		round(ex * p), ',', round(ey * p)
+		round(cx - r), round(cy - r),
+		round(cx + r), round(cy + r),
+		round(sx * p), round(sy * p),
+		round(ex * p), round(ey * p)
 	);
 };
 
@@ -762,7 +762,7 @@ ART.Path.implement({
 			path = [];
 			p = precision;
 			this.visit(lineTo, curveTo, arcTo, moveTo, close);
-			this.cache.vml = path.join('');
+			this.cache.vml = path.join(' ');
 		}
 		return this.cache.vml;
 	}

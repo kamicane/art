@@ -411,16 +411,16 @@ var fontAnchors = { left: 'start', center: 'middle', right: 'end' },
 var splitPaths, splitPath;
 
 function splitMove(sx, sy, x, y){
-	if (splitPath.length > 4) splitPaths.push(splitPath);
-	splitPath = ['M', x, ',', y];
+	if (splitPath.length > 3) splitPaths.push(splitPath);
+	splitPath = ['M', x, y];
 };
 
 function splitLine(sx, sy, x, y){
-	splitPath.push('L', x, ',', y);
+	splitPath.push('L', x, y);
 };
 
 function splitCurve(sx, sy, p1x, p1y, p2x, p2y, x, y){
-	splitPath.push('C', p1x, ',', p1y, ',', p2x, ',', p2y, ',', x, ',', y);
+	splitPath.push('C', p1x, p1y, p2x, p2y, x, y);
 };
 
 ART.SVG.Text = new Class({
@@ -557,14 +557,14 @@ ART.SVG.Text = new Class({
 		this._ejectPaths();
 		var id = 'p' + String.uniqueID() + '-';
 		
-		splitPaths = []; splitPath = ['M', 0, ',', 0];
+		splitPaths = []; splitPath = ['M', 0, 0];
 		path.visit(splitLine, splitCurve, null, splitMove);
 		splitPaths.push(splitPath);
 		
 		var result = [];
 		for (var i = 0, l = splitPaths.length; i < l; i++){
 			var p = createElement('path');
-			p.setAttribute('d', splitPaths[i].join(''));
+			p.setAttribute('d', splitPaths[i].join(' '));
 			p.setAttribute('id', id + i);
 			result.push(p);
 		}
