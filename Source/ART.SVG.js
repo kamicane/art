@@ -406,6 +406,23 @@ ART.SVG.Image = new Class({
 var fontAnchors = { left: 'start', center: 'middle', right: 'end' },
     fontAnchorOffsets = { middle: '50%', end: '100%' };
 
+/* split each continuous line into individual paths */
+
+var splitPaths, splitPath;
+
+function splitMove(sx, sy, x, y){
+	if (splitPath.length > 4) splitPaths.push(splitPath);
+	splitPath = ['M', x, ',', y];
+};
+
+function splitLine(sx, sy, x, y){
+	splitPath.push('L', x, ',', y);
+};
+
+function splitCurve(sx, sy, p1x, p1y, p2x, p2y, x, y){
+	splitPath.push('C', p1x, ',', p1y, ',', p2x, ',', p2y, ',', x, ',', y);
+};
+
 ART.SVG.Text = new Class({
 
 	Extends: ART.SVG.Base,
@@ -539,11 +556,15 @@ ART.SVG.Text = new Class({
 	_createPaths: function(path){
 		this._ejectPaths();
 		var id = 'p' + String.uniqueID() + '-';
-		var paths = path.splitContinuous();
+		
+		splitPaths = []; splitPath = ['M', 0, ',', 0];
+		path.visit(splitLine, splitCurve, null, splitMove);
+		splitPaths.push(splitPath);
+		
 		var result = [];
-		for (var i = 0, l = paths.length; i < l; i++){
+		for (var i = 0, l = splitPaths.length; i < l; i++){
 			var p = createElement('path');
-			p.setAttribute('d', paths[i].toSVG());
+			p.setAttribute('d', splitPaths[i].join(''));
 			p.setAttribute('id', id + i);
 			result.push(p);
 		}

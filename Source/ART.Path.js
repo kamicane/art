@@ -231,42 +231,8 @@ ART.Path = new Class({
 		return this.push('z');
 	},
 	
-	/* split each continuous line into individual paths */
-	
-	splitContinuous: function(){
-		var parts = this.path, newPaths = [], path = new ART.Path();
-		
-		var X = 0, Y = 0, inX, inY;
-		for (var i = 0, k = parts.length; i < k; i++){
-			var v = parts[i], f = v[0], l = f.toLowerCase();
-			
-			if (l != 'm' && inX == null){ inX = X; inY = Y; }
-			
-			if (l != f){ X = 0; Y = 0; }
-			
-			if (l == 'm' || l == 'l' || l == 't'){ X += v[1]; Y += v[2]; }
-			else if (l == 'c'){ X += v[5]; Y += v[6]; }
-			else if (l == 's' || l == 'q'){ X += v[3]; Y += v[4]; }
-			else if (l == 'a'){ X += v[6]; Y += v[7]; }
-			else if (l == 'h'){ X += v[1]; }
-			else if (l == 'v'){ Y += v[1]; }
-			else if (l == 'z' && inX != null){
-				X = inX; Y = inY;
-				inX = null;
-			}
+	/* visitor */
 
-			if (path.path.length > 0 && (l == 'm' || l == 'z')){
-				newPaths.push(path);
-				path = new ART.Path().push('M', X, Y);
-			} else {
-				path.path.push(v);
-			}
-		}
-
-		newPaths.push(path);
-		return newPaths;
-	},
-	
 	visit: function(lineTo, curveTo, arcTo, moveTo, close){
 		var reflect = function(sx, sy, ex, ey){
 			return [ex * 2 - sx, ey * 2 - sy];
