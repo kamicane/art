@@ -1,7 +1,7 @@
-ART.Shapes {#Number}
-====================
+ART.Shapes
+==========
 
-ART.Shapes defines multiple common used Shapes that extend [ART.Shape][].
+ART.Shapes defines common used Shapes that extend [ART.Shape][].
 
 ART.Rectangle {#ART-Rectangle}
 ==============================
@@ -58,6 +58,6 @@ ART.Wedge
 
 
 
-[ART.Shape]: /art/ART/ART.Shape
-[ART.Rectangle]: /art/ART/ART.Shapes#ART-Rectangle
+[ART.Shape]: ../ART/ART.Shape
+[ART.Rectangle]: #ART-Rectangle
 
