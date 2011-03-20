@@ -47,29 +47,48 @@ function parse(path){
 };
 
 function visitCurve(sx, sy, c1x, c1y, c2x, c2y, ex, ey, lineTo){
-	var ax = sx - c1x,    ay = sy - c1y,
-		bx = c1x - c2x,   by = c1y - c2y,
-		cx = c2x - ex,    cy = c2y - ey,
-		dx = ex - sx,     dy = ey - sy;
+	var gx = ex - sx, gy = ey - sy,
+		g = gx * gx + gy * gy,
+		v1, v2, cx, cy, u;
 
-	// TODO: Faster algorithm without sqrts
-	var err = Math.sqrt(ax * ax + ay * ay) +
-	          Math.sqrt(bx * bx + by * by) +
-	          Math.sqrt(cx * cx + cy * cy) -
-	          Math.sqrt(dx * dx + dy * dy);
+	cx = c1x - sx; cy = c1y - sy;
+	u = cx * gx + cy * gy;
 
-	if (err <= 0.0001){
+	if (u > g){
+		cx -= gx;
+		cy -= gy;
+	} else if (u > 0 && g != 0){
+		cx -= u/g * gx;
+		cy -= u/g * gy;
+	}
+
+	v1 = cx * cx + cy * cy;
+
+	cx = c2x - sx; cy = c2y - sy;
+	u = cx * gx + cy * gy;
+
+	if (u > g){
+		cx -= gx;
+		cy -= gy;
+	} else if (u > 0 && g != 0){
+		cx -= u/g * gx;
+		cy -= u/g * gy;
+	}
+
+	v2 = cx * cx + cy * cy;
+
+	if (v1 < 0.01 && v2 < 0.01){
 		lineTo(sx, sy, ex, ey);
 		return;
 	}
 
 	// Split curve
-	var s1x =   (c1x + c2x) / 2,   s1y = (c1y + c2y) / 2,
-	    l1x =   (c1x + sx) / 2,    l1y = (c1y + sy) / 2,
-	    l2x =   (l1x + s1x) / 2,   l2y = (l1y + s1y) / 2,
-	    r2x =   (ex + c2x) / 2,    r2y = (ey + c2y) / 2,
-	    r1x =   (r2x + s1x) / 2,   r1y = (r2y + s1y) / 2,
-	    l2r1x = (l2x + r1x) / 2,   l2r1y = (l2y + r1y) / 2;
+	var s1x =   (c1x + c2x) * 0.5,   s1y =   (c1y + c2y) * 0.5,
+	    l1x =   (c1x + sx)  * 0.5,   l1y =   (c1y + sy)  * 0.5,
+	    l2x =   (l1x + s1x) * 0.5,   l2y =   (l1y + s1y) * 0.5,
+	    r2x =   (ex + c2x)  * 0.5,   r2y =   (ey + c2y)  * 0.5,
+	    r1x =   (r2x + s1x) * 0.5,   r1y =   (r2y + s1y) * 0.5,
+	    l2r1x = (l2x + r1x) * 0.5,   l2r1y = (l2y + r1y) * 0.5;
 
 	// TODO: Manual stack if necessary. Currently recursive without tail optimization.
 	visitCurve(sx, sy, l1x, l1y, l2x, l2y, l2r1x, l2r1y, lineTo);
