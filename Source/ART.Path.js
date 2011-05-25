@@ -319,7 +319,7 @@ ART.Path = new Class({
 		
 		var parts = this.path;
 		
-		for (i = 0; i < parts.length; i++){
+		for (var i = 0; i < parts.length; i++){
 			var v = Array.slice(parts[i]), f = v.shift(), l = f.toLowerCase();
 			var refX = l == f ? X : 0, refY = l == f ? Y : 0;
 			
