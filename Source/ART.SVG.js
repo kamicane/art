@@ -159,7 +159,7 @@ ART.SVG.Base = new Class({
 	
 	_injectBrush: function(type){
 		if (!this.container) return;
-		var brush = this[type + 'Brush'];
+		var brush = (type == 'fill') ? this.fillBrush : this.strokeBrush;
 		if (brush) this.container.defs.appendChild(brush);
 	},
 	
@@ -175,9 +175,10 @@ ART.SVG.Base = new Class({
 		this._ejectBrush(type);
 
 		var brush = createElement(tag);
-		this[type + 'Brush'] = brush;
+		if (type == 'fill') this.fillBrush = brush;
+		else this.strokeBrush = brush;
 
-		var id = type + '-brush-e' + this.uid;
+		var id = type + '-brush-e' + String.uniqueID();
 		brush.setAttribute('id', id);
 
 		this._injectBrush(type);

@@ -153,7 +153,7 @@ function visitArc(rx, ry, rotation, large, clockwise, x, y, tX, tY, curveTo, arc
 
 	var n = Math.ceil(Math.abs(arc / (circle / 4))),
 	    step = arc / n,
-	    k = (4 / 3) * Math.tan(step / 4),
+	    k = (4 / 3) * Math.tan(step / 4);
 	    a = sa;
 
 	x = Math.cos(a); y = Math.sin(a);

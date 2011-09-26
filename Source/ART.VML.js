@@ -29,6 +29,12 @@ ART.VML = new Class({
 		if (width != null && height != null) this.resize(width, height);
 	},
 	
+	eject: function(){
+		var element = this.vml, parent = element.parentNode;
+		if (parent) parent.removeChild(element);
+		return this;
+	},
+	
 	inject: function(element){
 		if (element.element) element = element.element;
 		element.appendChild(this.vml);
@@ -304,7 +310,7 @@ ART.VML.Base = new Class({
 		if (strokeWidth){
 			// Scale is the hypothenus between the two vectors
 			// TODO: Use area calculation instead
-			var vx = m.xx + m.xy, vy = m.yy + m.yx;
+			vx = m.xx + m.xy; vy = m.yy + m.yx;
 			strokeWidth *= Math.sqrt(vx * vx + vy * vy) / Math.sqrt(2);
 		}
 		
@@ -546,7 +552,7 @@ ART.VML.Shape = new Class({
 		var vml = this._vml || '';
 
 		this._prefix = prefix;
-		this._suffix = suffix
+		this._suffix = suffix;
 		if (prefix){
 			vml = [
 				prefix, vml, suffix,
