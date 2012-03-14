@@ -18,7 +18,7 @@ ART.Element = new Class({
 
 	/* dom */
 
-	inject: function(element){
+	inject: function(element, position){
 		if (element.element) element = element.element;
 		element.appendChild(this.element);
 		return this;
@@ -162,6 +162,14 @@ ART.Transform = new Class({
 		var flip = m.yx / m.xx > m.yy / m.xy ? -1 : 1;
 		if (m.xx < 0 ? m.xy >= 0 : m.xy < 0) flip = -flip;
 		return this.rotate(deg - Math.atan2(flip * m.yx, flip * m.xx) * 180 / Math.PI, x, y);
+	},
+	
+	centroidScaleTo: function(x, y){
+	    if(!y) y = x;
+	    var xx = this.xx;
+	    var yy = this.yy;
+	    this.scaleTo(x, y);
+	    this.move( (xx - this.xx) * this.width / 2 , (yy - this.yy) * this.height / 2 );
 	},
 
 	scaleTo: function(x, y){

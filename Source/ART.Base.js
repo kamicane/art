@@ -23,7 +23,10 @@ var VML = function(){
 };
 
 var MODE = SVG() ? 'SVG' : VML() ? 'VML' : null;
-if (!MODE) return;
+if (!MODE){
+    throw('no supported output mode!');
+    return;
+}
 
 ART.Shape = new Class({Extends: ART[MODE].Shape});
 ART.Group = new Class({Extends: ART[MODE].Group});
