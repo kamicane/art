@@ -1,3 +1,9 @@
-# MooTools A.R.T.
+# Please use this instead
 
-Vector-based drawing for widgets, icons, and all that stuff. Alpha.
+https://github.com/sebmarkbage/art
+
+which is the base for
+
+https://github.com/reactjs/react-art
+
+Which is actively maintained, and not mootools based.
