@@ -36,8 +36,8 @@ ART.SVG = new Class({
 
 	resize: function(width, height){
 		var element = this.element;
-		element.setAttribute('width', width);
-		element.setAttribute('height', height);
+		if(!element.getStyle('width')) element.setStyle('width', width);
+		if(!element.getStyle('height')) element.setStyle('height', height);
 		this.width = width;
 		this.height = height;
 		return this;
@@ -217,12 +217,14 @@ ART.SVG.Base = new Class({
 		this[type + 'Brush'] = null;
 		var element = this.element;
 		if (color == null){
-			element.setAttribute(type, 'none');
-			element.removeAttribute(type + '-opacity');
+		    if(type != 'fill'){
+                //element.setStyle(type, 'none');
+                element.setStyle(type + '-opacity');
+			}
 		} else {
 			color = Color.detach(color);
-			element.setAttribute(type, color[0]);
-			element.setAttribute(type + '-opacity', color[1]);
+			element.setStyle(type, color[0]);
+			element.setStyle(type + '-opacity', color[1]);
 		}
 	},
 
@@ -291,8 +293,8 @@ ART.SVG.Base = new Class({
 
 		var image = createElement('image');
 		image.setAttributeNS(XLINK, 'href', url);
-		image.setAttribute('width', width);
-		image.setAttribute('height', height);
+		if(!image.getStyle('width')) image.setStyle('width', width);
+		if(!image.getStyle('height')) image.setStyle('height', height);
 		image.setAttribute('preserveAspectRatio', 'none'); // none, xMidYMid slice, xMidYMid meet
 
 		if (color1 != null){
@@ -338,8 +340,8 @@ ART.SVG.Base = new Class({
 		pattern.setAttribute('x', left || 0);
 		pattern.setAttribute('y', top || 0);
 		
-		pattern.setAttribute('width', width);
-		pattern.setAttribute('height', height);
+		if(!pattern.getStyle('width')) pattern.setStyle('width', width);
+		if(!pattern.getStyle('height')) pattern.setStyle('height', height);
 
 		//pattern.setAttribute('viewBox', '0 0 75 50');
 		//pattern.setAttribute('preserveAspectRatio', 'xMidYMid slice');
@@ -395,8 +397,8 @@ ART.SVG.Image = new Class({
 	draw: function(src, width, height){
 		var element = this.element;
 		element.setAttributeNS(XLINK, 'href', src);
-		element.setAttribute('width', width);
-		element.setAttribute('height', height);
+		if(!element.getStyle('width')) element.setStyle('width', width);
+		if(!element.getStyle('height')) element.setStyle('height', height);
 		this.width = width;
 		this.height = height;
 		return this;
